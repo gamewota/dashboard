@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   return (
@@ -24,15 +25,38 @@ const Sidebar = () => {
       </div>
 
       <div className="drawer-side">
-        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+        <label
+          htmlFor="my-drawer"
+          aria-label="close sidebar"
+          className="drawer-overlay"
+          data-theme="bumblebee"
+        ></label>
         <div className="menu bg-base-200 text-base-content min-h-full w-80 p-4 relative">
-          <label htmlFor="my-drawer" className="btn btn-sm btn-circle absolute right-4 top-4">
+          <label
+            htmlFor="my-drawer"
+            className="btn btn-sm btn-circle absolute right-4 top-4"
+          >
             ✕
           </label>
 
           {/* Menu Items */}
-          <li><a>Sidebar Item 1</a></li>
-          <li><a>Sidebar Item 2</a></li>
+          <ul className="menu mt-12 gap-0 [&>li:not(:first-child)]:border-t [&>li:not(:first-child)]:border-base-300 w-full">
+            <li>
+              <Link to="/dashboard/users">Users</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/songs">Songs</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/quotes">Quotes</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/cards">Cards</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/items">Shop Items</Link>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
