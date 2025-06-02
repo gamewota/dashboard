@@ -10,12 +10,11 @@ const Quote = () => {
   useEffect(() => {
     dispatch(fetchQuotes());
   },[dispatch]);
-
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className='text-bold'>Error: {error}</p>;
+  if (!data || data.length === 0) return <p>No items found.</p>;
   return (
     <div className='min-h-screen w-screen flex justify-center'>
-      {loading && <p>Loading...</p>}
-      {error && <p className='text-bold'>Error: {error}</p>}
-
       <div className='overflow-x-auto'>
         <table className='table table-zebra'>
           <thead>
