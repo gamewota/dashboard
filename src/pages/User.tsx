@@ -12,9 +12,21 @@ const User = () => {
   },[dispatch]);
 
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className='text-bold'>Error: {error}</p>;
-  if (!data || data.length === 0) return <p>No items found.</p>;
+  if (loading) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p>Loading...</p>
+    </div>
+  )
+  if (error) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p className='text-bold'>Error: {error}</p>
+    </div>
+  )
+  if (!data || data.length === 0) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p>No items found.</p>
+    </div>
+  )
 
 
   return (
