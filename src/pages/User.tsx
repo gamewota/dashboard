@@ -11,10 +11,26 @@ const User = () => {
     dispatch(fetchUsers());
   },[dispatch]);
 
+
+  if (loading) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p>Loading...</p>
+    </div>
+  )
+  if (error) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p className='text-bold'>Error: {error}</p>
+    </div>
+  )
+  if (!data || data.length === 0) return (
+    <div className='min-h-screen w-screen flex justify-center items-center'>
+      <p>No items found.</p>
+    </div>
+  )
+
+
   return (
     <div className='min-h-screen w-screen flex justify-center'>
-        {loading && <p>Loading...</p>}
-        {error && <p className='text-bold'>Error: {error}</p>}
         <div className="overflow-x-auto">
             <table className="table table-zebra">
                 <thead>
