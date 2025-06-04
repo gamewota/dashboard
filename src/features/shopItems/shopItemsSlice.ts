@@ -32,6 +32,15 @@ export const fetchShopItems = createAsyncThunk('shopItems/fetchShopItems', async
     return response.data.data;
 })
 
+export const addShopItem = createAsyncThunk('shopItems/addShopItem', async (newItem: Omit<ShopItem, 'id' | 'deleted_at'>, { rejectWithValue} ) => {
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop/item/add`, newItem);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to add shop item')
+    }
+})
+
 const shopItemSlice = createSlice({
     name: 'shopItems',
     initialState,

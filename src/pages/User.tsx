@@ -39,10 +39,12 @@ const User = () => {
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Username</th>
+                        <th>Email</th>
+                        <th>Is Verified</th>
+                        <th>Access Token</th>
                         <th>Created At</th>
                         <th>Updated At</th>
                         <th>Deleted At</th>
-                        <th>Is Verified</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,9 +54,7 @@ const User = () => {
                     <td>{user.first_name || '-'}</td>
                     <td>{user.last_name || '-'}</td>
                     <td>{user.username || '-'}</td>
-                    <td>{user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</td>
-                    <td>{user.updated_at ? new Date(user.updated_at).toLocaleString() : '-'}</td>
-                    <td>{user.deleted_at ? new Date(user.deleted_at).toLocaleString() : '-'}</td>
+                    <td>{user.email || '-'}</td>
                     <td>
                         {typeof user.is_verified === 'boolean'
                         ? user.is_verified
@@ -62,6 +62,10 @@ const User = () => {
                             : 'False'
                         : '-'}
                     </td>
+                    <td>{user.access_token || '-'}</td>
+                    <td>{user.profile_created_at ? new Date(user.profile_created_at).toLocaleString() : '-'}</td>
+                    <td>{user.profile_updated_at ? new Date(user.profile_updated_at).toLocaleString() : '-'}</td>
+                    <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
                     </tr>
             ))}
                 </tbody>
