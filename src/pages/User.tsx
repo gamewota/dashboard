@@ -45,6 +45,7 @@ const User = () => {
                         <th>Created At</th>
                         <th>Updated At</th>
                         <th>Deleted At</th>
+                        <th>Unbanned At</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,6 +67,7 @@ const User = () => {
                     <td>{user.profile_created_at ? new Date(user.profile_created_at).toLocaleString() : '-'}</td>
                     <td>{user.profile_updated_at ? new Date(user.profile_updated_at).toLocaleString() : '-'}</td>
                     <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
+                    <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
                     </tr>
             ))}
                 </tbody>

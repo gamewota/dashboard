@@ -12,6 +12,7 @@ type User = {
     profile_updated_at: string;
     profile_deleted_at: string | null;
     is_verified: boolean;
+    unbanned_at: string | null;
 }
 
 type UserState = {
