@@ -9,6 +9,7 @@ const Quote = () => {
   const [formData, setFormData] = useState({
     text: ''
   })
+  
 
   useEffect(() => {
     dispatch(fetchQuotes());
@@ -31,7 +32,7 @@ const Quote = () => {
 
       {loading && (
         <div className='flex justify-center items-center h-64'>
-          <p>Loading...</p>
+          <span className="loading loading-infinity loading-xl text-warning"></span>
         </div>
       )}
 
