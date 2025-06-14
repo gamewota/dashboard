@@ -23,6 +23,15 @@ export const fetchQuotes = createAsyncThunk('quotes/fetchQuotes', async () => {
     return response.data.data;
 })
 
+export const addQuote = createAsyncThunk('quotes/addQuote', async (newQuote: Omit<Quote, 'id'>, {rejectWithValue}) => {
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/quote/add`, newQuote);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to add quote');
+    }
+})
+
  const quoteSlice = createSlice({
     name: 'quotes',
     initialState,

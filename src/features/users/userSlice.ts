@@ -6,10 +6,13 @@ type User = {
     first_name: string;
     last_name: string;
     username: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
+    email: string;
+    access_token: string;
+    profile_created_at: string;
+    profile_updated_at: string;
+    profile_deleted_at: string | null;
     is_verified: boolean;
+    unbanned_at: string | null;
 }
 
 type UserState = {
@@ -26,8 +29,6 @@ const initialState: UserState = {
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
-    console.log(import.meta.env)
-    console.log('response', response)
     return response.data.data;
 })
 

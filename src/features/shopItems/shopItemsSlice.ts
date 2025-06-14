@@ -10,6 +10,7 @@ type ShopItem = {
     currency: string;
     description: string;
     stock: number;
+    isVisible: boolean;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
@@ -32,6 +33,47 @@ export const fetchShopItems = createAsyncThunk('shopItems/fetchShopItems', async
     return response.data.data;
 })
 
+export const addShopItem = createAsyncThunk('shopItems/addShopItem', async (newItem: Omit<ShopItem, 'id' | 'deleted_at' | 'isVisible'>, { rejectWithValue} ) => {
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop/item/add`, newItem);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to add shop item')
+    }
+})
+
+export const updateShopItem = createAsyncThunk(
+    'shopItems/updateShopItem',
+    async (
+      { updatedData }: { updatedData: Partial<Omit<ShopItem, 'deleted_at'>> },
+      { rejectWithValue }
+    ) => {
+      try {
+        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/shop/item/update`, updatedData);
+        return { updatedFields: updatedData, message: response.data.message };
+      } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to update shop item');
+      }
+    }
+  );
+
+export const updateShopVisibility = createAsyncThunk(
+    'shopItems/updateShopItem',
+    async (
+      { updatedData }: { updatedData: Partial<Omit<ShopItem, 'name' | 'type' | 'price' | 'currency' | 'description' | 'stock' | 'deleted_at'>> },
+      { rejectWithValue }
+    ) => {
+      try {
+        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/shop/item/update/visibility`, updatedData);
+        return { updatedFields: updatedData, message: response.data.message };
+      } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to update shop item');
+      }
+    }
+  );
+  
+  
+
 const shopItemSlice = createSlice({
     name: 'shopItems',
     initialState,
@@ -50,6 +92,7 @@ const shopItemSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch shop items';
             })
+              
     }
 })
 

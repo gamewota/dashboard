@@ -4,6 +4,7 @@ import songsReducer from '../features/songs/songSlice';
 import quotesReducer from '../features/quotes/quoteSlice';
 import shopItemsReducer from '../features/shopItems/shopItemsSlice';
 import cardsReducer from '../features/cards/cardSlice';
+import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice'
 
 
 export const store = configureStore({
@@ -12,7 +13,8 @@ export const store = configureStore({
         songs: songsReducer,
         quotes: quotesReducer,
         shopItems: shopItemsReducer,
-        cards: cardsReducer
+        cards: cardsReducer,
+        shopTransactions: shopTransactionsReducer
     }
 })
 
