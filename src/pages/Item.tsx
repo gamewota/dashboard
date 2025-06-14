@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchShopItems, addShopItem, updateShopItem } from '../features/shopItems/shopItemsSlice';
+import { fetchShopItems, addShopItem, updateShopVisibility } from '../features/shopItems/shopItemsSlice';
 import { useEffect, useState } from 'react';
 import type { RootState, AppDispatch } from '../store';
 
@@ -23,11 +23,8 @@ const Item = () => {
     const now = new Date().toISOString();
   
     const result = await dispatch(
-      updateShopItem({
+      updateShopVisibility({
         updatedData: {
-          ...formData,
-          price: Number(formData.price),
-          stock: Number(formData.stock),
           id,
           isVisible: newValue,
           updated_at: now,
@@ -35,7 +32,7 @@ const Item = () => {
       })
     );
   
-    if (updateShopItem.fulfilled.match(result)) {
+    if (updateShopVisibility.fulfilled.match(result)) {
       // Show success toast with message from payload
       const toastContainer = document.getElementById('toast-container');
       const toast = document.createElement('div');

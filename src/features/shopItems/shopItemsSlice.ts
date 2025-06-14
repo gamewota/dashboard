@@ -56,6 +56,21 @@ export const updateShopItem = createAsyncThunk(
       }
     }
   );
+
+export const updateShopVisibility = createAsyncThunk(
+    'shopItems/updateShopItem',
+    async (
+      { updatedData }: { updatedData: Partial<Omit<ShopItem, 'name' | 'type' | 'price' | 'currency' | 'description' | 'stock' | 'deleted_at'>> },
+      { rejectWithValue }
+    ) => {
+      try {
+        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/shop/item/update/visibility`, updatedData);
+        return { updatedFields: updatedData, message: response.data.message };
+      } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to update shop item');
+      }
+    }
+  );
   
   
 
