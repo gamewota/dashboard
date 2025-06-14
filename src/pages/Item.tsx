@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchShopItems, addShopItem } from '../features/shopItems/shopItemsSlice';
+import { fetchShopItems, addShopItem, updateShopItem } from '../features/shopItems/shopItemsSlice';
 import { useEffect, useState } from 'react';
 import type { RootState, AppDispatch } from '../store';
 
@@ -19,6 +19,43 @@ const Item = () => {
     dispatch(fetchShopItems());
   }, [dispatch]);
 
+  const handleToggleVisibility = async (id: number, newValue: boolean) => {
+    const now = new Date().toISOString();
+  
+    const result = await dispatch(
+      updateShopItem({
+        updatedData: {
+          ...formData,
+          price: Number(formData.price),
+          stock: Number(formData.stock),
+          id,
+          isVisible: newValue,
+          updated_at: now,
+        },
+      })
+    );
+  
+    if (updateShopItem.fulfilled.match(result)) {
+      // Show success toast with message from payload
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'alert alert-success';
+      toast.innerHTML = `<span>${result.payload?.message || 'Visibility updated.'}</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+      dispatch(fetchShopItems());
+    } else {
+      // Show error toast with message from error
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'alert alert-error';
+      toast.innerHTML = `<span>${(result.payload as any)?.message || 'Failed to update visibility.'}</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  };
+  
+
   return (
     <div className='min-h-screen w-screen flex flex-col items-center p-4'>
       {/* Add Item Button */}
@@ -34,7 +71,7 @@ const Item = () => {
       {/* Loading */}
       {loading && (
         <div className='flex justify-center items-center h-64'>
-          <p>Loading...</p>
+          <span className="loading loading-infinity loading-xl text-warning"></span>
         </div>
       )}
 
@@ -65,6 +102,7 @@ const Item = () => {
                 <th>Currency</th>
                 <th>Item Description</th>
                 <th>Stock</th>
+                <th>Visible</th>
                 <th>Created At</th>
                 <th>Updated At</th>
                 <th>Deleted At</th>
@@ -80,6 +118,14 @@ const Item = () => {
                   <td>{item.currency || '-'}</td>
                   <td>{item.description || '-'}</td>
                   <td>{item.stock || '-'}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-success"
+                      defaultChecked={item.isVisible}
+                      onChange={() => handleToggleVisibility(item.id, !item.isVisible)}
+                    />
+                  </td>
                   <td>{item.created_at || '-'}</td>
                   <td>{item.updated_at || '-'}</td>
                   <td>{item.deleted_at || '-'}</td>
