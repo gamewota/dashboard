@@ -10,6 +10,7 @@ type shopTransactions = {
     status: string;
     username: string;
     item_name: string;
+    remarks: string;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;

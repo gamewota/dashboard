@@ -46,6 +46,7 @@ const ShopTransactions = () => {
                 <td>Total Price</td>
                 <td>Currency</td>
                 <td>Status</td>
+                <td>Remarks</td>
                 <td>Created At</td>
                 <td>Updated At</td>
                 <td>Deleted At</td>
@@ -62,6 +63,7 @@ const ShopTransactions = () => {
                     <td>{item.total_price || '-'}</td>
                     <td>{item.currency || '-'}</td>
                     <td>{item.status || '-'}</td>
+                    <td>{item.remarks || '-'}</td>
                     <td>{item.created_at || '-'}</td>
                     <td>{item.updated_at || '-'}</td>
                     <td>{item.deleted_at || '-'}</td>
