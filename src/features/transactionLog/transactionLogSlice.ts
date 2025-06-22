@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE_URL } from '../../helpers/constants';
 
 
 type transactions = {
@@ -26,7 +27,7 @@ const initialState: shopTransactionsState = {
 }
 
 export const fetchTransactionsLog = createAsyncThunk('transactions/fetchTransactionsLog', async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/user/transaction/log`);
+    const response = await axios.get(`${API_BASE_URL}/user/transaction/log`);
     return response.data.data;
 })
 

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE_URL } from '../../helpers/constants';
 
 type User = {
     id: number;
@@ -28,7 +29,7 @@ const initialState: UserState = {
 };
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
+    const response = await axios.get(`${API_BASE_URL}/users`);
     return response.data.data;
 })
 

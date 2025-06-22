@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE_URL } from '../../helpers/constants';
 
 
 type ShopItem = {
@@ -29,13 +30,13 @@ const initialState: ShopItemState = {
 }
 
 export const fetchShopItems = createAsyncThunk('shopItems/fetchShopItems', async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/shop/items`);
+    const response = await axios.get(`${API_BASE_URL}/shop/items`);
     return response.data.data;
 })
 
 export const addShopItem = createAsyncThunk('shopItems/addShopItem', async (newItem: Omit<ShopItem, 'id' | 'deleted_at' | 'isVisible'>, { rejectWithValue} ) => {
     try {
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop/item/add`, newItem);
+        const response = await axios.post(`${API_BASE_URL}/shop/item/add`, newItem);
         return response.data;
     } catch (error: any) {
         return rejectWithValue(error.response?.data?.message || 'Failed to add shop item')

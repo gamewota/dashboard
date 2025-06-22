@@ -6,6 +6,7 @@ import shopItemsReducer from '../features/shopItems/shopItemsSlice';
 import cardsReducer from '../features/cards/cardSlice';
 import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice'
 import transactionLogReducer from '../features/transactionLog/transactionLogSlice'
+import authReducer from '../features/auth/authSlice'
 
 
 export const store = configureStore({
@@ -16,7 +17,8 @@ export const store = configureStore({
         shopItems: shopItemsReducer,
         cards: cardsReducer,
         shopTransactions: shopTransactionsReducer,
-        transactionsLog: transactionLogReducer
+        transactionsLog: transactionLogReducer,
+        auth: authReducer
     }
 })
 
