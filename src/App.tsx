@@ -8,11 +8,14 @@ import User from "./pages/User"
 import Item from "./pages/Item"
 import ShopTransactions from "./pages/ShopTransactions"
 import TransactionLog from './pages/TransactionLog'
+import { useAuth } from "./hooks/useAuth"
 function App() {
-
+  const auth = useAuth()
   return (
     <div data-theme="bumblebee" className="min-h-screen w-screen">
-      <Sidebar />
+      {auth.user && (
+        <Sidebar />
+      )}
 
       <Routes>
         <Route path="/dashboard/" element={<Home />}/>
