@@ -3,22 +3,19 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 
 
-type shopTransactions = {
-    id: number;
-    quantity: number;
-    total_price: number;
-    currency: string;
-    status: string;
-    username: string;
-    item_name: string;
+type transactions = {
+    logId: number;
+    transactionId: number;
+    MDRRate: number;
+    totalAmount: number;
+    fromStatus: number;
+    toStatus: string;
     remarks: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
+    createdAt: string;
 }
 
 type shopTransactionsState = {
-    data: shopTransactions[];
+    data: transactions[];
     loading: boolean;
     error: string | null;
 }
@@ -29,30 +26,30 @@ const initialState: shopTransactionsState = {
     error: null
 }
 
-export const fetchShopTransactions = createAsyncThunk('shopTransactions/fetchShopTransactions', async () => {
-    const response = await axios.get(`${API_BASE_URL}/shop/transactions`);
+export const fetchTransactionsLog = createAsyncThunk('transactions/fetchTransactionsLog', async () => {
+    const response = await axios.get(`${API_BASE_URL}/user/transaction/log`);
     return response.data.data;
 })
 
-const shopTransactionsSlice = createSlice({
-    name: 'shopTransactions',
+const transactionsSlice = createSlice({
+    name: 'transactionsLog',
     initialState,
     reducers: {},
     extraReducers(builder) {
         builder
-            .addCase(fetchShopTransactions.pending, (state) => {
+            .addCase(fetchTransactionsLog.pending, (state) => {
                 state.loading = true,
                 state.error = null
             })
-            .addCase(fetchShopTransactions.fulfilled, (state, action) => {
+            .addCase(fetchTransactionsLog.fulfilled, (state, action) => {
                 state.loading = false,
                 state.data = action.payload
             })
-            .addCase(fetchShopTransactions.rejected, (state, action) => {
+            .addCase(fetchTransactionsLog.rejected, (state, action) => {
                 state.loading = false,
                 state.error = action.error.message || 'Failed to fetch shop Transactions';
             })
     }
 })
 
-export default shopTransactionsSlice.reducer;
+export default transactionsSlice.reducer;

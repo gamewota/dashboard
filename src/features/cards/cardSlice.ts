@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE_URL } from '../../helpers/constants';
 
 type Card = {
     id: number;
@@ -23,7 +24,7 @@ const initialState: CardState = {
 }
 
 export const fetchCards = createAsyncThunk('cards/fetchCards', async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cards`);
+    const response = await axios.get(`${API_BASE_URL}/cards`);
     return response.data.data;
 })
 

@@ -2,9 +2,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from '../features/users/userSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect } from 'react';
+import { useHasPermission } from '../hooks/usePermissions';
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const canBanUser = useHasPermission('user.ban')
   const {data, loading, error} = useSelector((state: RootState) => state.users);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ const User = () => {
                         <th>Updated At</th>
                         <th>Deleted At</th>
                         <th>Unbanned At</th>
+                        {canBanUser && <th>Actions</th>}
                     </tr>
                 </thead>
                 <tbody>
@@ -68,6 +71,11 @@ const User = () => {
                     <td>{user.profile_updated_at ? new Date(user.profile_updated_at).toLocaleString() : '-'}</td>
                     <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
                     <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
+                    {canBanUser && (
+                      <td>
+                        <button className='btn btn-error btn-sm'>Ban</button>
+                      </td>
+                    )}
                     </tr>
             ))}
                 </tbody>
