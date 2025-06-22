@@ -59,6 +59,9 @@ const Sidebar = () => {
             <li>
               <Link to="/dashboard/shop-history">Shop History</Link>
             </li>
+            <li>
+              <Link to="/dashboard/transaction-log">Transaction Log</Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -7,6 +7,7 @@ import Quote from "./pages/Quote"
 import User from "./pages/User"
 import Item from "./pages/Item"
 import ShopTransactions from "./pages/ShopTransactions"
+import TransactionLog from './pages/TransactionLog'
 function App() {
 
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/dashboard/users" element={<User />}/>
         <Route path="/dashboard/items" element={<Item />}/>
         <Route path="/dashboard/shop-history" element={<ShopTransactions />}/>
+        <Route path="/dashboard/transaction-log" element={<TransactionLog />}/>
       </Routes>
     </div>
   )
