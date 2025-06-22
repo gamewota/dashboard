@@ -17,7 +17,7 @@ const Home = () => {
 
     if (login.fulfilled.match(resultAction)) {
       const { user } = resultAction.payload;
-      localStorage.setItem('user', JSON.stringify(user)); // optional, not needed for re-render
+      localStorage.setItem('user', JSON.stringify(user));
     } else {
       console.error('Login failed:', resultAction.payload);
     }

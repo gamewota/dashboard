@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useHasPermission } from "../hooks/usePermissions";
 
 const Sidebar = () => {
+  const canViewUsers = useHasPermission('user.view')
+  const canViewLogs = useHasPermission('logs.view')
   return (
     <div className="drawer">
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
@@ -41,9 +44,11 @@ const Sidebar = () => {
 
           {/* Menu Items */}
           <ul className="menu mt-12 gap-0 [&>li:not(:first-child)]:border-t [&>li:not(:first-child)]:border-base-300 w-full">
-            <li>
-              <Link to="/dashboard/users">Users</Link>
-            </li>
+            {canViewUsers && (
+              <li>
+                <Link to="/dashboard/users">Users</Link>
+              </li>
+            )}
             <li>
               <Link to="/dashboard/songs">Songs</Link>
             </li>
@@ -56,12 +61,16 @@ const Sidebar = () => {
             <li>
               <Link to="/dashboard/items">Shop Items</Link>
             </li>
-            <li>
-              <Link to="/dashboard/shop-history">Shop History</Link>
-            </li>
-            <li>
-              <Link to="/dashboard/transaction-log">Transaction Log</Link>
-            </li>
+            {canViewLogs && (
+              <>
+                <li>
+                  <Link to="/dashboard/shop-history">Shop History</Link>
+                </li>
+                <li>
+                  <Link to="/dashboard/transaction-log">Transaction Log</Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>
