@@ -1,9 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useHasPermission } from "../hooks/usePermissions";
+import { useDispatch } from "react-redux";
+import { logout } from "../features/auth/authSlice";
 
 const Sidebar = () => {
   const canViewUsers = useHasPermission('user.view')
   const canViewLogs = useHasPermission('logs.view')
+  const navigate = useNavigate()
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/dashboard/'); // or '/' or any page you want
+  };
   return (
     <div className="drawer">
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
@@ -71,6 +80,9 @@ const Sidebar = () => {
                 </li>
               </>
             )}
+            <li className="mt-5">
+              <button className="btn btn-error" onClick={handleLogout}>Logout</button>
+            </li>
           </ul>
         </div>
       </div>

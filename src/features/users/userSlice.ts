@@ -16,6 +16,11 @@ type User = {
     unbanned_at: string | null;
 }
 
+type BanUser = {
+    userId: string;
+    days: string;
+}
+
 type UserState = {
     data: User[];
     loading: boolean;
@@ -31,6 +36,15 @@ const initialState: UserState = {
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     const response = await axios.get(`${API_BASE_URL}/users`);
     return response.data.data;
+})
+
+export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {rejectWithValue}) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/user/ban`, data);
+        return response.data;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to ban user');
+    }
 })
 
 

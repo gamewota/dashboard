@@ -1,13 +1,18 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers } from '../features/users/userSlice';
+import { fetchUsers, banUser } from '../features/users/userSlice';
 import type { RootState, AppDispatch } from '../store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
   const canBanUser = useHasPermission('user.ban')
   const {data, loading, error} = useSelector((state: RootState) => state.users);
+  const [formData, setFormData] = useState({
+    userId: '',
+    days: '',
+    username: ''
+  })
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -73,13 +78,99 @@ const User = () => {
                     <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
                     {canBanUser && (
                       <td>
-                        <button className='btn btn-error btn-sm'>Ban</button>
+                        <button className='btn btn-error btn-sm' onClick={() => {
+                          const dialog = document.getElementById('ban_user') as HTMLDialogElement;
+                          console.log('user id', user)
+                          setFormData({...formData, 
+                            userId: `${user.id}`,
+                            username: user.username
+                          })
+                          dialog?.showModal()
+                        }}>Ban</button>
                       </td>
                     )}
                     </tr>
             ))}
                 </tbody>
             </table>
+            <dialog id="ban_user" className="modal">
+              <div className="modal-box">
+                <h3 className="font-bold text-lg">Ban User</h3>
+                <input 
+                  className="input input-bordered w-full mt-2"
+                  placeholder='Days' 
+                  value={formData.days}
+                  type='number'
+                  onChange={(e) => setFormData({...formData, days: e.target.value})}
+                />
+                <div className="modal-action">
+                  <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn">Close</button>
+                  </form>
+                  <button className='btn btn-error' onClick={() => {
+                    const banDialog = document.getElementById('ban_user') as HTMLDialogElement;
+                    const confirmDialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
+                    banDialog?.close()
+                    confirmDialog?.showModal()
+                  }}>
+                    Ban User
+                  </button>
+                </div>
+              </div>
+            </dialog>
+            <dialog id='ban_user_confirmation' className='modal'>
+              <div className='modal-box'>
+                <h1>Are you sure you want to ban user with id {formData.userId} for {formData.days} days?</h1>
+                <div className='modal-action'>
+                  <form method='dialog'>
+                    <button className='btn'>Cancel</button>
+                  </form>
+                  <button className='btn btn-primary' onClick={async () => {
+                    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
+                    dialog?.close()
+                    const toastContainer = document.getElementById('toast-container-user');
+                    const toast = document.createElement('div');
+
+                    const result = await dispatch(banUser({
+                      userId: formData.userId,
+                      days: formData.days
+                    }))
+
+                    if(banUser.fulfilled.match(result)) {
+                      dispatch(fetchUsers())
+                      setFormData({
+                        userId: '',
+                        days: '',
+                        username: ''
+                      })
+                      toast.className = 'alert alert-success';
+                      toast.innerHTML = `<span>${result.payload.message || 'User has been successfully baned'}</span>`;
+                      toastContainer?.appendChild(toast);
+                      setTimeout(() => {
+                        toast.remove();
+                      }, 3000)
+                    } else {
+                      setFormData({
+                        userId: '',
+                        days: '',
+                        username: ''
+                      })
+                      toast.className = 'alert alert-error';
+                      toast.innerHTML = `<span>${(result.payload as any).message || 'Failed to ban the user'}</span>`;
+                      toastContainer?.appendChild(toast);
+                      setTimeout(() => {
+                        toast.remove();
+                      }, 3000)
+                      
+                    }
+                  }}>
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </dialog>
+            <div className="toast toast-top toast-end z-50" id="toast-container-user"></div>
         </div>
     </div>
   )
