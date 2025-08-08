@@ -44,7 +44,7 @@ const ForgotPassword = () => {
 
       setLoading(true);
       try {
-        await axios.get(`${import.meta.env.VITE_API_BASE_URL}/forgot-password`, {
+        await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/forgot-password`, {
           params: { token }
         });
         setTokenValid(true);
@@ -64,7 +64,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/reset-password`, { email });
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/reset-password`, { email });
       showToast('Magic link has been sent to your email.', 'success', false);
 
     } catch (err: any) {
@@ -85,7 +85,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/forgot-password`, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/forgot-password`, {
         token,
         password: newPassword
       });
