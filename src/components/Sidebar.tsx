@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../features/auth/authSlice";
 
 const Sidebar = () => {
-  const canViewUsers = useHasPermission('user.view')
+  // const canViewUsers = useHasPermission('user.view')
   const canViewLogs = useHasPermission('logs.view')
   const navigate = useNavigate()
   const dispatch = useDispatch();
