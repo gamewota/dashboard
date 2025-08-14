@@ -53,11 +53,14 @@ const Sidebar = () => {
 
           {/* Menu Items */}
           <ul className="menu mt-12 gap-0 [&>li:not(:first-child)]:border-t [&>li:not(:first-child)]:border-base-300 w-full">
-            {canViewUsers && (
+            {/* {canViewUsers && (
               <li>
                 <Link to="/dashboard/users">Users</Link>
               </li>
-            )}
+            )} */}
+              <li>
+                <Link to="/dashboard/users">Users</Link>
+              </li>
             <li>
               <Link to="/dashboard/songs">Songs</Link>
             </li>
