@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, banUser } from '../features/users/userSlice';
+import { fetchUsers, banUser, deleteUser } from '../features/users/userSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
@@ -17,6 +17,111 @@ const User = () => {
   useEffect(() => {
     dispatch(fetchUsers());
   },[dispatch]);
+
+  const handleOpenBanUserModal = (id : number, username : string) => {
+    const dialog = document.getElementById('ban_user') as HTMLDialogElement;
+    setFormData({
+      ...formData,
+      userId: `${id}`, // keep as string
+      username
+    });
+    dialog?.showModal();
+  };
+
+  const handleCloseBanUserModal = () => {
+    const banDialog = document.getElementById('ban_user') as HTMLDialogElement;
+    const confirmDialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
+    banDialog?.close()
+    confirmDialog?.showModal()
+  }
+
+  const handleConfirmationBanUser = async () => {
+    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
+    dialog?.close()
+    const toastContainer = document.getElementById('toast-container-user');
+    const toast = document.createElement('div');
+
+    const result = await dispatch(banUser({
+      userId: formData.userId,
+      days: formData.days
+    }))
+
+    if(banUser.fulfilled.match(result)) {
+      dispatch(fetchUsers())
+      setFormData({
+        userId: '',
+        days: '',
+        username: ''
+      })
+      toast.className = 'alert alert-success';
+      toast.innerHTML = `<span>${result.payload.message || 'User has been successfully baned'}</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000)
+    } else {
+      setFormData({
+        userId: '',
+        days: '',
+        username: ''
+      })
+      toast.className = 'alert alert-error';
+      toast.innerHTML = `<span>${(result.payload as any).message || 'Failed to ban the user'}</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000)
+      
+    }
+  }
+
+  const handleOpenDeleteUserModal = (id : number, username : string) => {
+    const dialog = document.getElementById('delete_user_confirmation') as HTMLDialogElement;
+    setFormData({
+      ...formData,
+      userId: `${id}`, // keep as string
+      username
+    });
+    dialog?.showModal();
+  };
+
+  const handleConfirmationDeleteUser = async () => {
+    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
+    dialog?.close()
+    const toastContainer = document.getElementById('toast-container-user');
+    const toast = document.createElement('div');
+
+    const result = await dispatch(deleteUser(Number(formData.userId)))
+
+    if(deleteUser.fulfilled.match(result)) {
+      dispatch(fetchUsers())
+      setFormData({
+        userId: '',
+        days: '',
+        username: ''
+      })
+      toast.className = 'alert alert-success';
+      toast.innerHTML = `<span>User has been successfully deleted</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000)
+    } else {
+      setFormData({
+        userId: '',
+        days: '',
+        username: ''
+      })
+      toast.className = 'alert alert-error';
+      toast.innerHTML = `<span>Failed to delete the user</span>`;
+      toastContainer?.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000)
+      
+    }
+  }
+  
 
 
   if (loading) return (
@@ -53,12 +158,12 @@ const User = () => {
                         <th>Updated At</th>
                         <th>Deleted At</th>
                         <th>Unbanned At</th>
-                        {canBanUser && <th>Actions</th>}
+                        {<th>Actions</th>}
                     </tr>
                 </thead>
                 <tbody>
                 {data && data.map((user, index) => (
-                    <tr key={user.id}>
+                    <tr key={user.user_id}>
                     <td>{index + 1}</td>
                     <td>{user.first_name || '-'}</td>
                     <td>{user.last_name || '-'}</td>
@@ -76,21 +181,16 @@ const User = () => {
                     <td>{user.profile_updated_at ? new Date(user.profile_updated_at).toLocaleString() : '-'}</td>
                     <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
                     <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
-                    {canBanUser && (
-                      <td>
-                        <button className='btn btn-error btn-sm' onClick={() => {
-                          const dialog = document.getElementById('ban_user') as HTMLDialogElement;
-                          console.log('user id', user)
-                          setFormData({...formData, 
-                            userId: `${user.id}`,
-                            username: user.username
-                          })
-                          dialog?.showModal()
-                        }}>Ban</button>
-                      </td>
-                    )}
+                    <td>
+                      <div className='flex align-center justify-center gap-3'>
+                        {canBanUser && (
+                            <button className='btn btn-error btn-sm' onClick={() => handleOpenBanUserModal(user.user_id, user.username)}>Ban</button>
+                        )}
+                        <button className='btn btn-error btn-sm' onClick={() => handleOpenDeleteUserModal(user.user_id, user.username)}>Delete</button>
+                      </div>
+                    </td>
                     </tr>
-            ))}
+                  ))}
                 </tbody>
             </table>
             <dialog id="ban_user" className="modal">
@@ -108,69 +208,40 @@ const User = () => {
                     {/* if there is a button in form, it will close the modal */}
                     <button className="btn">Close</button>
                   </form>
-                  <button className='btn btn-error' onClick={() => {
-                    const banDialog = document.getElementById('ban_user') as HTMLDialogElement;
-                    const confirmDialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
-                    banDialog?.close()
-                    confirmDialog?.showModal()
-                  }}>
+                  <button className='btn btn-error' onClick={handleCloseBanUserModal}>
                     Ban User
                   </button>
                 </div>
               </div>
             </dialog>
+            <div className="toast toast-top toast-end z-50" id="toast-container-user"></div>
             <dialog id='ban_user_confirmation' className='modal'>
               <div className='modal-box'>
-                <h1>Are you sure you want to ban user with id {formData.userId} for {formData.days} days?</h1>
+                <h1>Are you sure you want to ban user {formData.username} for {formData.days} days?</h1>
                 <div className='modal-action'>
                   <form method='dialog'>
                     <button className='btn'>Cancel</button>
                   </form>
-                  <button className='btn btn-primary' onClick={async () => {
-                    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
-                    dialog?.close()
-                    const toastContainer = document.getElementById('toast-container-user');
-                    const toast = document.createElement('div');
-
-                    const result = await dispatch(banUser({
-                      userId: formData.userId,
-                      days: formData.days
-                    }))
-
-                    if(banUser.fulfilled.match(result)) {
-                      dispatch(fetchUsers())
-                      setFormData({
-                        userId: '',
-                        days: '',
-                        username: ''
-                      })
-                      toast.className = 'alert alert-success';
-                      toast.innerHTML = `<span>${result.payload.message || 'User has been successfully baned'}</span>`;
-                      toastContainer?.appendChild(toast);
-                      setTimeout(() => {
-                        toast.remove();
-                      }, 3000)
-                    } else {
-                      setFormData({
-                        userId: '',
-                        days: '',
-                        username: ''
-                      })
-                      toast.className = 'alert alert-error';
-                      toast.innerHTML = `<span>${(result.payload as any).message || 'Failed to ban the user'}</span>`;
-                      toastContainer?.appendChild(toast);
-                      setTimeout(() => {
-                        toast.remove();
-                      }, 3000)
-                      
-                    }
-                  }}>
+                  <button className='btn btn-primary' onClick={handleConfirmationBanUser}>
                     Confirm
                   </button>
                 </div>
               </div>
             </dialog>
-            <div className="toast toast-top toast-end z-50" id="toast-container-user"></div>
+            {/* delete user dialog */}
+            <dialog id='delete_user_confirmation' className='modal'>
+              <div className='modal-box'>
+                <h1>Are you sure you want to delete user {formData.username}</h1>
+                <div className='modal-action'>
+                  <form method='dialog'>
+                    <button className='btn'>Cancel</button>
+                  </form>
+                  <button className='btn btn-primary' onClick={handleConfirmationDeleteUser}>
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </dialog>
         </div>
     </div>
   )
