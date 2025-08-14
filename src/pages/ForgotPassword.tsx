@@ -87,7 +87,8 @@ const ForgotPassword = () => {
     try {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/forgot-password`, {
         token,
-        password: newPassword
+        password: newPassword,
+        email
       });
       showToast('Password reset successful! You can now login.', 'success', true);
     } catch (err: any) {
@@ -123,6 +124,14 @@ const ForgotPassword = () => {
 
         {token && tokenValid && (
           <>
+            <input
+              type="email"
+              className="input input-bordered w-full"
+              placeholder="Input your registered email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
             <input
               type="password"
               className="input input-bordered w-full"
