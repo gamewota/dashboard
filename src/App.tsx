@@ -9,6 +9,8 @@ import Item from "./pages/Item"
 import ShopTransactions from "./pages/ShopTransactions"
 import TransactionLog from './pages/TransactionLog'
 import ForgotPassword from "./pages/ForgotPassword"
+import VerifyUser from "./pages/VerifyUser"
+import ResendVerification from "./pages/ResendVerification"
 import { useAuth } from "./hooks/useAuth"
 function App() {
   const auth = useAuth()
@@ -28,6 +30,8 @@ function App() {
         <Route path="/dashboard/shop-history" element={<ShopTransactions />}/>
         <Route path="/dashboard/transaction-log" element={<TransactionLog />}/>
         <Route path="/dashboard/forgot-password" element={<ForgotPassword />}/>
+        <Route path="/dashboard/verify" element={<VerifyUser />}/>
+        <Route path="/dashboard/resend-verify" element={<ResendVerification />}/>
       </Routes>
     </div>
   )
