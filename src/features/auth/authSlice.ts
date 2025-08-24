@@ -43,11 +43,21 @@ export const login = createAsyncThunk<
 >('auth/login', async (credentials, { rejectWithValue }) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/users/signin`, credentials);
+
+    const { user } = response.data;
+
+    // ✅ FE-only eligibility check
+    const hasOtherRoles = user.roles.some((r: Roles) => r.role !== 'user');
+    if (!hasOtherRoles) {
+      return rejectWithValue('User is not eligible to login');
+    }
+
     return response.data;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || 'Login failed');
   }
 });
+
 
 // --- Slice ---
 const authSlice = createSlice({

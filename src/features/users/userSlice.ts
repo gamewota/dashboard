@@ -8,7 +8,6 @@ type User = {
     last_name: string;
     username: string;
     email: string;
-    access_token: string;
     profile_created_at: string;
     profile_updated_at: string;
     profile_deleted_at: string | null;

@@ -6,6 +6,7 @@ import Song from "./pages/Song"
 import Quote from "./pages/Quote"
 import User from "./pages/User"
 import Item from "./pages/Item"
+import Role from "./pages/Role"
 import ShopTransactions from "./pages/ShopTransactions"
 import TransactionLog from './pages/TransactionLog'
 import ForgotPassword from "./pages/ForgotPassword"
@@ -32,6 +33,7 @@ function App() {
         <Route path="/dashboard/forgot-password" element={<ForgotPassword />}/>
         <Route path="/dashboard/verify" element={<VerifyUser />}/>
         <Route path="/dashboard/resend-verify" element={<ResendVerification />}/>
+        <Route path="/dashboard/role" element={<Role />} />
       </Routes>
     </div>
   )
