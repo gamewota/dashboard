@@ -43,7 +43,7 @@ const Sidebar = () => {
           className="drawer-overlay"
           data-theme="bumblebee"
         ></label>
-        <div className="menu bg-base-200 text-base-content min-h-full w-80 p-4 relative">
+        <div className="menu bg-base-200 text-base-content min-h-full w-80 p-4 relative z-50">
           <label
             htmlFor="my-drawer"
             className="btn btn-sm btn-circle absolute right-4 top-4"
@@ -69,6 +69,9 @@ const Sidebar = () => {
             </li>
             <li>
               <Link to="/dashboard/cards">Cards</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/role">Roles</Link>
             </li>
             <li>
               <Link to="/dashboard/items">Shop Items</Link>
