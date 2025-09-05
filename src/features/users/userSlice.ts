@@ -2,6 +2,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 
+type UserRole = {
+    role_id: number;
+    role_name: string;
+    role_description: string;
+    granted_by: number;
+    expires_at: string | null;
+    granted_at: string;
+};
+
 type User = {
     user_id: number;
     first_name: string;
@@ -13,6 +22,7 @@ type User = {
     profile_deleted_at: string | null;
     is_verified: boolean;
     unbanned_at: string | null;
+    roles: UserRole[];
 }
 
 type BanUser = {
