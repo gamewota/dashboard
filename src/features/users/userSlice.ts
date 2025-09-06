@@ -2,6 +2,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 
+type UserRole = {
+    role_id: number;
+    role_name: string;
+    role_description: string;
+    granted_by: number;
+    expires_at: string | null;
+    granted_at: string;
+};
+
 type User = {
     user_id: number;
     first_name: string;
@@ -13,6 +22,7 @@ type User = {
     profile_deleted_at: string | null;
     is_verified: boolean;
     unbanned_at: string | null;
+    roles: UserRole[];
 }
 
 type BanUser = {
@@ -34,7 +44,6 @@ const initialState: UserState = {
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     const response = await axios.get(`${API_BASE_URL}/users`);
-    console.log('data', response.data.data)
     return response.data.data;
 })
 
@@ -66,7 +75,15 @@ export const deleteUser = createAsyncThunk(
 const userSlice = createSlice({
     name: 'users',
     initialState,
-    reducers: {},
+    reducers: {
+        updateUserRoles: (state, action) => {
+    const { userId, roles } = action.payload;
+    const user = state.data.find(u => u.user_id === userId);
+    if (user) {
+      user.roles = roles;
+    }
+  }
+    },
     extraReducers(builder) {
         builder
             .addCase(fetchUsers.pending, (state) => {
@@ -92,5 +109,6 @@ const userSlice = createSlice({
     }
 })
 
+export const { updateUserRoles } = userSlice.actions;
 export default userSlice.reducer;
 

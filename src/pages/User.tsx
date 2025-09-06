@@ -4,6 +4,7 @@ import { fetchRoles } from '../features/roles/roleSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
+import RoleSelector from '../components/RoleSelector';
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -15,7 +16,6 @@ const User = () => {
     days: '',
     username: ''
   })
-  const [tempRole, setTempRole] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -186,31 +186,7 @@ const User = () => {
                       <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
                       <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
                       <td className='min-w-[220px]'>
-                        <div className="flex items-center gap-2">
-                          <select
-                            className="select select-sm"
-                            // value={tempRole[user.user_id] || user.role || ''}
-                            onChange={(e) =>
-                              setTempRole({ ...tempRole, [user.user_id]: e.target.value })
-                            }
-                          >
-                            <option value="">Select role</option>
-                            {roles.map((role) => (
-                              <option key={role.id} value={role.name}>
-                                {role.name}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() =>
-                              // handleChangeUserRole(user.user_id, tempRole[user.user_id])
-                              console.log('test')
-                            }
-                          >
-                            Save
-                          </button>
-                        </div>
+                        <RoleSelector roles={roles} userRoles={user.roles} userId={user.user_id}/>
                       </td>
                       <td>
                         <div className='flex align-center justify-center gap-3'>
