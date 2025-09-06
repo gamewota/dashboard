@@ -69,8 +69,7 @@ export const assignRoles = createAsyncThunk(
               "Content-Type": "application/x-www-form-urlencoded",
             },
           }
-        );
-  
+        );  
         return response.data;
       } catch (error: any) {
         return rejectWithValue(
@@ -96,8 +95,7 @@ export const assignRoles = createAsyncThunk(
               Authorization: `Bearer ${token}`,
             },
           }
-        );
-  
+        );  
         return response.data;
       } catch (error: any) {
         return rejectWithValue(

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useDispatch} from 'react-redux';
 import type { AppDispatch } from '../store';
 import { assignRoles, deleteUserRoles } from "../features/roles/roleSlice";
@@ -27,11 +27,24 @@ type RoleSelectorProps = {
 
 export default function RoleSelector({ userId, roles, userRoles }: RoleSelectorProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const toastRef = useRef<HTMLDivElement>(null);
 
   // store selected role IDs
   const [selected, setSelected] = useState<number[]>(
     userRoles.map((r) => r.role_id)
   );
+
+  const showToast = (message: string, type: "success" | "error") => {
+    if (!toastRef.current) return;
+    const toast = document.createElement("div");
+    toast.className = `alert ${type === "success" ? "alert-success" : "alert-error"} mb-2`;
+    toast.innerHTML = `<span>${message}</span>`;
+    toastRef.current.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 2500);
+  };
+  
 
   const handleAddRole = (roleId: number) => {
   const userLogin = localStorage.getItem("user");
@@ -44,7 +57,7 @@ export default function RoleSelector({ userId, roles, userRoles }: RoleSelectorP
 
   dispatch(assignRoles({ userId, roleId, grantedBy: userLoginId }))
     .unwrap()
-   .then(() => {
+   .then((result) => {
       const newRoles = [
         ...userRoles,
         {
@@ -57,7 +70,10 @@ export default function RoleSelector({ userId, roles, userRoles }: RoleSelectorP
         }
       ];
       dispatch(updateUserRoles({ userId, roles: newRoles }));
-    });
+      showToast(result.message || "Role assigned successfully!", "success");
+    }).catch((err) => {
+      showToast(err?.message || "Failed to assign role", "error");
+    })
 };
 
 const handleRemoveRole = (roleId: number) => {
@@ -69,9 +85,12 @@ const handleRemoveRole = (roleId: number) => {
 
   dispatch(deleteUserRoles({ roleId: assignment.role_id, userId }))
     .unwrap()
-    .then(() => {
+    .then((result) => {
       const newRoles = userRoles.filter(r => r.role_id !== roleId);
       dispatch(updateUserRoles({ userId, roles: newRoles }));
+      showToast(result.message || "Role removed successfully!", "success");
+    }).catch((err) => {
+      showToast(err?.message || "Failed to remove role", "error")
     });
 };
 
@@ -132,6 +151,7 @@ const handleRemoveRole = (roleId: number) => {
           )}
         </ul>
       </div>
+      <div ref={toastRef} className="toast toast-top toast-end z-50" />
     </div>
   );
 }
