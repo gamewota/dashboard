@@ -7,9 +7,6 @@ import { useEffect } from 'react';
 const Role = () => {
   const dispatch = useDispatch<AppDispatch>();
   const {data, loading, error} = useSelector((state: RootState) => state.roles);
-
-  console.log('data', data)
-
   useEffect(() => {
       dispatch(fetchRoles());
     }, [dispatch]);

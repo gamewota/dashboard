@@ -44,7 +44,6 @@ const initialState: UserState = {
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     const response = await axios.get(`${API_BASE_URL}/users`);
-    console.log('data', response.data.data)
     return response.data.data;
 })
 
@@ -76,7 +75,15 @@ export const deleteUser = createAsyncThunk(
 const userSlice = createSlice({
     name: 'users',
     initialState,
-    reducers: {},
+    reducers: {
+        updateUserRoles: (state, action) => {
+    const { userId, roles } = action.payload;
+    const user = state.data.find(u => u.user_id === userId);
+    if (user) {
+      user.roles = roles;
+    }
+  }
+    },
     extraReducers(builder) {
         builder
             .addCase(fetchUsers.pending, (state) => {
@@ -102,5 +109,6 @@ const userSlice = createSlice({
     }
 })
 
+export const { updateUserRoles } = userSlice.actions;
 export default userSlice.reducer;
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch} from 'react-redux';
 import type { AppDispatch } from '../store';
 import { assignRoles, deleteUserRoles } from "../features/roles/roleSlice";
-import { fetchUsers } from "../features/users/userSlice";
+import { updateUserRoles } from "../features/users/userSlice";
 
 type Role = {
   id: number;
@@ -44,8 +44,19 @@ export default function RoleSelector({ userId, roles, userRoles }: RoleSelectorP
 
   dispatch(assignRoles({ userId, roleId, grantedBy: userLoginId }))
     .unwrap()
-    .then(() => {
-      dispatch(fetchUsers());
+   .then(() => {
+      const newRoles = [
+        ...userRoles,
+        {
+          role_id: roleId,
+          role_name: roles.find(r => r.id === roleId)?.name || "",
+          role_description: roles.find(r => r.id === roleId)?.description || "",
+          granted_by: userLoginId,
+          expires_at: null,
+          granted_at: new Date().toISOString(),
+        }
+      ];
+      dispatch(updateUserRoles({ userId, roles: newRoles }));
     });
 };
 
@@ -59,7 +70,8 @@ const handleRemoveRole = (roleId: number) => {
   dispatch(deleteUserRoles({ roleId: assignment.role_id, userId }))
     .unwrap()
     .then(() => {
-      dispatch(fetchUsers());
+      const newRoles = userRoles.filter(r => r.role_id !== roleId);
+      dispatch(updateUserRoles({ userId, roles: newRoles }));
     });
 };
 
