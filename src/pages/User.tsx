@@ -1,10 +1,10 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, banUser, deleteUser } from '../features/users/userSlice';
-import { fetchRoles } from '../features/roles/roleSlice';
+import { fetchUsers, banUser, deleteUser, updateUserRoles } from '../features/users/userSlice';
+import { fetchRoles, assignRoles, deleteUserRoles } from '../features/roles/roleSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
-import RoleSelector from '../components/RoleSelector';
+import MultiSelect from '../components/MultiSelect';
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -125,6 +125,32 @@ const User = () => {
       
     }
   }
+
+  const handleAddRole = (userId: number, userRoles: any[], roles: any[]) => async (roleId: number) => {
+  const userLogin = JSON.parse(localStorage.getItem("user")!);
+
+  await dispatch(assignRoles({ userId, roleId, grantedBy: userLogin.id })).unwrap();
+
+  const newRoles = [
+    ...userRoles,
+    {
+      role_id: roleId,
+      role_name: roles.find((r) => r.id === roleId)?.name || "",
+      role_description: roles.find((r) => r.id === roleId)?.description || "",
+      granted_by: userLogin.id,
+      expires_at: null,
+      granted_at: new Date().toISOString(),
+    },
+  ];
+  dispatch(updateUserRoles({ userId, roles: newRoles }));
+};
+
+const handleRemoveRole = (userId: number, userRoles: any[]) => async (roleId: number) => {
+  await dispatch(deleteUserRoles({ roleId, userId })).unwrap();
+  const newRoles = userRoles.filter((r) => r.role_id !== roleId);
+  dispatch(updateUserRoles({ userId, roles: newRoles }));
+};
+
   
 
 
@@ -186,7 +212,32 @@ const User = () => {
                       <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
                       <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
                       <td className='min-w-[220px]'>
-                        <RoleSelector roles={roles} userRoles={user.roles} userId={user.user_id}/>
+                        <MultiSelect
+                          options={roles}
+                          initialSelected={user.roles.map((r) => r.role_id)}
+                          onAdd={handleAddRole(user.user_id, user.roles, roles)}
+                          onRemove={handleRemoveRole(user.user_id, user.roles)}
+                          onSuccess={(msg) => {
+                            const toastContainer = document.getElementById('toast-container-user');
+                            const toast = document.createElement('div');
+                            toast.className = 'alert alert-success';
+                            toast.innerHTML = `<span>${msg}</span>`;
+                            toastContainer?.appendChild(toast);
+                            setTimeout(() => toast.remove(), 3000);
+                          }}
+                          onFailure={(err) => {
+                            const toastContainer = document.getElementById('toast-container-user');
+                            const toast = document.createElement('div');
+                            toast.className = 'alert alert-error';
+                            toast.innerHTML = `<span>${String(err)}</span>`;
+                            toastContainer?.appendChild(toast);
+                            setTimeout(() => toast.remove(), 3000);
+                          }}
+                          formatAddMessage={(option) => `Role "${option.name}" has been assigned`}
+                          formatRemoveMessage={(option) => `Role "${option.name}" has been removed`}
+                          addButtonLabel="Add Role"
+                          emptyLabel="No roles selected"
+                        />
                       </td>
                       <td>
                         <div className='flex align-center justify-center gap-3'>
