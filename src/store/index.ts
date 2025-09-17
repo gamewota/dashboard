@@ -8,6 +8,7 @@ import shopTransactionsReducer from '../features/shopTransactions/shopTransactio
 import transactionLogReducer from '../features/transactionLog/transactionLogSlice'
 import authReducer from '../features/auth/authSlice'
 import rolesReducer from '../features/roles/roleSlice'
+import permissionReducer from '../features/permissions/permissionsSlice'
 
 
 export const store = configureStore({
@@ -20,7 +21,8 @@ export const store = configureStore({
         roles: rolesReducer,
         shopTransactions: shopTransactionsReducer,
         transactionsLog: transactionLogReducer,
-        auth: authReducer
+        auth: authReducer,
+        permissions: permissionReducer
     }
 })
 

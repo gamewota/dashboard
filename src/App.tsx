@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword"
 import VerifyUser from "./pages/VerifyUser"
 import ResendVerification from "./pages/ResendVerification"
 import { useAuth } from "./hooks/useAuth"
+import Permission from "./pages/Permissions"
 function App() {
   const auth = useAuth()
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/dashboard/verify" element={<VerifyUser />}/>
         <Route path="/dashboard/resend-verify" element={<ResendVerification />}/>
         <Route path="/dashboard/role" element={<Role />} />
+        <Route path="/dashboard/permissions" element={<Permission />} />
       </Routes>
     </div>
   )

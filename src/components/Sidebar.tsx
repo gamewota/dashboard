@@ -74,6 +74,9 @@ const Sidebar = () => {
               <Link to="/dashboard/role">Roles</Link>
             </li>
             <li>
+              <Link to="/dashboard/permissions">Permissions</Link>
+            </li>
+            <li>
               <Link to="/dashboard/items">Shop Items</Link>
             </li>
             {canViewLogs && (
