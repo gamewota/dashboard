@@ -2,10 +2,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchSongs } from '../features/songs/songSlice';
 import { useEffect } from 'react';
 import type { RootState, AppDispatch } from '../store';
+import { DataTable } from '../components/DataTable';
 
 const Song = () => {
     const dispatch = useDispatch<AppDispatch>();
     const {data, loading, error} = useSelector((state: RootState) => state.songs);
+
+    const columns = 
+      [
+        {header: '#', accessor: (_row : any, i: number) => i + 1 as React.ReactNode},
+        {header: 'Song Title', accessor: (row: any) => row.song_title},
+        {header: 'Song Assets', accessor: (row: any) => row.song_assets ? <img src={row.song_assets} className='max-w-[100px]'/> : '-'},
+        {header: 'Created At', accessor: (row: any) => row.created_at || '-'},
+        {header: 'Updated At', accessor: (row: any) => row.updated_at || '-'}
+      ]
 
 
       useEffect(() => {
@@ -29,30 +39,13 @@ const Song = () => {
   return (
     <div className='min-h-screen w-screen flex justify-center'>
         <div className='overflow-x-auto'>
-            <table className='table table-zebra'>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Song Title</th>
-                        <th>Song Assets</th>
-                        <th>Created At</th>
-                        <th>Updated At</th>
-                        <th>Deleted At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data && data.map((song,index) => (
-                        <tr key={song.id}>
-                            <td>{index + 1}</td>
-                            <td>{song.song_title || '-'}</td>
-                            <td>{song.song_assets ? <img src={song.song_assets} className='max-w-[100px]'/> : '-'}</td>
-                            <td>{song.created_at || '-'}</td>
-                            <td>{song.updated_at || '-'}</td>
-                            <td>{song.deleted_at || '-'}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <DataTable 
+              data={data}
+              loading={loading}
+              error={error}
+              emptyMessage={'No songs found.'}
+              columns={columns}
+            />
         </div>
     </div>
   )

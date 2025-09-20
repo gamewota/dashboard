@@ -27,6 +27,35 @@ const Permission = () => {
     dispatch(fetchPermissions());
   }, [dispatch]);
 
+  const columns = [
+          { header: "#", accessor: (_row: any, i: number) => i + 1 as React.ReactNode },
+          { header: "Name", accessor: (row: { name: string }) => row.name },
+          { header: "Description", accessor: (row: { description: string }) => row.description },
+          {
+            header: "Actions",
+            accessor: (row: { id: number; name: string; description: string }) => (
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-xs btn-warning"
+                  onClick={() => {
+                    setModalMode("edit");
+                    setSelected(row);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-xs btn-error"
+                  onClick={() => handleDelete(row.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            ),
+          },
+        ]
+
  const handleSave = async (formData: { id?: number; name: string; description: string }) => {
     try {
       if (modalMode === "create") {
@@ -74,34 +103,7 @@ const Permission = () => {
       </div>
 
       <DataTable
-        columns={[
-          { header: "#", accessor: (_row, i) => i + 1 },
-          { header: "Name", accessor: "name" },
-          { header: "Description", accessor: "description" },
-          {
-            header: "Actions",
-            accessor: (row) => (
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-xs btn-warning"
-                  onClick={() => {
-                    setModalMode("edit");
-                    setSelected(row);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn btn-xs btn-error"
-                  onClick={() => handleDelete(row.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            ),
-          },
-        ]}
+        columns={columns}
         data={data || []}
         rowKey="id"
         loading={loading}
