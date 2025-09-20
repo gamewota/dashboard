@@ -47,12 +47,12 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-auto max-h-[80vh]">
       <table className="table table-zebra">
         <thead>
           <tr>
             {columns.map((col, i) => (
-              <td key={i}>{col.header}</td>
+              <th key={i} className="sticky top-0 bg-base-200 z-30">{col.header}</th>
             ))}
           </tr>
         </thead>
@@ -64,7 +64,6 @@ export function DataTable<T>({
                 : rowKey
                 ? String(row[rowKey])
                 : i;
-
             return (
               <tr key={key}>
                 {columns.map((col, j) => {
