@@ -1,10 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, banUser, deleteUser } from '../features/users/userSlice';
-import { fetchRoles } from '../features/roles/roleSlice';
+import { fetchUsers, banUser, deleteUser, updateUserRoles } from '../features/users/userSlice';
+import { fetchRoles, assignRoles, deleteUserRoles } from '../features/roles/roleSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
-import RoleSelector from '../components/RoleSelector';
+import MultiSelect from '../components/MultiSelect';
+import { DataTable } from '../components/DataTable';
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +17,57 @@ const User = () => {
     days: '',
     username: ''
   })
+
+  const columns = 
+  [
+    { header: '#', accessor: (_row: any, i: number) => i + 1 as React.ReactNode },
+    { header: 'First Name', accessor: (row: any) => row.first_name || '-' },
+    { header: 'Last Name', accessor: (row: any) => row.last_name || '-' },
+    { header: 'Username', accessor: (row: any) => row.username || '-' },
+    { header: 'Email', accessor: (row: any) => row.email || '-' },
+    { header: 'Is Verified', accessor: (row: any) => typeof row.is_verified === 'boolean' ? (row.is_verified ? 'True' : 'False') : '-' },
+    { header: 'Created At', accessor: (row: any) => row.profile_created_at ? new Date(row.profile_created_at).toLocaleString() : '-' },
+    { header: 'Updated At', accessor: (row: any) => row.profile_updated_at ? new Date(row.profile_updated_at).toLocaleString() : '-' },
+    { header: 'Deleted At', accessor: (row: any) => row.profile_deleted_at ? new Date(row.profile_deleted_at).toLocaleString() : '-' },
+    { header: 'Unbanned At', accessor: (row: any) => row.unbanned_at ? new Date(row.unbanned_at).toLocaleString() : '-' },
+    { header: 'Roles', accessor: (row: any) => (
+      <MultiSelect
+        options={roles}
+        initialSelected={row.roles.map((r: any) => r.role_id)}
+        onAdd={handleAddRole(row.user_id, row.roles, roles)}
+        onRemove={handleRemoveRole(row.user_id, row.roles)}
+        onSuccess={(msg) => {
+            const toastContainer = document.getElementById('toast-container-user');
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success';
+            toast.innerHTML = `<span>${msg}</span>`;
+            toastContainer?.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+          }}
+        onFailure={(err) => {
+            const toastContainer = document.getElementById('toast-container-user');
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-error';
+            toast.innerHTML = `<span>${String(err)}</span>`;
+            toastContainer?.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }}
+        formatAddMessage={(option) => `Role "${option.name}" has been assigned`}
+        formatRemoveMessage={(option) => `Role "${option.name}" has been removed`}
+        addButtonLabel="Add Role"
+        emptyLabel="No roles selected"
+        />
+        )},
+        { header: 'Actions', accessor: (row: any) => (
+          <div className='flex align-center justify-center gap-3'>
+            {canBanUser && (
+              <button className='btn btn-error btn-sm' onClick={() => handleOpenBanUserModal(row.user_id, row.username)}>Ban</button>
+            )}
+              <button className='btn btn-error btn-sm' onClick={() => handleOpenDeleteUserModal(row.user_id, row.username)}>Delete</button>
+          </div>
+          )
+        }
+      ]
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -125,6 +177,32 @@ const User = () => {
       
     }
   }
+
+  const handleAddRole = (userId: number, userRoles: any[], roles: any[]) => async (roleId: number) => {
+  const userLogin = JSON.parse(localStorage.getItem("user")!);
+
+  await dispatch(assignRoles({ userId, roleId, grantedBy: userLogin.id })).unwrap();
+
+  const newRoles = [
+    ...userRoles,
+    {
+      role_id: roleId,
+      role_name: roles.find((r) => r.id === roleId)?.name || "",
+      role_description: roles.find((r) => r.id === roleId)?.description || "",
+      granted_by: userLogin.id,
+      expires_at: null,
+      granted_at: new Date().toISOString(),
+    },
+  ];
+  dispatch(updateUserRoles({ userId, roles: newRoles }));
+};
+
+const handleRemoveRole = (userId: number, userRoles: any[]) => async (roleId: number) => {
+  await dispatch(deleteUserRoles({ roleId, userId })).unwrap();
+  const newRoles = userRoles.filter((r) => r.role_id !== roleId);
+  dispatch(updateUserRoles({ userId, roles: newRoles }));
+};
+
   
 
 
@@ -149,57 +227,13 @@ const User = () => {
     <div className='min-h-screen w-screen flex justify-center'>
         <div className="overflow-x-auto">
             <div className='w-[90vw] h-[80vh] overflow-scroll'>
-              <table className="table table-zebra">
-                  <thead>
-                  <tr>
-                    <th className="sticky top-0 bg-base-200">#</th>
-                    <th className="sticky top-0 bg-base-200">First Name</th>
-                    <th className="sticky top-0 bg-base-200">Last Name</th>
-                    <th className="sticky top-0 bg-base-200">Username</th>
-                    <th className="sticky top-0 bg-base-200">Email</th>
-                    <th className="sticky top-0 bg-base-200">Is Verified</th>
-                    <th className="sticky top-0 bg-base-200">Created At</th>
-                    <th className="sticky top-0 bg-base-200">Updated At</th>
-                    <th className="sticky top-0 bg-base-200">Deleted At</th>
-                    <th className="sticky top-0 bg-base-200">Unbanned At</th>
-                    <th className="sticky top-0 bg-base-200">Roles</th>
-                    <th className="sticky top-0 bg-base-200">Actions</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {data && data.map((user, index) => (
-                      <tr key={user.user_id}>
-                      <td>{index + 1}</td>
-                      <td>{user.first_name || '-'}</td>
-                      <td>{user.last_name || '-'}</td>
-                      <td>{user.username || '-'}</td>
-                      <td>{user.email || '-'}</td>
-                      <td>
-                          {typeof user.is_verified === 'boolean'
-                          ? user.is_verified
-                              ? 'True'
-                              : 'False'
-                          : '-'}
-                      </td>
-                      <td>{user.profile_created_at ? new Date(user.profile_created_at).toLocaleString() : '-'}</td>
-                      <td>{user.profile_updated_at ? new Date(user.profile_updated_at).toLocaleString() : '-'}</td>
-                      <td>{user.profile_deleted_at ? new Date(user.profile_deleted_at).toLocaleString() : '-'}</td>
-                      <td>{user.unbanned_at ? new Date(user.unbanned_at).toLocaleString() : '-'}</td>
-                      <td className='min-w-[220px]'>
-                        <RoleSelector roles={roles} userRoles={user.roles} userId={user.user_id}/>
-                      </td>
-                      <td>
-                        <div className='flex align-center justify-center gap-3'>
-                          {canBanUser && (
-                              <button className='btn btn-error btn-sm' onClick={() => handleOpenBanUserModal(user.user_id, user.username)}>Ban</button>
-                          )}
-                          <button className='btn btn-error btn-sm' onClick={() => handleOpenDeleteUserModal(user.user_id, user.username)}>Delete</button>
-                        </div>
-                      </td>
-                      </tr>
-                    ))}
-                  </tbody>
-              </table>
+              <DataTable 
+                data={data}
+                loading={loading}
+                error={error}
+                emptyMessage={'No users found.'}
+                columns={columns}
+              />
 
             </div>
             <dialog id="ban_user" className="modal">

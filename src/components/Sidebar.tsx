@@ -14,7 +14,7 @@ const Sidebar = () => {
     navigate('/dashboard/'); // or '/' or any page you want
   };
   return (
-    <div className="drawer">
+    <div className="drawer z-50">
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         {/* Hamburger Button */}
@@ -72,6 +72,9 @@ const Sidebar = () => {
             </li>
             <li>
               <Link to="/dashboard/role">Roles</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/permissions">Permissions</Link>
             </li>
             <li>
               <Link to="/dashboard/items">Shop Items</Link>

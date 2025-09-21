@@ -3,11 +3,18 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 
 
+type Permission = {
+  id: number;
+  name: string;
+  description: string;
+};
+
 type Role = {
-    id: number;
-    name: string;
-    description: string;
-}
+  id: number;
+  name: string;
+  description: string;
+  permissions: Permission[];
+};
 
 type AssignRole = {
     userId: number;
@@ -16,6 +23,10 @@ type AssignRole = {
     expiresAt?: string | null;
 };
 
+type AssignPermissionToRole = {
+  roleId: number;
+  permissionId: number;
+}
 
 type RoleState = {
     data: Role[];
@@ -30,22 +41,46 @@ const initialState: RoleState = {
 }
 
 export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAPI) => {
-    try {
-        // get token (for example from localStorage or Redux state)
-        const token = localStorage.getItem('token'); 
-        // if you store it in redux: thunkAPI.getState().auth.token
+  try {
+    const token = localStorage.getItem('token');
 
-        const response = await axios.get(`${API_BASE_URL}/rbac/roles`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+    const response = await axios.get(`${API_BASE_URL}/rbac/role-permissions`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-        return response.data.data;
-    } catch (err: any) {
-        return thunkAPI.rejectWithValue(err.response?.data || err.message);
-    }
+    const rolePermissions = response.data.data;
+
+    // Group roles and attach permissions
+    const roleMap: Record<number, Role> = {};
+
+    rolePermissions.forEach((item: any) => {
+      const { role, permission } = item;
+
+      if (!roleMap[role.id]) {
+        roleMap[role.id] = {
+          id: role.id,
+          name: role.name,
+          description: role.description,
+          permissions: [],
+        };
+      }
+
+      roleMap[role.id].permissions.push({
+        id: permission.id,
+        name: permission.name,
+        description: permission.description,
+      });
+    });
+
+    // Convert to array
+    return Object.values(roleMap);
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.response?.data || err.message);
+  }
 });
+
 
 export const assignRoles = createAsyncThunk(
     "roles/assignRoles",
@@ -104,8 +139,64 @@ export const assignRoles = createAsyncThunk(
       }
     }
   );
-  
 
+  export const assignPermissionToRole = createAsyncThunk(
+    "roles/assignPermissionToRole",
+    async (data: AssignPermissionToRole, { rejectWithValue}) => {
+      try {
+        const token = localStorage.getItem("token");
+        const formData = new URLSearchParams();
+        formData.append("roleId", data.roleId.toString());
+        formData.append("permissionId", data.permissionId.toString());
+
+        const response = await axios.post(
+          `${API_BASE_URL}/rbac/role-permissions`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            }
+          }
+        )
+        return response.data;
+      } catch (error: any) {
+        return rejectWithValue(
+          error.response?.data?.message || "Failed to assign permission to role"
+        );
+      }
+    }
+  )
+
+  export const removePermissionFromRole = createAsyncThunk(
+    "roles/removePermissionFromRole",
+    async (data: AssignPermissionToRole, { rejectWithValue}) => {
+      try {
+        const token = localStorage.getItem("token");
+        const formData = new URLSearchParams();
+        formData.append("roleId", data.roleId.toString());
+        formData.append("permissionId", data.permissionId.toString());
+
+        const response = await axios.delete(
+          `${API_BASE_URL}/rbac/role-permissions`, 
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data: formData
+          }
+        )
+
+        return response.data;
+      } catch (error : any) {
+        return rejectWithValue(
+          error.response?.data?.message || "Failed to remove permission from role"
+        );
+      }
+    }
+  )
+  
 const roleSlice = createSlice({
     name: 'roles',
     initialState,
