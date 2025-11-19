@@ -42,17 +42,33 @@ const initialState: UserState = {
     error: null,
 };
 
-export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
-    const response = await axios.get(`${API_BASE_URL}/users`);
-    return response.data.data;
+export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, thunkAPI) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/users`, {
+            headers: {
+                Authorization: token ? `Bearer ${token}` : undefined,
+            },
+        });
+
+        return response.data.data;
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+        }
+        return thunkAPI.rejectWithValue(String(error));
+    }
 })
 
 export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {rejectWithValue}) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/user/ban`, data);
         return response.data;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to ban user');
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            return rejectWithValue(error.response?.data?.message ?? 'Failed to ban user');
+        }
+        return rejectWithValue(String(error) || 'Failed to ban user');
     }
 })
 
@@ -62,11 +78,12 @@ export const deleteUser = createAsyncThunk(
       try {
         await axios.delete(`${API_BASE_URL}/users/${userId}`);
         return userId; // just return the ID so we can filter it out
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || 'Failed to delete user'
-        );
-      }
+                    } catch (error: unknown) {
+                        if (axios.isAxiosError(error)) {
+                            return rejectWithValue(error.response?.data?.message ?? 'Failed to delete user');
+                        }
+                        return rejectWithValue(String(error) || 'Failed to delete user');
+                    }
     }
   );
   

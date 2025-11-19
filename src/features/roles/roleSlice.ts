@@ -50,12 +50,12 @@ export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAP
       },
     });
 
-    const rolePermissions = response.data.data;
+    const rolePermissions = response.data.data as Array<{ role: Role; permission: Permission }>;
 
     // Group roles and attach permissions
     const roleMap: Record<number, Role> = {};
 
-    rolePermissions.forEach((item: any) => {
+    rolePermissions.forEach((item) => {
       const { role, permission } = item;
 
       if (!roleMap[role.id]) {
@@ -76,8 +76,11 @@ export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAP
 
     // Convert to array
     return Object.values(roleMap);
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.response?.data || err.message);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data ?? String(err));
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -106,10 +109,11 @@ export const assignRoles = createAsyncThunk(
           }
         );  
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to assign role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to assign role");
+        }
+        return rejectWithValue(String(error) || "Failed to assign role");
       }
     }
   );
@@ -132,10 +136,11 @@ export const assignRoles = createAsyncThunk(
           }
         );  
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to delete user role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to delete user role");
+        }
+        return rejectWithValue(String(error) || "Failed to delete user role");
       }
     }
   );
@@ -160,10 +165,11 @@ export const assignRoles = createAsyncThunk(
           }
         )
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to assign permission to role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to assign permission to role");
+        }
+        return rejectWithValue(String(error) || "Failed to assign permission to role");
       }
     }
   )
@@ -189,10 +195,11 @@ export const assignRoles = createAsyncThunk(
         )
 
         return response.data;
-      } catch (error : any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to remove permission from role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to remove permission from role");
+        }
+        return rejectWithValue(String(error) || "Failed to remove permission from role");
       }
     }
   )

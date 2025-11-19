@@ -5,7 +5,38 @@ import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useHasPermission } from '../hooks/usePermissions';
 import MultiSelect from '../components/MultiSelect';
+import type { MultiSelectOption } from '../components/MultiSelect';
 import { DataTable } from '../components/DataTable';
+
+// Local types (mirror of slice shapes) to avoid `any`
+type UserRole = {
+  role_id: number;
+  role_name: string;
+  role_description: string;
+  granted_by: number;
+  expires_at: string | null;
+  granted_at: string;
+};
+
+type UserItem = {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  profile_created_at: string;
+  profile_updated_at: string;
+  profile_deleted_at: string | null;
+  is_verified: boolean;
+  unbanned_at: string | null;
+  roles: UserRole[];
+};
+
+type RoleSimple = {
+  id: number;
+  name: string;
+  description: string;
+};
 
 const User = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -20,23 +51,23 @@ const User = () => {
 
   const columns = 
   [
-    { header: '#', accessor: (_row: any, i: number) => i + 1 as React.ReactNode },
-    { header: 'First Name', accessor: (row: any) => row.first_name || '-' },
-    { header: 'Last Name', accessor: (row: any) => row.last_name || '-' },
-    { header: 'Username', accessor: (row: any) => row.username || '-' },
-    { header: 'Email', accessor: (row: any) => row.email || '-' },
-    { header: 'Is Verified', accessor: (row: any) => typeof row.is_verified === 'boolean' ? (row.is_verified ? 'True' : 'False') : '-' },
-    { header: 'Created At', accessor: (row: any) => row.profile_created_at ? new Date(row.profile_created_at).toLocaleString() : '-' },
-    { header: 'Updated At', accessor: (row: any) => row.profile_updated_at ? new Date(row.profile_updated_at).toLocaleString() : '-' },
-    { header: 'Deleted At', accessor: (row: any) => row.profile_deleted_at ? new Date(row.profile_deleted_at).toLocaleString() : '-' },
-    { header: 'Unbanned At', accessor: (row: any) => row.unbanned_at ? new Date(row.unbanned_at).toLocaleString() : '-' },
-    { header: 'Roles', accessor: (row: any) => (
+    { header: '#', accessor: (_row: UserItem, i: number) => i + 1 as React.ReactNode },
+    { header: 'First Name', accessor: (row: UserItem) => row.first_name || '-' },
+    { header: 'Last Name', accessor: (row: UserItem) => row.last_name || '-' },
+    { header: 'Username', accessor: (row: UserItem) => row.username || '-' },
+    { header: 'Email', accessor: (row: UserItem) => row.email || '-' },
+    { header: 'Is Verified', accessor: (row: UserItem) => typeof row.is_verified === 'boolean' ? (row.is_verified ? 'True' : 'False') : '-' },
+    { header: 'Created At', accessor: (row: UserItem) => row.profile_created_at ? new Date(row.profile_created_at).toLocaleString() : '-' },
+    { header: 'Updated At', accessor: (row: UserItem) => row.profile_updated_at ? new Date(row.profile_updated_at).toLocaleString() : '-' },
+    { header: 'Deleted At', accessor: (row: UserItem) => row.profile_deleted_at ? new Date(row.profile_deleted_at).toLocaleString() : '-' },
+    { header: 'Unbanned At', accessor: (row: UserItem) => row.unbanned_at ? new Date(row.unbanned_at).toLocaleString() : '-' },
+    { header: 'Roles', accessor: (row: UserItem) => (
       <MultiSelect
-        options={roles}
-        initialSelected={row.roles.map((r: any) => r.role_id)}
-        onAdd={handleAddRole(row.user_id, row.roles, roles)}
+        options={roles as RoleSimple[]}
+        initialSelected={row.roles.map((r: UserRole) => r.role_id)}
+        onAdd={handleAddRole(row.user_id, row.roles, roles as RoleSimple[])}
         onRemove={handleRemoveRole(row.user_id, row.roles)}
-        onSuccess={(msg) => {
+        onSuccess={(msg?: string) => {
             const toastContainer = document.getElementById('toast-container-user');
             const toast = document.createElement('div');
             toast.className = 'alert alert-success';
@@ -44,7 +75,7 @@ const User = () => {
             toastContainer?.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
           }}
-        onFailure={(err) => {
+        onFailure={(err?: unknown) => {
             const toastContainer = document.getElementById('toast-container-user');
             const toast = document.createElement('div');
             toast.className = 'alert alert-error';
@@ -52,13 +83,13 @@ const User = () => {
             toastContainer?.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }}
-        formatAddMessage={(option) => `Role "${option.name}" has been assigned`}
-        formatRemoveMessage={(option) => `Role "${option.name}" has been removed`}
+  formatAddMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been assigned`}
+  formatRemoveMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been removed`}
         addButtonLabel="Add Role"
         emptyLabel="No roles selected"
         />
         )},
-        { header: 'Actions', accessor: (row: any) => (
+        { header: 'Actions', accessor: (row: UserItem) => (
           <div className='flex align-center justify-center gap-3'>
             {canBanUser && (
               <button className='btn btn-error btn-sm' onClick={() => handleOpenBanUserModal(row.user_id, row.username)}>Ban</button>
@@ -110,7 +141,8 @@ const User = () => {
         username: ''
       })
       toast.className = 'alert alert-success';
-      toast.innerHTML = `<span>${result.payload.message || 'User has been successfully baned'}</span>`;
+      const payload = result.payload as { message?: string } | undefined;
+      toast.innerHTML = `<span>${payload?.message || 'User has been successfully baned'}</span>`;
       toastContainer?.appendChild(toast);
       setTimeout(() => {
         toast.remove();
@@ -122,7 +154,8 @@ const User = () => {
         username: ''
       })
       toast.className = 'alert alert-error';
-      toast.innerHTML = `<span>${(result.payload as any).message || 'Failed to ban the user'}</span>`;
+      const payload = result.payload as { message?: string } | undefined;
+      toast.innerHTML = `<span>${payload?.message || 'Failed to ban the user'}</span>`;
       toastContainer?.appendChild(toast);
       setTimeout(() => {
         toast.remove();
@@ -178,30 +211,31 @@ const User = () => {
     }
   }
 
-  const handleAddRole = (userId: number, userRoles: any[], roles: any[]) => async (roleId: number) => {
-  const userLogin = JSON.parse(localStorage.getItem("user")!);
+  const handleAddRole = (userId: number, userRoles: UserRole[], rolesList: RoleSimple[]) =>
+    async (roleId: number) => {
+      const userLogin = JSON.parse(localStorage.getItem("user") || '{}') as { id?: number };
 
-  await dispatch(assignRoles({ userId, roleId, grantedBy: userLogin.id })).unwrap();
+      await dispatch(assignRoles({ userId, roleId, grantedBy: userLogin.id ?? 0 })).unwrap();
 
-  const newRoles = [
-    ...userRoles,
-    {
-      role_id: roleId,
-      role_name: roles.find((r) => r.id === roleId)?.name || "",
-      role_description: roles.find((r) => r.id === roleId)?.description || "",
-      granted_by: userLogin.id,
-      expires_at: null,
-      granted_at: new Date().toISOString(),
-    },
-  ];
-  dispatch(updateUserRoles({ userId, roles: newRoles }));
-};
+      const newRoles: UserRole[] = [
+        ...userRoles,
+        {
+          role_id: roleId,
+          role_name: rolesList.find((r) => r.id === roleId)?.name || "",
+          role_description: rolesList.find((r) => r.id === roleId)?.description || "",
+          granted_by: userLogin.id ?? 0,
+          expires_at: null,
+          granted_at: new Date().toISOString(),
+        },
+      ];
+      dispatch(updateUserRoles({ userId, roles: newRoles }));
+    };
 
-const handleRemoveRole = (userId: number, userRoles: any[]) => async (roleId: number) => {
-  await dispatch(deleteUserRoles({ roleId, userId })).unwrap();
-  const newRoles = userRoles.filter((r) => r.role_id !== roleId);
-  dispatch(updateUserRoles({ userId, roles: newRoles }));
-};
+  const handleRemoveRole = (userId: number, userRoles: UserRole[]) => async (roleId: number) => {
+    await dispatch(deleteUserRoles({ roleId, userId })).unwrap();
+    const newRoles = userRoles.filter((r) => r.role_id !== roleId);
+    dispatch(updateUserRoles({ userId, roles: newRoles }));
+  };
 
   
 
