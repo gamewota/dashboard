@@ -3,6 +3,7 @@ import { useDispatch} from 'react-redux';
 import { login } from '../features/auth/authSlice';
 import { useAuth } from '../hooks/useAuth';
 import type { AppDispatch } from '../store';
+import Container from '../components/Container';
 
 const Home = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,7 +25,7 @@ const Home = () => {
   };
 
   return (
-    <div className='min-h-screen w-screen flex items-center justify-center'>
+    <Container className="items-center">
       {!auth.user ? (
         <form
           onSubmit={handleLogin}
@@ -65,7 +66,7 @@ const Home = () => {
       ) : (
         <h1 className="text-3xl">Game Wota Dashboard</h1>
       )}
-    </div>
+    </Container>
   );
 };
 

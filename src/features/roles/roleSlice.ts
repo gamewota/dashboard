@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 
 
 type Permission = {
@@ -42,12 +43,8 @@ const initialState: RoleState = {
 
 export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('token');
-
     const response = await axios.get(`${API_BASE_URL}/rbac/role-permissions`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader()
     });
 
     const rolePermissions = response.data.data as Array<{ role: Role; permission: Permission }>;
@@ -89,9 +86,7 @@ export const assignRoles = createAsyncThunk(
     "roles/assignRoles",
     async (data: AssignRole, { rejectWithValue }) => {
       try {
-        const token = localStorage.getItem("token");
-  
-        // convert object → form-data string
+  // convert object → form-data string
         const formData = new URLSearchParams();
         formData.append("userId", data.userId.toString());
         formData.append("roleId", data.roleId.toString());
@@ -103,7 +98,7 @@ export const assignRoles = createAsyncThunk(
           formData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             },
           }
@@ -125,14 +120,10 @@ export const assignRoles = createAsyncThunk(
       { rejectWithValue }
     ) => {
       try {
-        const token = localStorage.getItem("token");
-  
         const response = await axios.delete(
           `${API_BASE_URL}/rbac/user-roles/${roleId}/${userId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: getAuthHeader(),
           }
         );  
         return response.data;
@@ -149,8 +140,7 @@ export const assignRoles = createAsyncThunk(
     "roles/assignPermissionToRole",
     async (data: AssignPermissionToRole, { rejectWithValue}) => {
       try {
-        const token = localStorage.getItem("token");
-        const formData = new URLSearchParams();
+  const formData = new URLSearchParams();
         formData.append("roleId", data.roleId.toString());
         formData.append("permissionId", data.permissionId.toString());
 
@@ -159,7 +149,7 @@ export const assignRoles = createAsyncThunk(
           formData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             }
           }
@@ -178,8 +168,7 @@ export const assignRoles = createAsyncThunk(
     "roles/removePermissionFromRole",
     async (data: AssignPermissionToRole, { rejectWithValue}) => {
       try {
-        const token = localStorage.getItem("token");
-        const formData = new URLSearchParams();
+  const formData = new URLSearchParams();
         formData.append("roleId", data.roleId.toString());
         formData.append("permissionId", data.permissionId.toString());
 
@@ -187,7 +176,7 @@ export const assignRoles = createAsyncThunk(
           `${API_BASE_URL}/rbac/role-permissions`, 
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             },
             data: formData

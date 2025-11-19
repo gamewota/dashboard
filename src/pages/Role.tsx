@@ -4,6 +4,7 @@ import type { RootState, AppDispatch } from '../store';
 import { fetchRoles, assignPermissionToRole, removePermissionFromRole } from '../features/roles/roleSlice';
 import { fetchPermissions } from "../features/permissions/permissionsSlice";
 import { DataTable } from '../components/DataTable';
+import Container from '../components/Container';
 import { useToast } from "../hooks/useToast";
 import MultiSelect from '../components/MultiSelect';
 
@@ -78,26 +79,26 @@ const Role = () => {
   
 
   if (loading) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p>Loading...</p>
-    </div>
+    </Container>
   )
 
   if (error) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p className='text-bold'>Error: {error}</p>
-    </div>
+    </Container>
   )
 
 
   if (!data || data.length === 0) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p>No items found.</p>
-    </div>
+    </Container>
   )
 
   return (
-    <div className='min-h-screen w-screen flex justify-center'>
+    <Container>
       <div className='overflow-x-auto'>
         <h1 className='mb-3'>All Roles</h1>
         <DataTable
@@ -109,7 +110,7 @@ const Role = () => {
         />
       </div>
       <ToastContainer />
-    </div>
+    </Container>
   )
 }
 

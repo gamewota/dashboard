@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import Container from '../components/Container';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { logout } from '../features/auth/authSlice';
@@ -16,17 +17,17 @@ const ForgotPassword = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🧩 Toast function
-  const showToast = (message: string, type: 'success' | 'error', redirect?: boolean) => {
+  // 🧩 Toast function (stable via useCallback)
+  const showToast = useCallback((message: string, type: 'success' | 'error', redirect?: boolean) => {
     const toast = document.createElement('div');
     toast.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} text-white shadow-lg`;
     toast.innerHTML = `
       <span>${message}</span>
     `;
-  
+
     const container = document.getElementById('toast-container');
     container?.appendChild(toast);
-  
+
     setTimeout(() => {
       toast.remove();
       if (redirect) {
@@ -34,7 +35,7 @@ const ForgotPassword = () => {
         navigate('/dashboard/');
       }
     }, 3000); // wait 3 seconds before removing toast and redirecting
-  };
+  }, [dispatch, navigate]);
   
 
   // ✅ Step 2: Verify token if present
@@ -48,7 +49,7 @@ const ForgotPassword = () => {
           params: { token }
         });
         setTokenValid(true);
-      } catch (err) {
+      } catch {
         showToast('Token is invalid or expired', 'error', false);
       } finally {
         setLoading(false);
@@ -56,7 +57,7 @@ const ForgotPassword = () => {
     };
 
     verifyToken();
-  }, [token]);
+  }, [token, showToast]);
 
   // ✅ Step 3: Handle email submission
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -67,8 +68,13 @@ const ForgotPassword = () => {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/reset-password`, { email });
       showToast('Magic link has been sent to your email.', 'success', false);
 
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Something went wrong', 'error', false);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const resp = err.response?.data as { message?: string } | undefined;
+        showToast(resp?.message || err.message || 'Something went wrong', 'error', false);
+      } else {
+        showToast(String(err) || 'Something went wrong', 'error', false);
+      }
     } finally {
       setLoading(false);
     }
@@ -91,15 +97,20 @@ const ForgotPassword = () => {
         email
       });
       showToast('Password reset successful! You can now login.', 'success', true);
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Something went wrong', 'error', false);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const resp = err.response?.data as { message?: string } | undefined;
+        showToast(resp?.message || err.message || 'Something went wrong', 'error', false);
+      } else {
+        showToast(String(err) || 'Something went wrong', 'error', false);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center justify-center p-4 relative">
+    <Container className="flex-col items-center justify-center p-4 relative">
       {/* 🧾 DaisyUI toast container */}
       <div id="toast-container" className="toast toast-top toast-end z-50 absolute top-4 right-4" />
 
@@ -159,7 +170,7 @@ const ForgotPassword = () => {
           {loading ? 'Please wait...' : token ? 'Reset Password' : 'Submit'}
         </button>
       </form>
-    </div>
+    </Container>
   );
 };
 

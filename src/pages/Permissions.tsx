@@ -10,6 +10,7 @@ import {
 import type { RootState, AppDispatch } from "../store";
 import { PermissionModal } from "../components/PermissionModal";
 import { useToast } from "../hooks/useToast";
+import Container from '../components/Container';
 
 // Local types to avoid `any`
 type PermissionItem = {
@@ -102,7 +103,7 @@ const Permission = () => {
   }
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center p-4">
+    <Container className="flex-col items-center p-4">
       <div className="w-full max-w-5xl flex justify-end mb-4">
         <button
           className="btn btn-primary"
@@ -132,7 +133,7 @@ const Permission = () => {
         onSave={handleSave}
       />
       <ToastContainer />
-    </div>
+    </Container>
   );
 };
 

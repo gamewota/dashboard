@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchSongs } from '../features/songs/songSlice';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
+import Container from '../components/Container';
 
 // Local Song type to avoid `any`
 type Song = {
@@ -50,17 +51,17 @@ const Song = () => {
         </div>
       )
   return (
-    <div className='min-h-screen w-screen flex justify-center'>
-        <div className='overflow-x-auto'>
-            <DataTable<Song>
-              data={data}
-              loading={loading}
-              error={error}
-              emptyMessage={'No songs found.'}
-              columns={columns}
-            />
-        </div>
-    </div>
+    <Container>
+      <div className='overflow-x-auto'>
+        <DataTable<Song>
+          data={data}
+          loading={loading}
+          error={error}
+          emptyMessage={'No songs found.'}
+          columns={columns}
+        />
+      </div>
+    </Container>
   )
 }
 

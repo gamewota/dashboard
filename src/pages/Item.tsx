@@ -1,12 +1,23 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchShopItems, addShopItem, updateShopVisibility } from '../features/shopItems/shopItemsSlice';
 import { useEffect, useState } from 'react';
+import { useToast } from '../hooks/useToast';
+import Container from '../components/Container';
 import type { RootState, AppDispatch } from '../store';
 
 const Item = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading, error } = useSelector((state: RootState) => state.shopItems);
-  const [formData, setFormData] = useState({
+  type ItemForm = {
+    name: string;
+    type: string;
+    price: string;
+    currency: string;
+    description: string;
+    stock: string;
+  };
+
+  const [formData, setFormData] = useState<ItemForm>({
     name: '',
     type: '',
     price: '',
@@ -14,6 +25,8 @@ const Item = () => {
     description: '',
     stock: '',
   });
+
+  const { showToast, ToastContainer } = useToast();
 
   useEffect(() => {
     dispatch(fetchShopItems());
@@ -33,28 +46,17 @@ const Item = () => {
     );
   
     if (updateShopVisibility.fulfilled.match(result)) {
-      // Show success toast with message from payload
-      const toastContainer = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'alert alert-success';
-      toast.innerHTML = `<span>${result.payload?.message || 'Visibility updated.'}</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      showToast(result.payload?.message || 'Visibility updated.', 'success');
       dispatch(fetchShopItems());
     } else {
-      // Show error toast with message from error
-      const toastContainer = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'alert alert-error';
-      toast.innerHTML = `<span>${(result.payload as any)?.message || 'Failed to update visibility.'}</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      const payload = result.payload as { message?: string } | undefined;
+      showToast(payload?.message || 'Failed to update visibility.', 'error');
     }
   };
   
 
   return (
-    <div className='min-h-screen w-screen flex flex-col items-center p-4'>
+    <Container className="flex-col items-center p-4">
       {/* Add Item Button */}
       <div className='w-full max-w-5xl flex justify-end mb-4'>
         <button className='btn btn-info' onClick={() => {
@@ -136,7 +138,7 @@ const Item = () => {
         <div className="modal-box">
           <h3 className="font-bold text-lg">Add New Item</h3>
           <div className="form-control space-y-2 gap-3">
-          {['name', 'type', 'price', 'currency', 'description', 'stock'].map((key) => {
+          {(['name', 'type', 'price', 'currency', 'description', 'stock'] as (keyof ItemForm)[]).map((key) => {
           if (key === 'type') {
             return (
               <>
@@ -144,7 +146,7 @@ const Item = () => {
                   key={key}
                   className="btn bg-white"
                   popoverTarget="popover-1"
-                  style={{ anchorName: "--anchor-1" } as any}
+                  style={{ anchorName: "--anchor-1" } as React.CSSProperties}
                 >
                   {formData.type ? `${formData.type.charAt(0).toUpperCase() + formData.type.slice(1).replace('_',' ')}` : 'Select Type'}
                 </button>
@@ -152,7 +154,7 @@ const Item = () => {
                   className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
                   popover="auto"
                   id="popover-1"
-                  style={{ positionAnchor: "--anchor-1" } as any}
+                  style={{ positionAnchor: "--anchor-1" } as React.CSSProperties}
                 >
                   {['gacha_pack', 'diamond', 'stamina'].map((option) => (
                     <li key={option}>
@@ -176,7 +178,7 @@ const Item = () => {
                 key={key}
                 className="btn bg-white"
                 popoverTarget="popover-2"
-                style={{ anchorName: "--anchor-2" } as any}
+                style={{ anchorName: "--anchor-2" } as React.CSSProperties}
               >
                 {formData.currency ? `${formData.currency.charAt(0).toUpperCase() + formData.currency.slice(1).replace('_',' ')}` : 'Select Currency'}
               </button>
@@ -184,7 +186,7 @@ const Item = () => {
                 className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
                 popover="auto"
                 id="popover-2"
-                style={{ positionAnchor: "--anchor-2" } as any}
+                style={{ positionAnchor: "--anchor-2" } as React.CSSProperties}
               >
                 {['diamonds', 'real_money'].map((option) => (
                   <li key={option}>
@@ -204,12 +206,12 @@ const Item = () => {
     
 
             return (
-              <input
+                <input
                 key={key}
                 type={key === 'price' || key === 'stock' ? 'number' : 'text'}
                 placeholder={key}
                 className="input input-bordered w-full"
-                value={(formData as any)[key]}
+                value={formData[key] as string}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, [key]: e.target.value }))
                 }
@@ -254,20 +256,11 @@ const Item = () => {
                   dialog?.close();
             
                   // Show success toast with message from payload
-                  const toastContainer = document.getElementById('toast-container');
-                  const toast = document.createElement('div');
-                  toast.className = 'alert alert-success';
-                  toast.innerHTML = `<span>${result.payload?.message || 'Item added successfully!'}</span>`;
-                  toastContainer?.appendChild(toast);
-                  setTimeout(() => toast.remove(), 3000);
+                  showToast(result.payload?.message || 'Item added successfully!', 'success');
                 } else if (addShopItem.rejected.match(result)) {
                   // Show error toast with message from error
-                  const toastContainer = document.getElementById('toast-container');
-                  const toast = document.createElement('div');
-                  toast.className = 'alert alert-error';
-                  toast.innerHTML = `<span>${(result.payload as any)?.message || 'Failed to add item.'}</span>`;
-                  toastContainer?.appendChild(toast);
-                  setTimeout(() => toast.remove(), 3000);
+                  const payload = result.payload as { message?: string } | undefined;
+                  showToast(payload?.message || 'Failed to add item.', 'error');
                 }
               }}
             >
@@ -276,8 +269,8 @@ const Item = () => {
           </div>
         </div>
       </dialog>
-      <div className="toast toast-top toast-end z-50" id="toast-container"></div>
-    </div>
+      <ToastContainer />
+    </Container>
   );
 };
 

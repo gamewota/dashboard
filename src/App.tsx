@@ -14,6 +14,9 @@ import VerifyUser from "./pages/VerifyUser"
 import ResendVerification from "./pages/ResendVerification"
 import { useAuth } from "./hooks/useAuth"
 import Permission from "./pages/Permissions"
+import GameItemsType from "./pages/GameItemsType"
+import GameItems from "./pages/GameItems"
+import Element from "./pages/Element"
 function App() {
   const auth = useAuth()
   return (
@@ -36,6 +39,9 @@ function App() {
         <Route path="/dashboard/resend-verify" element={<ResendVerification />}/>
         <Route path="/dashboard/role" element={<Role />} />
         <Route path="/dashboard/permissions" element={<Permission />} />
+        <Route path="/dashboard/element" element={<Element />} />
+        <Route path="/dashboard/game-items" element={<GameItems />} />
+        <Route path="/dashboard/game-items-type" element={<GameItemsType />} />
       </Routes>
     </div>
   )

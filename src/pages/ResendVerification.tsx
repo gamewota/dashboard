@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Container from '../components/Container';
 
 const ResendVerification: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,10 +22,13 @@ const ResendVerification: React.FC = () => {
       );
 
       setMessage(response.data?.message || 'Verification email has been resent.');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        (axios.isAxiosError(err) ? err.response?.data?.message : undefined) ||
+        (err instanceof Error ? err.message : String(err));
+
       setError(
-        err.response?.data?.message ||
-        'Failed to resend verification email. Please try again.'
+        message || 'Failed to resend verification email. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -32,7 +36,7 @@ const ResendVerification: React.FC = () => {
   };
 
   return (
-    <div className='min-h-screen w-screen flex flex-col items-center justify-center p-4 relative'>
+    <Container className='flex-col items-center justify-center p-4 relative'>
         <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
         <h1 className="text-2xl font-bold mb-4">Resend Verification Email</h1>
         <form onSubmit={handleSubmit}>
@@ -59,7 +63,7 @@ const ResendVerification: React.FC = () => {
         {message && <p className="mt-4 text-green-600">{message}</p>}
         {error && <p className="mt-4 text-red-600">{error}</p>}
         </div>
-    </div>
+    </Container>
   );
 };
 

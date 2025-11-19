@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchQuotes, addQuote } from '../features/quotes/quoteSlice';
 import { useEffect, useState } from 'react';
+import { useToast } from '../hooks/useToast';
+import Container from '../components/Container';
 import type { RootState, AppDispatch } from '../store';
 
 const Quote = () => {
@@ -15,9 +17,10 @@ const Quote = () => {
     dispatch(fetchQuotes());
   },[dispatch]);
 
+  const { showToast, ToastContainer } = useToast();
 
   return (
-    <div className='min-h-screen w-screen flex flex-col items-center p-4'>
+    <Container className='flex-col items-center p-4'>
 
 
       <div className='w-full max-w-5xl flex justify-end mb-4'>
@@ -102,24 +105,10 @@ const Quote = () => {
 
                   const dialog = document.getElementById('add_quotes') as HTMLDialogElement;
                   dialog?.close();
-
-                  const toastContainer = document.getElementById('toast-container-quotes');
-                  const toast = document.createElement('div');
-                  toast.className = 'alert alert-success';
-                  toast.innerHTML = `<span>${result.payload.message || 'Quote added successfully!'}</span>`;
-                  toastContainer?.appendChild(toast);
-                  setTimeout(() => {
-                    toast.remove();
-                  }, 3000)
+                  showToast(result.payload?.message || 'Quote added successfully!', 'success');
                 } else if(addQuote.rejected.match(result)) {
-                  const toastContainer = document.getElementById('toast-container-quotes');
-                  const toast = document.createElement('div');
-                  toast.className = 'alert alert-error';
-                  toast.innerHTML = `<span>${(result.payload as any).message || 'Failed to add quote'}</span>`;
-                  toastContainer?.appendChild(toast);
-                  setTimeout(() => {
-                    toast.remove();
-                  }, 3000)
+                  const payload = result.payload as { message?: string } | undefined;
+                  showToast(payload?.message || 'Failed to add quote', 'error');
                 }
               }}
             >
@@ -128,8 +117,8 @@ const Quote = () => {
           </div>
         </div>
       </dialog>
-      <div className="toast toast-top toast-end z-50" id="toast-container-quotes"></div>
-    </div>
+  <ToastContainer />
+    </Container>
   )
 }
 

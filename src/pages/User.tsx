@@ -3,6 +3,8 @@ import { fetchUsers, banUser, deleteUser, updateUserRoles } from '../features/us
 import { fetchRoles, assignRoles, deleteUserRoles } from '../features/roles/roleSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
+import { useToast } from '../hooks/useToast';
+import Container from '../components/Container';
 import { useHasPermission } from '../hooks/usePermissions';
 import MultiSelect from '../components/MultiSelect';
 import type { MultiSelectOption } from '../components/MultiSelect';
@@ -49,6 +51,8 @@ const User = () => {
     username: ''
   })
 
+  const { showToast, ToastContainer } = useToast();
+
   const columns = 
   [
     { header: '#', accessor: (_row: UserItem, i: number) => i + 1 as React.ReactNode },
@@ -67,22 +71,8 @@ const User = () => {
         initialSelected={row.roles.map((r: UserRole) => r.role_id)}
         onAdd={handleAddRole(row.user_id, row.roles, roles as RoleSimple[])}
         onRemove={handleRemoveRole(row.user_id, row.roles)}
-        onSuccess={(msg?: string) => {
-            const toastContainer = document.getElementById('toast-container-user');
-            const toast = document.createElement('div');
-            toast.className = 'alert alert-success';
-            toast.innerHTML = `<span>${msg}</span>`;
-            toastContainer?.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-          }}
-        onFailure={(err?: unknown) => {
-            const toastContainer = document.getElementById('toast-container-user');
-            const toast = document.createElement('div');
-            toast.className = 'alert alert-error';
-            toast.innerHTML = `<span>${String(err)}</span>`;
-            toastContainer?.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }}
+        onSuccess={(msg?: string) => showToast(msg || 'Success', 'success')}
+        onFailure={(err?: unknown) => showToast(String(err) || 'Error', 'error')}
   formatAddMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been assigned`}
   formatRemoveMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been removed`}
         addButtonLabel="Add Role"
@@ -125,9 +115,7 @@ const User = () => {
   const handleConfirmationBanUser = async () => {
     const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
     dialog?.close()
-    const toastContainer = document.getElementById('toast-container-user');
-    const toast = document.createElement('div');
-
+  // use centralized toast
     const result = await dispatch(banUser({
       userId: formData.userId,
       days: formData.days
@@ -140,27 +128,16 @@ const User = () => {
         days: '',
         username: ''
       })
-      toast.className = 'alert alert-success';
       const payload = result.payload as { message?: string } | undefined;
-      toast.innerHTML = `<span>${payload?.message || 'User has been successfully baned'}</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 3000)
+      showToast(payload?.message || 'User has been successfully baned', 'success');
     } else {
       setFormData({
         userId: '',
         days: '',
         username: ''
       })
-      toast.className = 'alert alert-error';
       const payload = result.payload as { message?: string } | undefined;
-      toast.innerHTML = `<span>${payload?.message || 'Failed to ban the user'}</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 3000)
-      
+      showToast(payload?.message || 'Failed to ban the user', 'error');
     }
   }
 
@@ -177,9 +154,6 @@ const User = () => {
   const handleConfirmationDeleteUser = async () => {
     const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
     dialog?.close()
-    const toastContainer = document.getElementById('toast-container-user');
-    const toast = document.createElement('div');
-
     const result = await dispatch(deleteUser(Number(formData.userId)))
 
     if(deleteUser.fulfilled.match(result)) {
@@ -189,25 +163,14 @@ const User = () => {
         days: '',
         username: ''
       })
-      toast.className = 'alert alert-success';
-      toast.innerHTML = `<span>User has been successfully deleted</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 3000)
+      showToast('User has been successfully deleted', 'success');
     } else {
       setFormData({
         userId: '',
         days: '',
         username: ''
       })
-      toast.className = 'alert alert-error';
-      toast.innerHTML = `<span>Failed to delete the user</span>`;
-      toastContainer?.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 3000)
-      
+      showToast('Failed to delete the user', 'error');
     }
   }
 
@@ -237,9 +200,6 @@ const User = () => {
     dispatch(updateUserRoles({ userId, roles: newRoles }));
   };
 
-  
-
-
   if (loading) return (
     <div className='min-h-screen w-screen flex justify-center items-center'>
       <p>Loading...</p>
@@ -258,8 +218,8 @@ const User = () => {
 
 
   return (
-    <div className='min-h-screen w-screen flex justify-center'>
-        <div className="overflow-x-auto">
+    <Container>
+      <div className="overflow-x-auto">
             <div className='w-[90vw] h-[80vh] overflow-scroll'>
               <DataTable 
                 data={data}
@@ -291,7 +251,7 @@ const User = () => {
                 </div>
               </div>
             </dialog>
-            <div className="toast toast-top toast-end z-50" id="toast-container-user"></div>
+            <ToastContainer />
             <dialog id='ban_user_confirmation' className='modal'>
               <div className='modal-box'>
                 <h1>Are you sure you want to ban user {formData.username} for {formData.days} days?</h1>
@@ -320,7 +280,7 @@ const User = () => {
               </div>
             </dialog>
         </div>
-    </div>
+    </Container>
   )
 }
 

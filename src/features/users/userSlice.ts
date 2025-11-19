@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 
 type UserRole = {
     role_id: number;
@@ -44,11 +45,8 @@ const initialState: UserState = {
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, thunkAPI) => {
     try {
-        const token = localStorage.getItem('token');
         const response = await axios.get(`${API_BASE_URL}/users`, {
-            headers: {
-                Authorization: token ? `Bearer ${token}` : undefined,
-            },
+            headers: getAuthHeader()
         });
 
         return response.data.data;
