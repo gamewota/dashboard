@@ -9,7 +9,6 @@ type ContainerProps = {
 export default function Container({ children, className = '' }: ContainerProps) {
   return (
     <div className={[
-      'min-h-screen',
       'w-screen',
       'flex',
       'justify-center',
