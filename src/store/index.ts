@@ -10,6 +10,7 @@ import authReducer from '../features/auth/authSlice'
 import rolesReducer from '../features/roles/roleSlice'
 import permissionReducer from '../features/permissions/permissionsSlice'
 import elementReducer from '../features/elements/elementSlice'
+import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice'
 
 
 export const store = configureStore({
@@ -24,7 +25,8 @@ export const store = configureStore({
         transactionsLog: transactionLogReducer,
         auth: authReducer,
         permissions: permissionReducer,
-        elements: elementReducer
+        elements: elementReducer,
+        gameItemsTypes: gameItemsTypeReducer
     }
 })
 
