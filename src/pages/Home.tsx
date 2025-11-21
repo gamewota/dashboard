@@ -25,7 +25,7 @@ const Home = () => {
   };
 
   return (
-    <Container className="items-center">
+    <Container className="items-center min-h-screen">
       {!auth.user ? (
         <form
           onSubmit={handleLogin}

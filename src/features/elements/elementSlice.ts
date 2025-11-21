@@ -29,7 +29,7 @@ export const fetchElements = createAsyncThunk('elements/fetchElements', async (_
             headers: getAuthHeader()
         });
 
-        return response.data.data;
+        return response.data;
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             return thunkAPI.rejectWithValue(error.response?.data ?? String(error));

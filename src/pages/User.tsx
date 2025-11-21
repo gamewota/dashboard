@@ -5,6 +5,7 @@ import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
+import Modal from '../components/Modal';
 import { useHasPermission } from '../hooks/usePermissions';
 import MultiSelect from '../components/MultiSelect';
 import type { MultiSelectOption } from '../components/MultiSelect';
@@ -230,55 +231,58 @@ const User = () => {
               />
 
             </div>
-            <dialog id="ban_user" className="modal">
-              <div className="modal-box">
-                <h3 className="font-bold text-lg">Ban User</h3>
-                <input 
-                  className="input input-bordered w-full mt-2"
-                  placeholder='Days' 
-                  value={formData.days}
-                  type='number'
-                  onChange={(e) => setFormData({...formData, days: e.target.value})}
-                />
-                <div className="modal-action">
+            <Modal
+              id="ban_user"
+              title="Ban User"
+              footer={
+                <>
                   <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
                     <button className="btn">Close</button>
                   </form>
                   <button className='btn btn-error' onClick={handleCloseBanUserModal}>
                     Ban User
                   </button>
-                </div>
-              </div>
-            </dialog>
+                </>
+              }
+            >
+              <input 
+                className="input input-bordered w-full mt-2"
+                placeholder='Days' 
+                value={formData.days}
+                type='number'
+                onChange={(e) => setFormData({...formData, days: e.target.value})}
+              />
+            </Modal>
             <ToastContainer />
-            <dialog id='ban_user_confirmation' className='modal'>
-              <div className='modal-box'>
-                <h1>Are you sure you want to ban user {formData.username} for {formData.days} days?</h1>
-                <div className='modal-action'>
+            <Modal
+              id='ban_user_confirmation'
+              title={`Are you sure you want to ban user ${formData.username} for ${formData.days} days?`}
+              footer={
+                <>
                   <form method='dialog'>
                     <button className='btn'>Cancel</button>
                   </form>
                   <button className='btn btn-primary' onClick={handleConfirmationBanUser}>
                     Confirm
                   </button>
-                </div>
-              </div>
-            </dialog>
+                </>
+              }
+            />
             {/* delete user dialog */}
-            <dialog id='delete_user_confirmation' className='modal'>
-              <div className='modal-box'>
-                <h1>Are you sure you want to delete user {formData.username}</h1>
-                <div className='modal-action'>
+            <Modal
+              id='delete_user_confirmation'
+              title={`Are you sure you want to delete user ${formData.username}`}
+              footer={
+                <>
                   <form method='dialog'>
                     <button className='btn'>Cancel</button>
                   </form>
                   <button className='btn btn-primary' onClick={handleConfirmationDeleteUser}>
                     Confirm
                   </button>
-                </div>
-              </div>
-            </dialog>
+                </>
+              }
+            />
         </div>
     </Container>
   )
