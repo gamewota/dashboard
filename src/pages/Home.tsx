@@ -4,7 +4,7 @@ import { login } from '../features/auth/authSlice';
 import { useAuth } from '../hooks/useAuth';
 import type { AppDispatch } from '../store';
 import Container from '../components/Container';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 
 const Home = () => {
   const dispatch = useDispatch<AppDispatch>();

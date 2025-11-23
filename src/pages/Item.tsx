@@ -3,7 +3,7 @@ import { fetchShopItems, addShopItem, updateShopVisibility } from '../features/s
 import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 import type { RootState, AppDispatch } from '../store';
 
 const Item = () => {

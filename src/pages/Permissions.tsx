@@ -11,7 +11,7 @@ import type { RootState, AppDispatch } from "../store";
 import { PermissionModal } from "../components/PermissionModal";
 import { useToast } from "../hooks/useToast";
 import Container from '../components/Container';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 
 // Local types to avoid `any`
 type PermissionItem = {
