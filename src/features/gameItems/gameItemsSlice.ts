@@ -59,7 +59,7 @@ const gameItemsSlice = createSlice({
             })
             .addCase(fetchGameItems.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch game items types';
+                state.error = action.error.message || 'Failed to fetch game items';
             })
     }
 })

@@ -108,7 +108,7 @@ export const assignRoles = createAsyncThunk(
         if (axios.isAxiosError(error)) {
           return rejectWithValue(error.response?.data?.message ?? "Failed to assign role");
         }
-        return rejectWithValue(String(error) || "Failed to assign role");
+        return rejectWithValue(String(error));
       }
     }
   );
@@ -131,7 +131,7 @@ export const assignRoles = createAsyncThunk(
         if (axios.isAxiosError(error)) {
           return rejectWithValue(error.response?.data?.message ?? "Failed to delete user role");
         }
-        return rejectWithValue(String(error) || "Failed to delete user role");
+        return rejectWithValue(String(error));
       }
     }
   );
@@ -159,7 +159,7 @@ export const assignRoles = createAsyncThunk(
         if (axios.isAxiosError(error)) {
           return rejectWithValue(error.response?.data?.message ?? "Failed to assign permission to role");
         }
-        return rejectWithValue(String(error) || "Failed to assign permission to role");
+        return rejectWithValue(String(error));
       }
     }
   )
@@ -188,7 +188,7 @@ export const assignRoles = createAsyncThunk(
         if (axios.isAxiosError(error)) {
           return rejectWithValue(error.response?.data?.message ?? "Failed to remove permission from role");
         }
-        return rejectWithValue(String(error) || "Failed to remove permission from role");
+        return rejectWithValue(String(error));
       }
     }
   )
