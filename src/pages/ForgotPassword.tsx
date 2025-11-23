@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { logout } from '../features/auth/authSlice';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
+import { Button } from '../components/Button';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -157,13 +158,14 @@ const ForgotPassword = () => {
           </>
         )}
 
-        <button
+        <Button
           type="submit"
-          className="btn btn-primary w-full"
+          variant="primary"
+          className="w-full"
           disabled={!!loading || (!!token && !tokenValid)}
         >
           {loading ? 'Please wait...' : token ? 'Reset Password' : 'Submit'}
-        </button>
+        </Button>
       </form>
     </Container>
   );

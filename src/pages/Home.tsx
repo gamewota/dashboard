@@ -4,6 +4,7 @@ import { login } from '../features/auth/authSlice';
 import { useAuth } from '../hooks/useAuth';
 import type { AppDispatch } from '../store';
 import Container from '../components/Container';
+import { Button } from '../components/Button';
 
 const Home = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -51,13 +52,14 @@ const Home = () => {
             required
           />
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-primary w-full"
+            variant="primary"
+            className="w-full"
             disabled={auth.loading}
           >
             {auth.loading ? 'Logging in...' : 'Login'}
-          </button>
+          </Button>
 
           {auth.error && (
             <div className="text-error text-sm text-center">{auth.error}</div>
