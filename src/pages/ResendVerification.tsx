@@ -36,7 +36,7 @@ const ResendVerification: React.FC = () => {
   };
 
   return (
-    <Container className='flex-col items-center justify-center p-4 relative'>
+    <Container className='flex-col items-center justify-center p-4 relative min-h-screen'>
         <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
         <h1 className="text-2xl font-bold mb-4">Resend Verification Email</h1>
         <form onSubmit={handleSubmit}>

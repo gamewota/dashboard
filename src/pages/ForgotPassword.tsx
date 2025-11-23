@@ -110,7 +110,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Container className="flex-col items-center justify-center p-4 relative">
+    <Container className="flex-col items-center justify-center p-4 relative min-h-screen">
       {/* 🧾 DaisyUI toast container */}
       <div id="toast-container" className="toast toast-top toast-end z-50 absolute top-4 right-4" />
 

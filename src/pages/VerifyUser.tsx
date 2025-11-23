@@ -46,7 +46,7 @@ const VerifyUser = () => {
   }, [token, navigate]);
 
   return (
-    <Container className="flex-col items-center justify-center bg-base-100">
+    <Container className="flex-col items-center justify-center bg-base-100 min-h-screen">
       {/* Animation container */}
       <div className="flex flex-col items-center">
         {status === "loading" && (
