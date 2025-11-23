@@ -4,6 +4,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { logout } from '../features/auth/authSlice';
 import axios from 'axios';
+import { useToast } from '../hooks/useToast';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
@@ -17,25 +18,19 @@ const ForgotPassword = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🧩 Toast function (stable via useCallback)
+  const { showToast: showReactToast, ToastContainer } = useToast();
+
+  // wrapper to keep the old redirect behavior while delegating rendering to the React Toast
   const showToast = useCallback((message: string, type: 'success' | 'error', redirect?: boolean) => {
-    const toast = document.createElement('div');
-    toast.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} text-white shadow-lg`;
-    toast.innerHTML = `
-      <span>${message}</span>
-    `;
-
-    const container = document.getElementById('toast-container');
-    container?.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-      if (redirect) {
+    showReactToast(message, type);
+    if (redirect) {
+      // match previous UX: redirect after 3s
+      setTimeout(() => {
         dispatch(logout());
         navigate('/dashboard/');
-      }
-    }, 3000); // wait 3 seconds before removing toast and redirecting
-  }, [dispatch, navigate]);
+      }, 3000);
+    }
+  }, [dispatch, navigate, showReactToast]);
   
 
   // ✅ Step 2: Verify token if present
@@ -111,8 +106,8 @@ const ForgotPassword = () => {
 
   return (
     <Container className="flex-col items-center justify-center p-4 relative min-h-screen">
-      {/* 🧾 DaisyUI toast container */}
-      <div id="toast-container" className="toast toast-top toast-end z-50 absolute top-4 right-4" />
+  {/* React-based toast container */}
+  <ToastContainer />
 
       <form
         className="bg-base-100 shadow-xl rounded-xl p-8 w-96 space-y-4"

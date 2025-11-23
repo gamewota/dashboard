@@ -20,9 +20,7 @@ import { useToast } from '../hooks/useToast';
 
 const Element = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const elements = useSelector((state: RootState) => state.elements.data ?? []);
-  const loading = useSelector((state: RootState) => state.elements.loading);
-  const error = useSelector((state: RootState) => state.elements.error);
+  const { data: elements = [], loading, error } = useSelector((state: RootState) => state.elements);
   const { showToast } = useToast();
 
   const [editing, setEditing] = useState<null | ElementType>(null);
@@ -81,24 +79,12 @@ const Element = () => {
 
   return (
     <Container className="flex-col items-center">
-      {loading && (
-        <div className='flex items-center'>
-          <span className="loading loading-spinner" />
-          <span className="ml-2">Loading elements...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className='text-error'>Error: {error}</div>
-      )}
-
-
-
+      
       <div className='overflow-x-auto'>
         <h1 className="text-2xl font-bold mb-4">Elements</h1>
         <DataTable<ElementType>
           columns={[
-            { header: '#', accessor: (_row: ElementType, i: number) => i + 1 as React.ReactNode },
+            { header: '#', accessor: (_row: ElementType, i: number) => i + 1 },
             { header: 'Name', accessor: 'name' as keyof ElementType },
             { header: 'Description', accessor: (row: ElementType) => row.description || '-' },
             { header: 'Created At', accessor: (row: ElementType) => row.created_at || '-' },

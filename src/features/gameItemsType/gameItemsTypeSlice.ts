@@ -23,7 +23,9 @@ const initialState: GameItemsTypeState = {
     error: null
 }
 
-export const fetchGameItemsTypes = createAsyncThunk('gameItemsTypes/fetchGameItemsTypes', async (_, thunkAPI) => {
+export const fetchGameItemsTypes = createAsyncThunk<GameItemsType[], void, { rejectValue: string }>(
+    'gameItemsTypes/fetchGameItemsTypes',
+    async (_, thunkAPI) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/items/types`, {
             headers: getAuthHeader()
@@ -31,10 +33,17 @@ export const fetchGameItemsTypes = createAsyncThunk('gameItemsTypes/fetchGameIte
 
         return response.data;
     } catch (error: unknown) {
+        // Ensure we always return a string payload when rejecting so the rejectValue type is consistent
         if (axios.isAxiosError(error)) {
-            return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+            const respData = error.response?.data;
+            const payload = typeof respData === 'string'
+                ? respData
+                : (respData && typeof respData === 'object')
+                    ? (respData.message ?? JSON.stringify(respData))
+                    : String(error);
+            return thunkAPI.rejectWithValue(payload);
         }
-        return thunkAPI.rejectWithValue(String(error));
+    return thunkAPI.rejectWithValue(String(error));
     }
 })
 
@@ -55,7 +64,8 @@ const gameItemsTypeSlice = createSlice({
             })
             .addCase(fetchGameItemsTypes.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch game items types';
+                // Prefer server-provided message via rejectWithValue (action.payload), fall back to action.error.message
+                state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Unknown error';
             })
     }
 })
