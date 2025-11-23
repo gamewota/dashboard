@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Container from '../components/Container';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 
 const ResendVerification: React.FC = () => {
   const [email, setEmail] = useState('');

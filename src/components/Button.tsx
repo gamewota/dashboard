@@ -1,15 +1,14 @@
-import React from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'error' | 'success' | 'info' | 'warning' | 'link';
 type Size = 'xs' | 'sm' | 'md' | 'lg';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
   size?: Size;
-  className?: string;
 };
 
-export default function Button({ variant, size = 'md', className = '', children, ...rest }: ButtonProps) {
+export function Button({ variant, size = 'md', className = '', children, ...rest }: ButtonProps) {
   const variantClass = {
     primary: 'btn btn-primary',
     secondary: 'btn btn-secondary',

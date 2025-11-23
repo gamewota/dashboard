@@ -16,7 +16,7 @@ import { fetchElements, updateElement, deleteElement } from '../features/element
 import type { RootState, AppDispatch } from '../store';
 import { useState } from 'react';
 import Modal from '../components/Modal';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 import { useToast } from '../hooks/useToast';
 
 const Element = () => {

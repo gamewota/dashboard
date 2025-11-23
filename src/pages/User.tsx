@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
 import Modal from '../components/Modal';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 import { useHasPermission } from '../hooks/usePermissions';
 import MultiSelect from '../components/MultiSelect';
 import type { MultiSelectOption } from '../components/MultiSelect';

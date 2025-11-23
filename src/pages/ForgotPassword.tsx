@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { logout } from '../features/auth/authSlice';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 
 const ForgotPassword = () => {
   const [searchParams] = useSearchParams();
