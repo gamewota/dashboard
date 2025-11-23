@@ -17,6 +17,7 @@ import Permission from "./pages/Permissions"
 import GameItemsType from "./pages/GameItemsType"
 import GameItems from "./pages/GameItems"
 import Element from "./pages/Element"
+import Assets from "./pages/Assets"
 function App() {
   const auth = useAuth()
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/dashboard/element" element={<Element />} />
         <Route path="/dashboard/game-items" element={<GameItems />} />
         <Route path="/dashboard/game-items-type" element={<GameItemsType />} />
+        <Route path="/dashboard/assets" element={<Assets />} />
       </Routes>
     </div>
   )
