@@ -131,7 +131,7 @@ const User = () => {
         username: ''
       })
       const payload = result.payload as { message?: string } | undefined;
-      showToast(payload?.message || 'User has been successfully baned', 'success');
+      showToast(payload?.message || 'User has been successfully banned', 'success');
     } else {
       setFormData({
         userId: '',
