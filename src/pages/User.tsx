@@ -53,6 +53,9 @@ const User = () => {
   })
 
   const { showToast, ToastContainer } = useToast();
+  const [isBanOpen, setIsBanOpen] = useState(false);
+  const [isBanConfirmOpen, setIsBanConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const columns = 
   [
@@ -97,26 +100,24 @@ const User = () => {
   },[dispatch]);
 
   const handleOpenBanUserModal = (id : number, username : string) => {
-    const dialog = document.getElementById('ban_user') as HTMLDialogElement;
     setFormData({
       ...formData,
       userId: `${id}`, // keep as string
       username
     });
-    dialog?.showModal();
+    setIsBanOpen(true);
   };
 
   const handleCloseBanUserModal = () => {
-    const banDialog = document.getElementById('ban_user') as HTMLDialogElement;
-    const confirmDialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
-    banDialog?.close()
-    confirmDialog?.showModal()
+    // close ban dialog and open confirmation dialog
+    setIsBanOpen(false);
+    setIsBanConfirmOpen(true);
   }
 
   const handleConfirmationBanUser = async () => {
-    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
-    dialog?.close()
-  // use centralized toast
+    // close confirmation dialog
+    setIsBanConfirmOpen(false);
+    // use centralized toast
     const result = await dispatch(banUser({
       userId: formData.userId,
       days: formData.days
@@ -143,18 +144,17 @@ const User = () => {
   }
 
   const handleOpenDeleteUserModal = (id : number, username : string) => {
-    const dialog = document.getElementById('delete_user_confirmation') as HTMLDialogElement;
     setFormData({
       ...formData,
       userId: `${id}`, // keep as string
       username
     });
-    dialog?.showModal();
+    setIsDeleteConfirmOpen(true);
   };
 
   const handleConfirmationDeleteUser = async () => {
-    const dialog = document.getElementById('ban_user_confirmation') as HTMLDialogElement;
-    dialog?.close()
+    // close delete confirmation
+    setIsDeleteConfirmOpen(false);
     const result = await dispatch(deleteUser(Number(formData.userId)))
 
     if(deleteUser.fulfilled.match(result)) {
@@ -233,12 +233,12 @@ const User = () => {
             </div>
             <Modal
               id="ban_user"
+              isOpen={isBanOpen}
+              onClose={() => setIsBanOpen(false)}
               title="Ban User"
               footer={
                 <>
-                  <form method="dialog">
-                    <button className="btn">Close</button>
-                  </form>
+                  <button className="btn" onClick={() => setIsBanOpen(false)}>Close</button>
                   <button className='btn btn-error' onClick={handleCloseBanUserModal}>
                     Ban User
                   </button>
@@ -256,12 +256,12 @@ const User = () => {
             <ToastContainer />
             <Modal
               id='ban_user_confirmation'
+              isOpen={isBanConfirmOpen}
+              onClose={() => setIsBanConfirmOpen(false)}
               title={`Are you sure you want to ban user ${formData.username} for ${formData.days} days?`}
               footer={
                 <>
-                  <form method='dialog'>
-                    <button className='btn'>Cancel</button>
-                  </form>
+                  <button className='btn' onClick={() => setIsBanConfirmOpen(false)}>Cancel</button>
                   <button className='btn btn-primary' onClick={handleConfirmationBanUser}>
                     Confirm
                   </button>
@@ -271,12 +271,12 @@ const User = () => {
             {/* delete user dialog */}
             <Modal
               id='delete_user_confirmation'
+              isOpen={isDeleteConfirmOpen}
+              onClose={() => setIsDeleteConfirmOpen(false)}
               title={`Are you sure you want to delete user ${formData.username}`}
               footer={
                 <>
-                  <form method='dialog'>
-                    <button className='btn'>Cancel</button>
-                  </form>
+                  <button className='btn' onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</button>
                   <button className='btn btn-primary' onClick={handleConfirmationDeleteUser}>
                     Confirm
                   </button>

@@ -38,6 +38,40 @@ export const fetchElements = createAsyncThunk('elements/fetchElements', async (_
     }
 })
 
+export const updateElement = createAsyncThunk(
+    'elements/updateElement',
+    async (payload: { id: number; name: string; description?: string }, thunkAPI) => {
+        try {
+            const response = await axios.put(`${API_BASE_URL}/elements/${payload.id}`, {
+                name: payload.name,
+                description: payload.description,
+            }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
+export const deleteElement = createAsyncThunk(
+    'elements/deleteElement',
+    async (id: number, thunkAPI) => {
+        try {
+            const response = await axios.delete(`${API_BASE_URL}/elements/${id}`, { headers: getAuthHeader() });
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
 const elementSlice = createSlice({
     name: 'elements',
     initialState,
@@ -56,6 +90,32 @@ const elementSlice = createSlice({
             .addCase(fetchElements.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch elements';
+            })
+            .addCase(updateElement.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateElement.fulfilled, (state) => {
+                state.loading = false;
+                // ideally API returns updated element or message; we'll refetch on UI side
+            })
+            .addCase(updateElement.rejected, (state, action) => {
+                state.loading = false;
+                const payload = action.payload as { message?: string } | string | undefined;
+                state.error = (typeof payload === 'object' && payload?.message) || (typeof payload === 'string' ? payload : action.error.message) || 'Failed to update element';
+            })
+            .addCase(deleteElement.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteElement.fulfilled, (state) => {
+                state.loading = false;
+                // refetch happens on UI
+            })
+            .addCase(deleteElement.rejected, (state, action) => {
+                state.loading = false;
+                const payload = action.payload as { message?: string } | string | undefined;
+                state.error = (typeof payload === 'object' && payload?.message) || (typeof payload === 'string' ? payload : action.error.message) || 'Failed to delete element';
             })
     }
 })
