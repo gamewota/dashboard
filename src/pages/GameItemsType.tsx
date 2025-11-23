@@ -31,7 +31,7 @@ const GameItemsType = () => {
       {loading && (
         <div className='flex items-center'>
           <span className="loading loading-spinner" />
-          <span className="ml-2">Loading elements...</span>
+          <span className="ml-2">Loading game items types...</span>
         </div>
       )}
 

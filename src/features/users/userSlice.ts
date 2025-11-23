@@ -66,7 +66,7 @@ export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {
         if (axios.isAxiosError(error)) {
             return rejectWithValue(error.response?.data?.message ?? 'Failed to ban user');
         }
-        return rejectWithValue(String(error) || 'Failed to ban user');
+        return rejectWithValue(String(error));
     }
 })
 
@@ -80,7 +80,7 @@ export const deleteUser = createAsyncThunk(
                         if (axios.isAxiosError(error)) {
                             return rejectWithValue(error.response?.data?.message ?? 'Failed to delete user');
                         }
-                        return rejectWithValue(String(error) || 'Failed to delete user');
+                        return rejectWithValue(String(error));
                     }
     }
   );

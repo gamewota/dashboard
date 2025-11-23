@@ -73,7 +73,7 @@ const ForgotPassword = () => {
         const resp = err.response?.data as { message?: string } | undefined;
         showToast(resp?.message || err.message || 'Something went wrong', 'error', false);
       } else {
-        showToast(String(err) || 'Something went wrong', 'error', false);
+        showToast(String(err), 'error', false);
       }
     } finally {
       setLoading(false);

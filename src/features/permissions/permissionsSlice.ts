@@ -39,7 +39,7 @@ export const fetchPermissions = createAsyncThunk<
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to fetch permissions");
     }
-    return thunkAPI.rejectWithValue(String(err) || "Failed to fetch permissions");
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -57,7 +57,7 @@ export const createPermission = createAsyncThunk<
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to create permission");
     }
-    return thunkAPI.rejectWithValue(String(err) || "Failed to create permission");
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -77,7 +77,7 @@ export const updatePermission = createAsyncThunk<
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to update permission");
     }
-    return thunkAPI.rejectWithValue(String(err) || "Failed to update permission");
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -95,7 +95,7 @@ export const deletePermission = createAsyncThunk<
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to delete permission");
     }
-    return thunkAPI.rejectWithValue(String(err) || "Failed to delete permission");
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 

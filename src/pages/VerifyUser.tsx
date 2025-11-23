@@ -34,7 +34,7 @@ const VerifyUser = () => {
           const message = respData?.message || err.message || 'Verification failed.';
           setMessage(message);
         } else {
-          setMessage(String(err) || "Verification failed.");
+          setMessage(String(err));
         }
       } finally {
         // Redirect after 2.5 seconds
