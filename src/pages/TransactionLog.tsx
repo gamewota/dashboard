@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect} from 'react';
 import { fetchTransactionsLog } from '../features/transactionLog/transactionLogSlice';
 import type { RootState, AppDispatch } from '../store';
+import Container from '../components/Container';
 
 
 const ShopTransactions = () => {
@@ -14,7 +15,7 @@ const ShopTransactions = () => {
 
 
   return (
-    <div className='min-h-screen w-screen flex flex-col items-center p-4'>
+    <Container className='flex-col items-center p-4'>
         {loading && (
         <div className='flex justify-center items-center h-64'>
           <span className="loading loading-infinity loading-xl text-warning"></span>
@@ -70,7 +71,7 @@ const ShopTransactions = () => {
           </table>
         </div>
       )}
-    </div>
+    </Container>
   )
 }
 

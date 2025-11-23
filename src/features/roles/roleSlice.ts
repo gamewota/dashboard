@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 
 
 type Permission = {
@@ -42,20 +43,16 @@ const initialState: RoleState = {
 
 export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('token');
-
     const response = await axios.get(`${API_BASE_URL}/rbac/role-permissions`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader()
     });
 
-    const rolePermissions = response.data.data;
+    const rolePermissions = response.data.data as Array<{ role: Role; permission: Permission }>;
 
     // Group roles and attach permissions
     const roleMap: Record<number, Role> = {};
 
-    rolePermissions.forEach((item: any) => {
+    rolePermissions.forEach((item) => {
       const { role, permission } = item;
 
       if (!roleMap[role.id]) {
@@ -76,8 +73,11 @@ export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAP
 
     // Convert to array
     return Object.values(roleMap);
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.response?.data || err.message);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data ?? String(err));
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -86,9 +86,7 @@ export const assignRoles = createAsyncThunk(
     "roles/assignRoles",
     async (data: AssignRole, { rejectWithValue }) => {
       try {
-        const token = localStorage.getItem("token");
-  
-        // convert object → form-data string
+  // convert object → form-data string
         const formData = new URLSearchParams();
         formData.append("userId", data.userId.toString());
         formData.append("roleId", data.roleId.toString());
@@ -100,16 +98,17 @@ export const assignRoles = createAsyncThunk(
           formData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             },
           }
         );  
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to assign role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to assign role");
+        }
+        return rejectWithValue(String(error));
       }
     }
   );
@@ -121,21 +120,18 @@ export const assignRoles = createAsyncThunk(
       { rejectWithValue }
     ) => {
       try {
-        const token = localStorage.getItem("token");
-  
         const response = await axios.delete(
           `${API_BASE_URL}/rbac/user-roles/${roleId}/${userId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: getAuthHeader(),
           }
         );  
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to delete user role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to delete user role");
+        }
+        return rejectWithValue(String(error));
       }
     }
   );
@@ -144,8 +140,7 @@ export const assignRoles = createAsyncThunk(
     "roles/assignPermissionToRole",
     async (data: AssignPermissionToRole, { rejectWithValue}) => {
       try {
-        const token = localStorage.getItem("token");
-        const formData = new URLSearchParams();
+  const formData = new URLSearchParams();
         formData.append("roleId", data.roleId.toString());
         formData.append("permissionId", data.permissionId.toString());
 
@@ -154,16 +149,17 @@ export const assignRoles = createAsyncThunk(
           formData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             }
           }
         )
         return response.data;
-      } catch (error: any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to assign permission to role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to assign permission to role");
+        }
+        return rejectWithValue(String(error));
       }
     }
   )
@@ -172,8 +168,7 @@ export const assignRoles = createAsyncThunk(
     "roles/removePermissionFromRole",
     async (data: AssignPermissionToRole, { rejectWithValue}) => {
       try {
-        const token = localStorage.getItem("token");
-        const formData = new URLSearchParams();
+  const formData = new URLSearchParams();
         formData.append("roleId", data.roleId.toString());
         formData.append("permissionId", data.permissionId.toString());
 
@@ -181,7 +176,7 @@ export const assignRoles = createAsyncThunk(
           `${API_BASE_URL}/rbac/role-permissions`, 
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeader(),
               "Content-Type": "application/x-www-form-urlencoded",
             },
             data: formData
@@ -189,10 +184,11 @@ export const assignRoles = createAsyncThunk(
         )
 
         return response.data;
-      } catch (error : any) {
-        return rejectWithValue(
-          error.response?.data?.message || "Failed to remove permission from role"
-        );
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? "Failed to remove permission from role");
+        }
+        return rejectWithValue(String(error));
       }
     }
   )

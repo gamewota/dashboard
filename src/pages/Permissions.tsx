@@ -10,6 +10,19 @@ import {
 import type { RootState, AppDispatch } from "../store";
 import { PermissionModal } from "../components/PermissionModal";
 import { useToast } from "../hooks/useToast";
+import Container from '../components/Container';
+
+// Local types to avoid `any`
+type PermissionItem = {
+  id: number;
+  name: string;
+  description: string;
+};
+
+type Column<T> = {
+  header: string;
+  accessor: keyof T | ((row: T, index: number) => React.ReactNode);
+};
 
 const Permission = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -27,10 +40,10 @@ const Permission = () => {
     dispatch(fetchPermissions());
   }, [dispatch]);
 
-  const columns = [
-          { header: "#", accessor: (_row: any, i: number) => i + 1 as React.ReactNode },
-          { header: "Name", accessor: (row: { name: string }) => row.name },
-          { header: "Description", accessor: (row: { description: string }) => row.description },
+  const columns: Column<PermissionItem>[] = [
+    { header: "#", accessor: (_row: PermissionItem, i: number) => i + 1 as React.ReactNode },
+    { header: "Name", accessor: (row: PermissionItem) => row.name },
+    { header: "Description", accessor: (row: PermissionItem) => row.description },
           {
             header: "Actions",
             accessor: (row: { id: number; name: string; description: string }) => (
@@ -56,7 +69,7 @@ const Permission = () => {
           },
         ]
 
- const handleSave = async (formData: { id?: number; name: string; description: string }) => {
+  const handleSave = async (formData: { id?: number; name: string; description: string }) => {
     try {
       if (modalMode === "create") {
         await dispatch(createPermission({
@@ -72,8 +85,9 @@ const Permission = () => {
         })).unwrap();
         showToast("Permission updated successfully ✏️", "success");
       }
-    } catch (err: any) {
-      showToast(err || "Something went wrong ❌", "error");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      showToast(message || "Something went wrong ❌", "error");
     }
     setIsModalOpen(false);
   };
@@ -82,13 +96,14 @@ const Permission = () => {
     try {
         await dispatch(deletePermission(id)).unwrap()
         showToast("Permission deleted successfully ✅", "success")
-    } catch (err: any) {
-        showToast(err || "Something went wrong ❌", "error");
-    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    showToast(message || "Something went wrong ❌", "error");
+  }
   }
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center p-4">
+    <Container className="flex-col items-center p-4">
       <div className="w-full max-w-5xl flex justify-end mb-4">
         <button
           className="btn btn-primary"
@@ -118,7 +133,7 @@ const Permission = () => {
         onSave={handleSave}
       />
       <ToastContainer />
-    </div>
+    </Container>
   );
 };
 

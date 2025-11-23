@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Container from '../components/Container';
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -26,9 +27,15 @@ const VerifyUser = () => {
         });
         setStatus("success");
         setMessage("Your account has been verified!");
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus("error");
-        setMessage(err.response?.data?.message || "Verification failed.");
+        if (axios.isAxiosError(err)) {
+          const respData = err.response?.data as { message?: string } | undefined;
+          const message = respData?.message || err.message || 'Verification failed.';
+          setMessage(message);
+        } else {
+          setMessage(String(err));
+        }
       } finally {
         // Redirect after 2.5 seconds
         setTimeout(() => navigate("/dashboard/"), 2500);
@@ -39,7 +46,7 @@ const VerifyUser = () => {
   }, [token, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-base-100">
+    <Container className="flex-col items-center justify-center bg-base-100 min-h-screen">
       {/* Animation container */}
       <div className="flex flex-col items-center">
         {status === "loading" && (
@@ -155,7 +162,7 @@ const VerifyUser = () => {
           100% { box-shadow: inset 0px 0px 0px 30px #fff; }
         }
       `}</style>
-    </div>
+    </Container>
   );
 };
 

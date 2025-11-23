@@ -1,11 +1,26 @@
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { fetchRoles, assignPermissionToRole, removePermissionFromRole } from '../features/roles/roleSlice';
 import { fetchPermissions } from "../features/permissions/permissionsSlice";
-import { useEffect } from 'react';
 import { DataTable } from '../components/DataTable';
+import Container from '../components/Container';
 import { useToast } from "../hooks/useToast";
 import MultiSelect from '../components/MultiSelect';
+
+// Local types to avoid `any` and satisfy ESLint/TS rules
+type Permission = {
+  id: number;
+  name: string;
+  description: string;
+};
+
+type RoleType = {
+  id: number;
+  name: string;
+  description: string;
+  permissions: Permission[];
+};
 
 
 const Role = () => {
@@ -15,22 +30,25 @@ const Role = () => {
   const {data: permissionsData} = useSelector((state: RootState) => state.permissions)
 
 
-  const columns = 
+  const columns =
     [
-      { header: '#', accessor: (_row: any, i: number) => i + 1 as React.ReactNode },
-      { header: 'Role Name', accessor: (row: { name: string; description: string }) => row.name },
-      { header: 'Description', accessor: (row: { name: string; description: string }) => row.description },
-      {header: 'Permissions', accessor: (row: any) => (
-        <MultiSelect 
-          options={permissionsData}
-          initialSelected={row.permissions.map((r: any) => r.id)}
-          onAdd={(permissionId) => handleAddPermission(row.id, permissionId)}
-          onRemove={(permissionId) => handleRemovePermission(row.id, permissionId)}
-          onSuccess={(msg) => showToast(msg || "Permission removed successfully ✅", "success")}
-          onFailure={(err : any) => showToast(err || "Failed to remove permission ❌", "error")}
+      { header: '#', accessor: (_row: RoleType, i: number) => i + 1 as React.ReactNode },
+      { header: 'Role Name', accessor: (row: RoleType) => row.name },
+      { header: 'Description', accessor: (row: RoleType) => row.description },
+      { header: 'Permissions', accessor: (row: RoleType) => (
+        <MultiSelect
+          options={permissionsData as Permission[]}
+          initialSelected={row.permissions.map((r) => r.id)}
+          onAdd={(permissionId: number) => handleAddPermission(row.id, permissionId)}
+          onRemove={(permissionId: number) => handleRemovePermission(row.id, permissionId)}
+          onSuccess={(msg?: string) => showToast(msg || "Permission removed successfully ✅", "success")}
+          onFailure={(err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            showToast(message || "Failed to remove permission ❌", "error");
+          }}
         />
       )}
-    ]
+    ];
 
   useEffect(() => {
       dispatch(fetchRoles());
@@ -40,45 +58,47 @@ const Role = () => {
 
   const handleAddPermission = async (roleId: number, permissionId: number) => {
     try {
-      await dispatch(assignPermissionToRole({roleId, permissionId})).unwrap();
-      dispatch(fetchRoles())
-    } catch (err : any) {
-      showToast(err || "Failed to assign permission ❌", "error");
+      await dispatch(assignPermissionToRole({ roleId, permissionId })).unwrap();
+      dispatch(fetchRoles());
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      showToast(message || "Failed to assign permission ❌", "error");
     }
   }
 
   const handleRemovePermission = async (roleId: number, permissionId: number) => {
     try {
-      await dispatch(removePermissionFromRole({roleId, permissionId})).unwrap();
-      dispatch(fetchRoles())
-    } catch (err: any) {
-      showToast(err || "Failed to remove permission ❌", "error");
+      await dispatch(removePermissionFromRole({ roleId, permissionId })).unwrap();
+      dispatch(fetchRoles());
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      showToast(message || "Failed to remove permission ❌", "error");
     }
   }
 
   
 
   if (loading) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p>Loading...</p>
-    </div>
+    </Container>
   )
 
   if (error) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p className='text-bold'>Error: {error}</p>
-    </div>
+    </Container>
   )
 
 
   if (!data || data.length === 0) return (
-    <div className='min-h-screen w-screen flex justify-center items-center'>
+    <Container className="items-center">
       <p>No items found.</p>
-    </div>
+    </Container>
   )
 
   return (
-    <div className='min-h-screen w-screen flex justify-center'>
+    <Container>
       <div className='overflow-x-auto'>
         <h1 className='mb-3'>All Roles</h1>
         <DataTable
@@ -90,7 +110,7 @@ const Role = () => {
         />
       </div>
       <ToastContainer />
-    </div>
+    </Container>
   )
 }
 

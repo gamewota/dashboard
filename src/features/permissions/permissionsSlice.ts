@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { API_BASE_URL } from "../../helpers/constants";
+import { getAuthHeader } from "../../helpers/getAuthHeader";
 
 export type Permission = {
   id: number;
@@ -21,10 +22,7 @@ const initialState: PermissionState = {
   error: null,
 };
 
-const getAuthHeader = () => {
-  const token = localStorage.getItem("token");
-  return { Authorization: `Bearer ${token}` };
-};
+
 
 // ===== Thunks =====
 export const fetchPermissions = createAsyncThunk<
@@ -37,10 +35,11 @@ export const fetchPermissions = createAsyncThunk<
       headers: getAuthHeader(),
     });
     return res.data.data as Permission[];
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(
-      err.response?.data?.message || "Failed to fetch permissions"
-    );
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to fetch permissions");
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -54,10 +53,11 @@ export const createPermission = createAsyncThunk<
       headers: getAuthHeader(),
     });
     return res.data.data as Permission;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(
-      err.response?.data?.message || "Failed to create permission"
-    );
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to create permission");
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -73,10 +73,11 @@ export const updatePermission = createAsyncThunk<
       { headers: getAuthHeader() }
     );
     return res.data.data as Permission;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(
-      err.response?.data?.message || "Failed to update permission"
-    );
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to update permission");
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 
@@ -90,10 +91,11 @@ export const deletePermission = createAsyncThunk<
       headers: getAuthHeader(),
     });
     return id;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(
-      err.response?.data?.message || "Failed to delete permission"
-    );
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to delete permission");
+    }
+    return thunkAPI.rejectWithValue(String(err));
   }
 });
 

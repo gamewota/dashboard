@@ -9,6 +9,9 @@ import transactionLogReducer from '../features/transactionLog/transactionLogSlic
 import authReducer from '../features/auth/authSlice'
 import rolesReducer from '../features/roles/roleSlice'
 import permissionReducer from '../features/permissions/permissionsSlice'
+import elementReducer from '../features/elements/elementSlice'
+import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice'
+import gameItemsReducer from '../features/gameItems/gameItemsSlice'
 
 
 export const store = configureStore({
@@ -22,7 +25,10 @@ export const store = configureStore({
         shopTransactions: shopTransactionsReducer,
         transactionsLog: transactionLogReducer,
         auth: authReducer,
-        permissions: permissionReducer
+        permissions: permissionReducer,
+        elements: elementReducer,
+        gameItemsTypes: gameItemsTypeReducer,
+        gameItems: gameItemsReducer,
     }
 })
 
