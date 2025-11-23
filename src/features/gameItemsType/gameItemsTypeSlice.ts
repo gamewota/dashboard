@@ -47,6 +47,65 @@ export const fetchGameItemsTypes = createAsyncThunk<GameItemsType[], void, { rej
     }
 })
 
+export const createGameItemsType = createAsyncThunk<GameItemsType, { name: string; description?: string }, { rejectValue: string }>(
+    'gameItemsTypes/createGameItemsType',
+    async (payload, thunkAPI) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/items/types`, {
+                name: payload.name,
+                description: payload.description,
+            }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const respData = error.response?.data;
+                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
+                return thunkAPI.rejectWithValue(message);
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
+export const updateGameItemsType = createAsyncThunk<GameItemsType, { id: number; name: string; description?: string }, { rejectValue: string }>(
+    'gameItemsTypes/updateGameItemsType',
+    async (payload, thunkAPI) => {
+        try {
+            const response = await axios.put(`${API_BASE_URL}/items/types/${payload.id}`, {
+                name: payload.name,
+                description: payload.description,
+            }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const respData = error.response?.data;
+                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
+                return thunkAPI.rejectWithValue(message);
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
+export const deleteGameItemsType = createAsyncThunk<{ id: number }, number, { rejectValue: string }>(
+    'gameItemsTypes/deleteGameItemsType',
+    async (id, thunkAPI) => {
+        try {
+            await axios.delete(`${API_BASE_URL}/items/types/${id}`, { headers: getAuthHeader() });
+            return { id };
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const respData = error.response?.data;
+                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
+                return thunkAPI.rejectWithValue(message);
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
 const gameItemsTypeSlice = createSlice({
     name: 'gameItemsTypes',
     initialState,
@@ -66,6 +125,42 @@ const gameItemsTypeSlice = createSlice({
                 state.loading = false;
                 // Prefer server-provided message via rejectWithValue (action.payload), fall back to action.error.message
                 state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Unknown error';
+            })
+            .addCase(createGameItemsType.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createGameItemsType.fulfilled, (state) => {
+                state.loading = false;
+                // UI will refetch
+            })
+            .addCase(createGameItemsType.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Failed to create game item type';
+            })
+            .addCase(updateGameItemsType.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateGameItemsType.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(updateGameItemsType.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Failed to update game item type';
+            })
+            .addCase(deleteGameItemsType.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteGameItemsType.fulfilled, (state, action) => {
+                state.loading = false;
+                // remove deleted id locally if present
+                state.data = state.data.filter((t) => t.id !== action.payload.id);
+            })
+            .addCase(deleteGameItemsType.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Failed to delete game item type';
             })
     }
 })
