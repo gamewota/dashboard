@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Container from '../components/Container';
+import Button from '../components/Button';
 
 const ResendVerification: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -51,13 +52,14 @@ const ResendVerification: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             />
-            <button
+            <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+            className="w-full"
+            variant="primary"
             >
             {loading ? 'Sending...' : 'Resend Verification'}
-            </button>
+            </Button>
         </form>
 
         {message && <p className="mt-4 text-green-600">{message}</p>}

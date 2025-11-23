@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
 import Modal from '../components/Modal';
+import Button from '../components/Button';
 import { useHasPermission } from '../hooks/usePermissions';
 import MultiSelect from '../components/MultiSelect';
 import type { MultiSelectOption } from '../components/MultiSelect';
@@ -59,7 +60,7 @@ const User = () => {
 
   const columns = 
   [
-    { header: '#', accessor: (_row: UserItem, i: number) => i + 1 as React.ReactNode },
+  { header: '#', accessor: (_row: UserItem, i: number) => i + 1 },
     { header: 'First Name', accessor: (row: UserItem) => row.first_name || '-' },
     { header: 'Last Name', accessor: (row: UserItem) => row.last_name || '-' },
     { header: 'Username', accessor: (row: UserItem) => row.username || '-' },
@@ -86,9 +87,9 @@ const User = () => {
         { header: 'Actions', accessor: (row: UserItem) => (
           <div className='flex align-center justify-center gap-3'>
             {canBanUser && (
-              <button className='btn btn-error btn-sm' onClick={() => handleOpenBanUserModal(row.user_id, row.username)}>Ban</button>
+              <Button variant="error" size="sm" onClick={() => handleOpenBanUserModal(row.user_id, row.username)}>Ban</Button>
             )}
-              <button className='btn btn-error btn-sm' onClick={() => handleOpenDeleteUserModal(row.user_id, row.username)}>Delete</button>
+              <Button variant="error" size="sm" onClick={() => handleOpenDeleteUserModal(row.user_id, row.username)}>Delete</Button>
           </div>
           )
         }
@@ -238,10 +239,10 @@ const User = () => {
               title="Ban User"
               footer={
                 <>
-                  <button className="btn" onClick={() => setIsBanOpen(false)}>Close</button>
-                  <button className='btn btn-error' onClick={handleCloseBanUserModal}>
+                  <Button onClick={() => setIsBanOpen(false)}>Close</Button>
+                  <Button variant="error" onClick={handleCloseBanUserModal}>
                     Ban User
-                  </button>
+                  </Button>
                 </>
               }
             >
@@ -261,10 +262,10 @@ const User = () => {
               title={`Are you sure you want to ban user ${formData.username} for ${formData.days} days?`}
               footer={
                 <>
-                  <button className='btn' onClick={() => setIsBanConfirmOpen(false)}>Cancel</button>
-                  <button className='btn btn-primary' onClick={handleConfirmationBanUser}>
+                  <Button onClick={() => setIsBanConfirmOpen(false)}>Cancel</Button>
+                  <Button variant="primary" onClick={handleConfirmationBanUser}>
                     Confirm
-                  </button>
+                  </Button>
                 </>
               }
             />
@@ -276,10 +277,10 @@ const User = () => {
               title={`Are you sure you want to delete user ${formData.username}`}
               footer={
                 <>
-                  <button className='btn' onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</button>
-                  <button className='btn btn-primary' onClick={handleConfirmationDeleteUser}>
+                  <Button onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</Button>
+                  <Button variant="primary" onClick={handleConfirmationDeleteUser}>
                     Confirm
-                  </button>
+                  </Button>
                 </>
               }
             />

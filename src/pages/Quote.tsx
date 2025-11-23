@@ -3,6 +3,7 @@ import { fetchQuotes, addQuote } from '../features/quotes/quoteSlice';
 import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
+import Button from '../components/Button';
 import type { RootState, AppDispatch } from '../store';
 
 const Quote = () => {
@@ -24,12 +25,12 @@ const Quote = () => {
 
 
       <div className='w-full max-w-5xl flex justify-end mb-4'>
-        <button className='btn btn-info' onClick={() => {
+        <Button variant="info" onClick={() => {
               const dialog = document.getElementById('add_quotes') as HTMLDialogElement;
               dialog?.showModal();
         }}>
           Add Quotes
-        </button>
+        </Button>
       </div>
 
 
@@ -89,10 +90,10 @@ const Quote = () => {
           </div>
           <div className="modal-action">
             <form method="dialog">
-              <button className="btn">Cancel</button>
+              <Button>Cancel</Button>
             </form>
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={async () => {
                 const result = await dispatch(addQuote({
                   ...formData
@@ -113,7 +114,7 @@ const Quote = () => {
               }}
             >
               Add
-            </button>
+            </Button>
           </div>
         </div>
       </dialog>

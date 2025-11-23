@@ -16,6 +16,7 @@ import { fetchElements, updateElement, deleteElement } from '../features/element
 import type { RootState, AppDispatch } from '../store';
 import { useState } from 'react';
 import Modal from '../components/Modal';
+import Button from '../components/Button';
 import { useToast } from '../hooks/useToast';
 
 const Element = () => {
@@ -91,8 +92,8 @@ const Element = () => {
             { header: 'Updated At', accessor: (row: ElementType) => row.updated_at || '-' },
             { header: 'Actions', accessor: (row: ElementType) => (
               <div className="flex gap-2">
-                <button className="btn btn-sm btn-ghost" onClick={() => openEditModal(row)}>Edit</button>
-                <button className="btn btn-sm btn-error" onClick={() => openDeleteModal(row.id)}>Delete</button>
+                <Button size="sm" variant="ghost" onClick={() => openEditModal(row)}>Edit</Button>
+                <Button size="sm" variant="error" onClick={() => openDeleteModal(row.id)}>Delete</Button>
               </div>
             ) },
           ]}
@@ -110,8 +111,8 @@ const Element = () => {
           title={editing ? `Edit Element: ${editing.name}` : 'Edit Element'}
           footer={
             <>
-              <button className="btn" onClick={() => setIsEditOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveEdit}>Save</button>
+              <Button onClick={() => setIsEditOpen(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleSaveEdit}>Save</Button>
             </>
           }
         >
@@ -139,8 +140,8 @@ const Element = () => {
           title={`Are you sure you want to delete this element?`}
           footer={
             <>
-              <button className="btn" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-              <button className="btn btn-error" onClick={handleConfirmDelete}>Delete</button>
+              <Button onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+              <Button variant="error" onClick={handleConfirmDelete}>Delete</Button>
             </>
           }
         />

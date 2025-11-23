@@ -11,6 +11,7 @@ import type { RootState, AppDispatch } from "../store";
 import { PermissionModal } from "../components/PermissionModal";
 import { useToast } from "../hooks/useToast";
 import Container from '../components/Container';
+import Button from '../components/Button';
 
 // Local types to avoid `any`
 type PermissionItem = {
@@ -41,15 +42,16 @@ const Permission = () => {
   }, [dispatch]);
 
   const columns: Column<PermissionItem>[] = [
-    { header: "#", accessor: (_row: PermissionItem, i: number) => i + 1 as React.ReactNode },
+  { header: "#", accessor: (_row: PermissionItem, i: number) => i + 1 },
     { header: "Name", accessor: (row: PermissionItem) => row.name },
     { header: "Description", accessor: (row: PermissionItem) => row.description },
           {
             header: "Actions",
             accessor: (row: { id: number; name: string; description: string }) => (
               <div className="flex gap-2">
-                <button
-                  className="btn btn-xs btn-warning"
+                <Button
+                  variant="warning"
+                  size="xs"
                   onClick={() => {
                     setModalMode("edit");
                     setSelected(row);
@@ -57,13 +59,14 @@ const Permission = () => {
                   }}
                 >
                   Edit
-                </button>
-                <button
-                  className="btn btn-xs btn-error"
+                </Button>
+                <Button
+                  variant="error"
+                  size="xs"
                   onClick={() => handleDelete(row.id)}
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             ),
           },
@@ -105,8 +108,8 @@ const Permission = () => {
   return (
     <Container className="flex-col items-center p-4">
       <div className="w-full max-w-5xl flex justify-end mb-4">
-        <button
-          className="btn btn-primary"
+        <Button
+          variant="primary"
           onClick={() => {
             setModalMode("create");
             setSelected(undefined);
@@ -114,7 +117,7 @@ const Permission = () => {
           }}
         >
           Add Permission
-        </button>
+        </Button>
       </div>
 
       <DataTable

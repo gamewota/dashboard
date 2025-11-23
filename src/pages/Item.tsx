@@ -3,6 +3,7 @@ import { fetchShopItems, addShopItem, updateShopVisibility } from '../features/s
 import { useEffect, useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
+import Button from '../components/Button';
 import type { RootState, AppDispatch } from '../store';
 
 const Item = () => {
@@ -59,12 +60,12 @@ const Item = () => {
     <Container className="flex-col items-center p-4">
       {/* Add Item Button */}
       <div className='w-full max-w-5xl flex justify-end mb-4'>
-        <button className='btn btn-info' onClick={() => {
+        <Button variant="info" onClick={() => {
               const dialog = document.getElementById('add_item') as HTMLDialogElement;
               dialog?.showModal();
         }}>
           Add Item
-        </button>
+        </Button>
       </div>
 
       {/* Loading */}
@@ -142,14 +143,14 @@ const Item = () => {
           if (key === 'type') {
             return (
               <>
-                <button
+                <Button
                   key={key}
-                  className="btn bg-white"
+                  className="bg-white"
                   popoverTarget="popover-1"
                   style={{ anchorName: "--anchor-1" } as React.CSSProperties}
                 >
                   {formData.type ? `${formData.type.charAt(0).toUpperCase() + formData.type.slice(1).replace('_',' ')}` : 'Select Type'}
-                </button>
+                </Button>
                 <ul
                   className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
                   popover="auto"
@@ -174,14 +175,14 @@ const Item = () => {
         if (key === 'currency') {
           return (
             <>
-              <button
+              <Button
                 key={key}
-                className="btn bg-white"
+                className="bg-white"
                 popoverTarget="popover-2"
                 style={{ anchorName: "--anchor-2" } as React.CSSProperties}
               >
                 {formData.currency ? `${formData.currency.charAt(0).toUpperCase() + formData.currency.slice(1).replace('_',' ')}` : 'Select Currency'}
-              </button>
+              </Button>
               <ul
                 className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
                 popover="auto"
@@ -222,10 +223,10 @@ const Item = () => {
           </div>
           <div className="modal-action">
             <form method="dialog">
-              <button className="btn">Cancel</button>
+              <Button>Cancel</Button>
             </form>
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={async () => {
                 const now = new Date().toISOString();
             
@@ -265,7 +266,7 @@ const Item = () => {
               }}
             >
               Add
-            </button>
+            </Button>
           </div>
         </div>
       </dialog>
