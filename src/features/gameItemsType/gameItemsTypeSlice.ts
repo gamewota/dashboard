@@ -139,10 +139,10 @@ const gameItemsTypeSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(deleteGameItemsType.fulfilled, (state, action) => {
+            .addCase(deleteGameItemsType.fulfilled, (state) => {
                 state.loading = false;
-                // remove deleted id locally if present
-                state.data = state.data.filter((t) => t.id !== action.payload.id);
+                // UI will refetch the list after server-side delete; keep reducers consistent by
+                // not performing local mutations here (avoid stale state / duplication of logic).
             })
             .addCase(deleteGameItemsType.rejected, (state, action) => {
                 state.loading = false;
