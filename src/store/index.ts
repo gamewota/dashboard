@@ -12,6 +12,7 @@ import permissionReducer from '../features/permissions/permissionsSlice'
 import elementReducer from '../features/elements/elementSlice'
 import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice'
 import gameItemsReducer from '../features/gameItems/gameItemsSlice'
+import assetsReducer from '../features/assets/assetsSlice'
 
 
 export const store = configureStore({
@@ -29,6 +30,7 @@ export const store = configureStore({
         elements: elementReducer,
         gameItemsTypes: gameItemsTypeReducer,
         gameItems: gameItemsReducer,
+        assets: assetsReducer,
     }
 })
 

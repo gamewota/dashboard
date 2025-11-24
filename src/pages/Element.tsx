@@ -17,6 +17,7 @@ import type { RootState, AppDispatch } from '../store';
 import { useState } from 'react';
 import Modal from '../components/Modal';
 import { Button } from '../components/Button';
+import { createElement } from '../features/elements/elementSlice';
 import { useToast } from '../hooks/useToast';
 
 const Element = () => {
@@ -34,6 +35,8 @@ const Element = () => {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', description: '' });
 
   const openEditModal = (el: ElementType) => {
     setEditing(el);
@@ -78,11 +81,29 @@ const Element = () => {
     }
   };
 
+  const handleCreateElement = async () => {
+    try {
+      const result = await dispatch(createElement({ name: createForm.name, description: createForm.description })).unwrap();
+      const resp = result as { message?: string } | string | undefined;
+      const msg = typeof resp === 'object' ? resp?.message : (typeof resp === 'string' ? resp : undefined);
+      showToast(msg || 'Element created', 'success');
+      dispatch(fetchElements());
+      setIsCreateOpen(false);
+      setCreateForm({ name: '', description: '' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      showToast(message || 'Failed to create element', 'error');
+    }
+  };
+
   return (
     <Container className="flex-col items-center">
       
       <div className='overflow-x-auto'>
-        <h1 className="text-2xl font-bold mb-4">Elements</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Elements</h1>
+          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Element</Button>
+        </div>
         <DataTable<ElementType>
           columns={[
             { header: '#', accessor: (_row: ElementType, i: number) => i + 1 },
@@ -103,6 +124,35 @@ const Element = () => {
           error={error}
           emptyMessage={'No elements found.'}
         />
+        
+        {/* Create Element Modal */}
+        <Modal
+          id="create_element"
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          title={`Create Element`}
+          footer={
+            <>
+              <Button onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreateElement}>Create</Button>
+            </>
+          }
+        >
+          <div className="space-y-2">
+            <input
+              className="input input-bordered w-full"
+              value={createForm.name}
+              onChange={(e) => setCreateForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="Name"
+            />
+            <textarea
+              className="textarea textarea-bordered w-full"
+              value={createForm.description}
+              onChange={(e) => setCreateForm((p) => ({ ...p, description: e.target.value }))}
+              placeholder="Description"
+            />
+          </div>
+        </Modal>
         {/* Edit Element Modal */}
         <Modal
           id="edit_element"

@@ -57,6 +57,25 @@ export const updateElement = createAsyncThunk(
     }
 );
 
+export const createElement = createAsyncThunk(
+    'elements/createElement',
+    async (payload: { name: string; description?: string }, thunkAPI) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/elements`, {
+                name: payload.name,
+                description: payload.description,
+            }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+            }
+            return thunkAPI.rejectWithValue(String(error));
+        }
+    }
+);
+
 export const deleteElement = createAsyncThunk(
     'elements/deleteElement',
     async (id: number, thunkAPI) => {
@@ -98,6 +117,19 @@ const elementSlice = createSlice({
             .addCase(updateElement.fulfilled, (state) => {
                 state.loading = false;
                 // ideally API returns updated element or message; we'll refetch on UI side
+            })
+            .addCase(createElement.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createElement.fulfilled, (state) => {
+                state.loading = false;
+                // UI will refetch elements after create
+            })
+            .addCase(createElement.rejected, (state, action) => {
+                state.loading = false;
+                const payload = action.payload as { message?: string } | string | undefined;
+                state.error = (typeof payload === 'object' && payload?.message) || (typeof payload === 'string' ? payload : action.error.message) || 'Failed to create element';
             })
             .addCase(updateElement.rejected, (state, action) => {
                 state.loading = false;
