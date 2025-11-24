@@ -53,8 +53,11 @@ export const login = createAsyncThunk<
     }
 
     return response.data;
-  } catch (err: any) {
-    return rejectWithValue(err.response?.data?.message || 'Login failed');
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return rejectWithValue(err.response?.data?.message || 'Login failed');
+    }
+    return rejectWithValue('Login failed');
   }
 });
 
