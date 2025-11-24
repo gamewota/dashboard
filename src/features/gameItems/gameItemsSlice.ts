@@ -29,7 +29,9 @@ const initialState: GameItemsTypeState = {
     error: null
 }
 
-export const fetchGameItems = createAsyncThunk('gameItems/fetchGameItems', async (_, thunkAPI) => {
+export const fetchGameItems = createAsyncThunk<GameItemsType[], void, { rejectValue: string }>(
+    'gameItems/fetchGameItems',
+    async (_, thunkAPI) => {
         try {
                 const response = await axios.get(`${API_BASE_URL}/items`, {
                         headers: getAuthHeader()
@@ -39,7 +41,8 @@ export const fetchGameItems = createAsyncThunk('gameItems/fetchGameItems', async
         } catch (error: unknown) {
                 return handleThunkError(error, thunkAPI);
         }
-})
+    }
+)
 
 export const createGameItem = createAsyncThunk(
     'gameItems/createGameItem',
@@ -160,7 +163,8 @@ const gameItemsSlice = createSlice({
             })
             .addCase(fetchGameItems.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch game items';
+                // prefer the payload returned via rejectWithValue for meaningful errors
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to fetch game items';
             })
     }
 })
