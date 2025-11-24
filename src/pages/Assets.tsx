@@ -67,7 +67,11 @@ const AssetsPage: React.FC = () => {
       accessor: (row: AssetItem) => {
         const t = detectType(row.assets_url);
         if (t === 'image') {
-          return <img src={row.assets_url} alt={`asset-${row.id}`} className="w-20 h-20 object-cover rounded" />;
+          const meta = row as unknown as Record<string, unknown>;
+          const nameFromMeta = typeof meta.name === 'string' ? meta.name : (typeof meta.title === 'string' ? meta.title : (typeof meta.filename === 'string' ? meta.filename : undefined));
+          const filenameFromUrl = row.assets_url.split('/').pop()?.split('?')[0];
+          const altText = nameFromMeta ? `${nameFromMeta} (asset ${row.id})` : (filenameFromUrl ? `${filenameFromUrl} (asset ${row.id})` : `asset ${row.id}`);
+          return <img src={row.assets_url} alt={altText} className="w-20 h-20 object-cover rounded" />;
         }
         // show small icon or filename
         return <div className="w-20 h-20 flex items-center justify-center bg-base-200 rounded text-sm">{t.toUpperCase()}</div>;
@@ -101,7 +105,15 @@ const AssetsPage: React.FC = () => {
         >
           {preview && (
             <div>
-              {preview.type === 'image' && <img src={preview.item.assets_url} alt={`asset-${preview.item.id}`} className="max-w-full max-h-[60vh]" />}
+              {preview.type === 'image' && (() => {
+                const item = preview.item;
+                const meta = item as unknown as Record<string, unknown> | undefined;
+                const nameFromMeta = meta ? (typeof meta.name === 'string' ? meta.name : (typeof meta.title === 'string' ? meta.title : (typeof meta.filename === 'string' ? meta.filename : undefined))) : undefined;
+                const filenameFromUrl = item?.assets_url.split('/').pop()?.split('?')[0];
+                const idPart = item?.id ? `asset ${item.id}` : 'asset';
+                const altText = nameFromMeta ? `${nameFromMeta} (${idPart})` : (filenameFromUrl ? `${filenameFromUrl} (${idPart})` : idPart);
+                return <img src={item?.assets_url} alt={altText} className="max-w-full max-h-[60vh]" />;
+              })()}
               {preview.type === 'audio' && <audio controls src={preview.item.assets_url} className="w-full" />}
               {preview.type === 'video' && <video controls src={preview.item.assets_url} className="w-full max-h-[60vh]" />}
               {preview.type === 'json' && (

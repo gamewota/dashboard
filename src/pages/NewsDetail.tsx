@@ -33,19 +33,16 @@ function sanitizeHtml(html: string) {
 
 const NewsDetail: React.FC = () => {
   const { id } = useParams();
-  const [loading, setLoading] = useState(false);
   const [data, setData] = useState<NewsDetailResp['news'] | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
     // Use local dummy data only — no API calls for now
     const match = dummyData.id === Number(id) ? dummyData : null;
     setData(match);
-    setLoading(false);
   }, [id]);
 
-  if (loading) return <Container><div>Loading...</div></Container>;
+  // Data is local/dummy and loaded synchronously, so we don't show a loading state here.
 
   if (!data) return (
     <Container>
