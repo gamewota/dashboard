@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
+import { handleThunkError } from '../../helpers/handleThunkError';
 
 type GameItemsType = {
     id: number;
@@ -58,12 +59,7 @@ export const createGameItemsType = createAsyncThunk<GameItemsType, { name: strin
 
             return response.data;
         } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                const respData = error.response?.data;
-                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
-                return thunkAPI.rejectWithValue(message);
-            }
-            return thunkAPI.rejectWithValue(String(error));
+            return handleThunkError(error, thunkAPI);
         }
     }
 );
@@ -79,12 +75,7 @@ export const updateGameItemsType = createAsyncThunk<GameItemsType, { id: number;
 
             return response.data;
         } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                const respData = error.response?.data;
-                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
-                return thunkAPI.rejectWithValue(message);
-            }
-            return thunkAPI.rejectWithValue(String(error));
+            return handleThunkError(error, thunkAPI);
         }
     }
 );
@@ -96,12 +87,7 @@ export const deleteGameItemsType = createAsyncThunk<{ id: number }, number, { re
             await axios.delete(`${API_BASE_URL}/items/types/${id}`, { headers: getAuthHeader() });
             return { id };
         } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                const respData = error.response?.data;
-                const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(error));
-                return thunkAPI.rejectWithValue(message);
-            }
-            return thunkAPI.rejectWithValue(String(error));
+            return handleThunkError(error, thunkAPI);
         }
     }
 );
