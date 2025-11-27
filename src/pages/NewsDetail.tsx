@@ -1,66 +1,71 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Container from '../components/Container';
 import { Button } from '../components/Button';
 import DOMPurify from 'dompurify';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { fetchNewsById } from '../features/news/newsSlice';
+import type { NewsArticle } from '../features/news/newsSlice';
 
-type NewsDetailResp = {
-  success: boolean;
-  news: {
-    id: number;
-    title: string;
-    content: string; // HTML string
-    news_type: string;
-    header_image: string;
-    created_at: string;
-  };
-};
-
-const dummyData = {
-  id: 3,
-  title: 'Patch 1.3.0 - New Arena Mode',
-  content:
-    '<h1>New Arena Mode Live!</h1><h2>What\'s New</h2><ul><li><strong>New Mode:</strong> 5v5 Arena battles</li><li><strong>New Maps:</strong> 3 arena maps</li><li><strong>Rank System:</strong> Competitive ranking</li></ul><h2>Balance Changes</h2><ul><li>Warrior damage +5%</li><li>Mage cooldowns reduced</li><li>Archer range increased by 10%</li></ul><h2>Bug Fixes</h2><ul><li>Fixed crash when using ultimate skills</li><li>Fixed item duplication exploit</li><li>Fixed matchmaking issues</li></ul>',
-  news_type: 'patch',
-  header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-  created_at: '2024-01-15T14:30:00Z',
-};
-
-// Use DOMPurify to sanitize HTML from the backend
 function sanitizeHtml(html: string) {
   return DOMPurify.sanitize(html);
 }
 
 const NewsDetail: React.FC = () => {
   const { id } = useParams();
-  const [data, setData] = useState<NewsDetailResp['news'] | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { entities, isLoading, error } = useSelector((s: RootState) => s.news);
 
   useEffect(() => {
     if (!id) return;
-    // Use local dummy data only — no API calls for now
-    const match = dummyData.id === Number(id) ? dummyData : null;
-    setData(match);
-  }, [id]);
+    // Request the article from the API via the existing thunk
+    dispatch(fetchNewsById(Number(id)));
+  }, [dispatch, id]);
 
-  // Data is local/dummy and loaded synchronously, so we don't show a loading state here.
+  const article: NewsArticle | undefined = id ? entities[String(id)] : undefined;
 
-  if (!data) return (
-    <Container>
-      <div className="w-full">
-        <h1 className="text-2xl font-bold">News not found</h1>
-        <Link to="/dashboard/news"><Button>Back to news</Button></Link>
-      </div>
-    </Container>
-  );
+  if (isLoading) {
+    return (
+      <Container>
+        <div className="w-full">Loading...</div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container>
+        <div className="w-full">
+          <h1 className="text-2xl font-bold">Error</h1>
+          <p className="text-error mt-2">{error}</p>
+          <Link to="/dashboard/news"><Button>Back to news</Button></Link>
+        </div>
+      </Container>
+    );
+  }
+
+  if (!article) {
+    return (
+      <Container>
+        <div className="w-full">
+          <h1 className="text-2xl font-bold">News not found</h1>
+          <Link to="/dashboard/news"><Button>Back to news</Button></Link>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
       <div className="w-full max-w-3xl">
-        <img src={data.header_image} alt={data.title} className="w-full h-48 object-cover rounded" />
-        <h1 className="text-3xl font-bold mt-4">{data.title}</h1>
-        <p className="text-sm text-content-600">{new Date(data.created_at).toLocaleString()}</p>
+        {article.header_image && (
+          <img src={article.header_image} alt={article.title} className="w-full h-48 object-cover rounded" />
+        )}
+        <h1 className="text-3xl font-bold mt-4">{article.title}</h1>
+        <p className="text-sm text-content-600">{article.created_at ? new Date(article.created_at).toLocaleString() : ''}</p>
         <div className="mt-4 prose max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content ?? '') }} />
         </div>
         <div className="mt-6">
           <Link to="/dashboard/news"><Button>Back to news</Button></Link>

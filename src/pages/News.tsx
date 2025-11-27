@@ -1,48 +1,38 @@
 import Container from '../components/Container'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState, AppDispatch } from '../store'
+import { fetchNews } from '../features/news/newsSlice'
+import type { NewsArticle } from '../features/news/newsSlice'
+import DOMPurify from 'dompurify'
 
-interface NewsItem {
-  id: number;
-  title: string;
-  news_type: string;
-  header_image: string;
-  created_at: string;
-  preview: string;
+function stripHtml(html = '') {
+  // Use DOMPurify to sanitize and remove tags. Configure with no allowed tags
+  // so the result is plain text. DOMPurify will also neutralize dangerous
+  // constructs before stripping tags.
+  try {
+    return DOMPurify.sanitize(html ?? '', { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+  } catch {
+    // Fallback to regex if DOMPurify fails for any reason
+    return String(html).replace(/<[^>]*>/g, '')
+  }
 }
 
-const dummyData: NewsItem[] = [
-  {
-    id: 3,
-    title: 'Patch 1.3.0 - New Arena Mode',
-    news_type: 'patch',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-15T14:30:00Z',
-    preview: "New Arena Mode Live! What's New: New Mode: 5v5 Arena battles; New Maps: 3 arena maps...",
-  },
-  {
-    id: 2,
-    title: 'Winter Event Started!',
-    news_type: 'event',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-10T10:15:00Z',
-    preview: 'Enjoy the winter event with special rewards! Duration: Dec 15 - Jan 10',
-  },
-  {
-    id: 1,
-    title: 'Server Maintenance - Jan 15',
-    news_type: 'maintenance',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-08T09:00:00Z',
-    preview: "We'll have server maintenance on January 15, 2:00-4:00 AM UTC. Expected downtime: 2 hours",
-  },
-]
-
 const News = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const [searchParams] = useSearchParams()
   const category = searchParams.get('category')
 
-  const filtered = category ? dummyData.filter(d => d.news_type === category) : dummyData
+  const { entities, ids, isLoading, error } = useSelector((s: RootState) => s.news)
+
+  useEffect(() => {
+    dispatch(fetchNews())
+  }, [dispatch])
+
+  const list = ids.map(id => entities[id]).filter(Boolean) as NewsArticle[]
+  const filtered = category ? list.filter(d => d.news_type === category) : list
 
   return (
     <Container>
@@ -65,6 +55,9 @@ const News = () => {
           </div>
         </div>
 
+        {isLoading && <div className="mb-4">Loading...</div>}
+        {error && <div className="mb-4 text-error">Error: {error}</div>}
+
         <div className="flex flex-col gap-4">
           {filtered.map(item => (
             <article key={item.id} className="w-full bg-base-100 rounded shadow-sm border">
@@ -72,8 +65,8 @@ const News = () => {
                 <img src={item.header_image} alt={item.title} className="w-full md:w-40 h-36 md:h-28 object-cover rounded" />
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold">{item.title}</h2>
-                  <p className="text-xs text-content-600">{new Date(item.created_at).toLocaleString()}</p>
-                  <p className="mt-2 text-sm text-content-700">{item.preview}</p>
+                  <p className="text-xs text-content-600">{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</p>
+                  <p className="mt-2 text-sm text-content-700">{stripHtml(item.content).slice(0, 200)}</p>
                   <div className="mt-3">
                     <Link to={`/dashboard/news/${item.id}`}>
                       <Button size="sm">Read more</Button>
