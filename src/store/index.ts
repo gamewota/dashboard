@@ -13,6 +13,7 @@ import elementReducer from '../features/elements/elementSlice'
 import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice'
 import gameItemsReducer from '../features/gameItems/gameItemsSlice'
 import assetsReducer from '../features/assets/assetsSlice'
+import newsTypeReducer from '../features/newsType/newsTypeSlice'
 
 
 export const store = configureStore({
@@ -31,6 +32,7 @@ export const store = configureStore({
         gameItemsTypes: gameItemsTypeReducer,
         gameItems: gameItemsReducer,
         assets: assetsReducer,
+        newsTypes: newsTypeReducer,
     }
 })
 

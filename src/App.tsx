@@ -20,6 +20,7 @@ import Element from "./pages/Element"
 import Assets from "./pages/Assets"
 import News from "./pages/News"
 import NewsDetail from "./pages/NewsDetail"
+import NewsType from "./pages/NewsType"
 
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
         <Route path="/dashboard/assets" element={<Assets />} />
         <Route path="/dashboard/news" element={<News />} />
         <Route path="/dashboard/news/:id" element={<NewsDetail />} />
+        <Route path="/dashboard/news-type" element={<NewsType />} />
       </Routes>
     </div>
   )
