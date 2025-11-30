@@ -2,3 +2,28 @@
 @plugin "daisyui" {
   themes: light --default, bumblebee;
 }
+
+/* WYSIWYG/content reset: restore user-agent (browser) defaults inside
+   editor and sanitized content so native headings (h1,h2,...) keep
+   their semantic appearance instead of being fully reset by Tailwind */
+.wysiwyg-reset,
+.wysiwyg-reset * {
+  all: revert;
+}
+
+/* make images responsive inside content areas */
+.wysiwyg-reset img {
+  max-width: 100%;
+  height: auto;
+}
+
+.wysiwyg-reset p {
+  margin-bottom: 1em;
+  font-size: 16px;
+}
+
+
+.wysiwyg-reset span {
+  margin-bottom: 1em;
+  font-size: 16px;
+}
