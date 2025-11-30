@@ -34,10 +34,22 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
       const payload = response.data?.data ?? response.data;
       return validateOrReject(UserArraySchema, payload, thunkAPI) as User[];
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
-      }
-      return thunkAPI.rejectWithValue(String(error));
+        if (axios.isAxiosError(error)) {
+          const respData = error.response?.data as unknown;
+          let message: string | undefined;
+          if (respData && typeof respData === 'object' && 'message' in respData) {
+            const maybeMsg = (respData as Record<string, unknown>)['message'];
+            if (typeof maybeMsg === 'string') {
+              message = maybeMsg;
+            }
+          } else if (typeof respData === 'string') {
+            message = respData;
+          } else {
+            message = error.message;
+          }
+          return thunkAPI.rejectWithValue(message ?? String(error));
+        }
+        return thunkAPI.rejectWithValue(String(error));
     }
   }
 )
@@ -93,8 +105,8 @@ const userSlice = createSlice({
                 state.data = action.payload;
             })
             .addCase(fetchUsers.rejected, (state, action) => {
-                state.loading = false;
-                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to fetch users';
+              state.loading = false;
+              state.error = action.payload ?? action.error.message ?? 'Failed to fetch users';
             })
             .addCase(deleteUser.fulfilled, (state, action) => {
                 state.data = state.data.filter(
@@ -102,7 +114,7 @@ const userSlice = createSlice({
                 );
             })
             .addCase(deleteUser.rejected, (state, action) => {
-                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to delete user';
+              state.error = action.payload ?? action.error.message ?? 'Failed to delete user';
             });
     }
 })
