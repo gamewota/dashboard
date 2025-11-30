@@ -11,11 +11,13 @@ import { stripHtml } from '../helpers/sanitizeHtml'
 import Modal from '../components/Modal'
 import Wysiwyg from '../components/Wysiwyg'
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset'
+import { useHasPermission } from "../hooks/usePermissions";
 
 const News = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [searchParams] = useSearchParams()
   const category = searchParams.get('category')
+  const canCreateNews = useHasPermission('news.create')
 
   const { entities, ids, isLoading, error } = useSelector((s: RootState) => s.news)
   const newsTypes = useSelector((s: RootState) => s.newsTypes.data)
@@ -43,19 +45,9 @@ const News = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">News</h1>
           <div className="flex gap-2">
-            <Link to="/dashboard/news">
-              <Button size="sm">All</Button>
-            </Link>
-            <Link to="/dashboard/news?category=patch">
-              <Button size="sm">Patch</Button>
-            </Link>
-            <Link to="/dashboard/news?category=event">
-              <Button size="sm">Event</Button>
-            </Link>
-            <Link to="/dashboard/news?category=maintenance">
-              <Button size="sm">Maintenance</Button>
-            </Link>
-            <Button size="sm" onClick={() => setCreateOpen(true)}>Create</Button>
+            {canCreateNews && (
+              <Button size="sm" onClick={() => setCreateOpen(true)}>Create</Button>
+            )}
           </div>
         </div>
 

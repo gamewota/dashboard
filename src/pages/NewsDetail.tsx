@@ -13,11 +13,14 @@ import { useToast } from '../hooks/useToast';
 import Wysiwyg from '../components/Wysiwyg';
 import { useState } from 'react';
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
+import { useHasPermission } from "../hooks/usePermissions";
 
 // using shared sanitizeHtml helper from src/helpers/sanitizeHtml
 
 const NewsDetail: React.FC = () => {
   const { id } = useParams();
+  const canEditNews = useHasPermission('news.edit');
+  const canDeleteNews = useHasPermission('news.delete');
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { entities, isLoading, error } = useSelector((s: RootState) => s.news);
@@ -160,8 +163,12 @@ const NewsDetail: React.FC = () => {
         </div>
         <ToastContainer />
         <div className="flex gap-2 justify-end mt-4">
-          <Button onClick={() => setEditOpen(true)}>Edit</Button>
-          <Button onClick={() => setDeleteOpen(true)} className="btn-error">Delete</Button>
+          {canEditNews && (
+            <Button onClick={() => setEditOpen(true)}>Edit</Button>
+          )}
+          {canDeleteNews && (
+            <Button onClick={() => setDeleteOpen(true)} className="btn-error">Delete</Button>
+          )}
         </div>
 
         <Modal isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} title="Confirm Delete">
