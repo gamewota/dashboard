@@ -33,15 +33,24 @@ export const login = createAsyncThunk<
     const response = await axios.post(`${API_BASE_URL}/users/signin`, credentials);
     const payload = response.data?.data ?? response.data;
 
-    const parsed = validateOrReject<AuthResponse>(AuthResponseSchema, payload, thunkAPI) as AuthResponse;
+    const parsed = validateOrReject<AuthResponse>(AuthResponseSchema, payload, thunkAPI);
+
+    // If validation failed, `validateOrReject` will have already called `thunkAPI.rejectWithValue`.
+    // It may return a non-auth value — guard against that and return a rejection here as well.
+    if (!parsed || typeof parsed !== 'object' || !('user' in parsed)) {
+      const msg = typeof parsed === 'string' ? parsed : 'Invalid auth response shape';
+      return thunkAPI.rejectWithValue(msg);
+    }
+
+    const auth = parsed as AuthResponse;
 
     // FE-only eligibility check
-    const hasOtherRoles = parsed.user.roles.some((r) => r.role !== 'user');
+    const hasOtherRoles = auth.user.roles.some((r) => r.role !== 'user');
     if (!hasOtherRoles) {
       return thunkAPI.rejectWithValue('User is not eligible to login');
     }
 
-    return parsed;
+    return auth;
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message || 'Login failed');

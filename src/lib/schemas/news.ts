@@ -8,6 +8,11 @@ export const NewsArticleSchema = z.object({
   asset_id: z.number().nullable().optional(),
   news_type_id: z.number().nullable().optional(),
   news_type: z.string().nullable().optional(),
+  summary: z.string().nullable().optional(),
+  author: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
 });

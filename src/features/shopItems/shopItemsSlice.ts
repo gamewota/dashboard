@@ -64,7 +64,7 @@ export const updateShopItem = createAsyncThunk<
     thunkAPI
   ) => {
     try {
-      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/shop/item/update`, updatedData);
+      const response = await axios.put(`${API_BASE_URL}/shop/item/update`, updatedData);
       return { updatedFields: updatedData, message: response.data?.message };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -86,7 +86,7 @@ export const updateShopVisibility = createAsyncThunk<
     thunkAPI
   ) => {
     try {
-      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/shop/item/update/visibility`, updatedData);
+      const response = await axios.put(`${API_BASE_URL}/shop/item/update/visibility`, updatedData);
       return { updatedFields: updatedData, message: response.data?.message };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

@@ -1,10 +1,5 @@
 import { z } from 'zod';
-
-export const PermissionSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string(),
-});
+import { PermissionSchema } from './permission';
 
 export const RoleSchema = z.object({
   id: z.number(),

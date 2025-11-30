@@ -58,7 +58,7 @@ export const deleteUser = createAsyncThunk<number, number, { rejectValue: string
     'users/deleteUser',
     async (userId: number, { rejectWithValue }) => {
       try {
-        await axios.delete(`${API_BASE_URL}/users/${userId}`);
+        await axios.delete(`${API_BASE_URL}/users/${userId}`, { headers: getAuthHeader() });
         return userId; // just return the ID so we can filter it out
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
