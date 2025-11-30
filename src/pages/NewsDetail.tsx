@@ -38,7 +38,7 @@ const NewsDetail: React.FC = () => {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const { showToast, ToastContainer } = useToast()
-  const [editForm, setEditForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: string; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: 'patch', asset_id: undefined })
+  const [editForm, setEditForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: number; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = async () => {
@@ -49,7 +49,7 @@ const NewsDetail: React.FC = () => {
         id: article.id,
         title: editForm.title,
         content: editForm.content,
-        news_type_id: Number(editForm.news_type_id),
+        news_type_id: editForm.news_type_id,
         asset_id: editForm.asset_id ?? article.asset_id,
       })).unwrap()
       setEditOpen(false)
@@ -112,7 +112,7 @@ const NewsDetail: React.FC = () => {
           title: article.title ?? '', 
           content: article.content ?? '', 
           header_image: article.header_image ?? '', 
-          news_type_id: article.news_type_id?.toString() ?? 'patch', 
+          news_type_id: article.news_type_id ?? undefined,
           asset_id: article.asset_id 
         }
       )
@@ -193,7 +193,7 @@ const NewsDetail: React.FC = () => {
             </div>
 
             <label className="label"><span className="label-text">Type</span></label>
-            <select className="select select-bordered w-full" value={editForm.news_type_id} onChange={e => setEditForm(f => ({ ...f, news_type_id: e.target.value }))}>
+            <select className="select select-bordered w-full" value={editForm.news_type_id ?? ''} onChange={e => setEditForm(f => ({ ...f, news_type_id: e.target.value ? Number(e.target.value) : undefined }))}>
               <option value="">Select type</option>
               {newsTypeOptions}
             </select>

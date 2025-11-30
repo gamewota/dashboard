@@ -63,12 +63,13 @@ export const createGameItem = createAsyncThunk(
 
                         if (payload.assetFile && !asset_id) {
                                 // For game items, only image uploads are accepted
-                                const file = payload.assetFile as File;
-                                const contentType = file instanceof File ? file.type : undefined;
-                                if (!contentType || !contentType.startsWith('image/')) {
-                                    return thunkAPI.rejectWithValue('Only image files are allowed for game items');
-                                }
-                                const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
+                                        // Read content type from the provided file/blob (avoid instanceof File checks)
+                                        const assetFile = payload.assetFile as Blob | undefined;
+                                        const contentType = assetFile?.type;
+                                        if (!contentType || !contentType.startsWith('image/')) {
+                                            return thunkAPI.rejectWithValue('Only image files are allowed for game items');
+                                        }
+                                        const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
                                 asset_id = uploaded.id;
                         }
 
@@ -108,12 +109,13 @@ export const updateGameItem = createAsyncThunk(
             let asset_id = payload.assetId;
                         if (payload.assetFile && !asset_id) {
                                 // For game items, only image uploads are accepted
-                                const file = payload.assetFile as File;
-                                const contentType = file instanceof File ? file.type : undefined;
-                                if (!contentType || !contentType.startsWith('image/')) {
-                                    return thunkAPI.rejectWithValue('Only image files are allowed for game items');
-                                }
-                                const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
+                                        // Read content type from the provided file/blob (avoid instanceof File checks)
+                                        const assetFile = payload.assetFile as Blob | undefined;
+                                        const contentType = assetFile?.type;
+                                        if (!contentType || !contentType.startsWith('image/')) {
+                                            return thunkAPI.rejectWithValue('Only image files are allowed for game items');
+                                        }
+                                        const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
                                 asset_id = uploaded.id;
                         }
 

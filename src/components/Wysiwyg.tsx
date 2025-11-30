@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Editor from 'react-simple-wysiwyg';
 
 interface WysiwygProps {
@@ -7,18 +6,14 @@ interface WysiwygProps {
 }
 
 const Wysiwyg = ({ value, onChange }: WysiwygProps) => {
-  const [html, setHtml] = useState(value || '');
-  
   const handleChange = (event: { target: { value: string } }) => {
-    const newHtml = event.target.value;
-    setHtml(newHtml);
-    onChange?.(newHtml);
+    onChange?.(event.target.value);
   };
-  
+
   return (
     <div className="not-prose wysiwyg-reset">
       <Editor
-        value={html}
+        value={value ?? ''}
         onChange={handleChange}
       />
     </div>

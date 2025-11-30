@@ -14,9 +14,7 @@ type GameItems = {
   updated_at: string;
 };
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
-import { API_BASE_URL } from '../helpers/constants';
-import { getAuthHeader } from '../helpers/getAuthHeader';
+import { fetchAssetById } from '../features/assets/assetsSlice';
 import { fetchGameItems, createGameItem, updateGameItem, deleteGameItem } from '../features/gameItems/gameItemsSlice';
 import { fetchGameItemsTypes } from '../features/gameItemsType/gameItemsTypeSlice';
 import { fetchElements } from '../features/elements/elementSlice';
@@ -52,8 +50,10 @@ const GameItems = () => {
 
   const { data: gameItemsTypes = [] } = useSelector((s: RootState) => s.gameItemsTypes);
   const { data: elements = [] } = useSelector((s: RootState) => s.elements);
-  // current asset preview URL for edit modal (fetched from backend per-request)
-  const [currentAssetUrl, setCurrentAssetUrl] = useState<string | null>(null);
+  // current asset preview is derived from redux assets state
+  // we don't keep a separate local url state to avoid races — we fetch the asset into the store
+  const currentAsset = useSelector((s: RootState) => (editing?.asset_id ? s.assets.data.find(a => a.id === editing.asset_id) : undefined));
+  const currentAssetUrl = currentAsset?.assets_url ?? null;
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -65,19 +65,17 @@ const GameItems = () => {
   const [editForm, setEditForm] = useState({ name: '', description: '', tier: 1, element_id: undefined as number | undefined, game_items_type_id: undefined as number | undefined, assetFile: undefined as File | undefined });
 
   const openEdit = async (item: GameItems) => {
+    // prepare editing state
     setEditing(item);
     setEditForm({ name: item.name, description: item.description, tier: item.tier, element_id: item.element_id, game_items_type_id: item.game_items_type_id, assetFile: undefined });
-    // fetch asset details from backend using provided endpoint if asset_id exists
+
+    // clear any previous asset url while we (maybe) fetch a new one (redux-backed)
+
+    // fetch asset details via redux so the result is cached and not tied to component-local requests
     if (item.asset_id) {
-      try {
-        const { data } = await axios.get(`${API_BASE_URL}/assets/${item.asset_id}`, { headers: getAuthHeader() });
-        setCurrentAssetUrl(data?.assets_url ?? null);
-      } catch {
-        setCurrentAssetUrl(null);
-      }
-    } else {
-      setCurrentAssetUrl(null);
+      dispatch(fetchAssetById(item.asset_id));
     }
+
     setIsEditOpen(true);
   };
 
@@ -236,7 +234,7 @@ const GameItems = () => {
           gameItemsTypes={gameItemsTypes}
           elements={elements}
           idPrefix="edit"
-          currentAssetUrl={currentAssetUrl}
+            currentAssetUrl={currentAssetUrl}
         />
       </Modal>
 

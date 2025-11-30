@@ -154,8 +154,14 @@ const NewsType = () => {
             }
         >
             <div className="space-y-2">
-            <input className="input input-bordered w-full" placeholder="Name" value={createForm.name} onChange={(e) => setCreateForm((p) => ({ ...p, name: e.target.value }))} />
-            <textarea className="textarea textarea-bordered w-full" placeholder="Description" value={createForm.description} onChange={(e) => setCreateForm((p) => ({ ...p, description: e.target.value }))} />
+            <div>
+              <label htmlFor="create-name" className="block text-sm font-medium">Name</label>
+              <input id="create-name" className="input input-bordered w-full" value={createForm.name} onChange={(e) => setCreateForm((p) => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div>
+              <label htmlFor="create-description" className="block text-sm font-medium">Description</label>
+              <textarea id="create-description" className="textarea textarea-bordered w-full" value={createForm.description} onChange={(e) => setCreateForm((p) => ({ ...p, description: e.target.value }))} />
+            </div>
             </div>
         </Modal>
     
@@ -173,14 +179,20 @@ const NewsType = () => {
             }
         >
             <div className="space-y-2">
-            <input className="input input-bordered w-full" placeholder="Name" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
-            <textarea className="textarea textarea-bordered w-full" placeholder="Description" value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} />
+            <div>
+              <label htmlFor="edit-name" className="block text-sm font-medium">Name</label>
+              <input id="edit-name" className="input input-bordered w-full" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div>
+              <label htmlFor="edit-description" className="block text-sm font-medium">Description</label>
+              <textarea id="edit-description" className="textarea textarea-bordered w-full" value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} />
+            </div>
             </div>
         </Modal>
     
         {/* Delete confirmation */}
         <Modal
-            id="delete_game_item_type"
+          id="delete_news_type"
             isOpen={isDeleteOpen}
             onClose={() => setIsDeleteOpen(false)}
             title={`Are you sure you want to delete this type?`}

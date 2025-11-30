@@ -1,7 +1,7 @@
 import Container from '../components/Container'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState, AppDispatch } from '../store'
 import { fetchNews, createNews } from '../features/news/newsSlice'
@@ -11,6 +11,7 @@ import { stripHtml } from '../helpers/sanitizeHtml'
 import Modal from '../components/Modal'
 import Wysiwyg from '../components/Wysiwyg'
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset'
+import { useToast } from '../hooks/useToast'
 import { useHasPermission } from "../hooks/usePermissions";
 
 const News = () => {
@@ -22,6 +23,10 @@ const News = () => {
   const { entities, ids, isLoading, error } = useSelector((s: RootState) => s.news)
   const newsTypes = useSelector((s: RootState) => s.newsTypes.data)
   const [isCreateOpen, setCreateOpen] = useState(false)
+  const { showToast, ToastContainer } = useToast()
+  const [isUploading, setIsUploading] = useState(false)
+  const isMountedRef = useRef(true)
+  useEffect(() => { return () => { isMountedRef.current = false } }, [])
   const [form, setForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: number; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
 
   useEffect(() => {
@@ -59,19 +64,30 @@ const News = () => {
             <label className="label"><span className="label-text">Header image URL</span></label>
             <div className="flex gap-2">
               <input className="input input-bordered flex-1" value={form.header_image} onChange={e => setForm(f => ({ ...f, header_image: e.target.value }))} />
-              <Button onClick={async () => {
+              <Button disabled={isUploading} onClick={async () => {
                 const input = document.createElement('input')
                 input.type = 'file'
                 input.accept = 'image/*'
                 input.onchange = async () => {
                   const f = input.files?.[0]
                   if (!f) return
-                  const asset = await uploadAssetWithPresigned(f, undefined, undefined)
-                  // store both URL for preview and asset id for backend
-                  setForm(s => ({ ...s, header_image: asset.assets_url, asset_id: asset.id }))
+                  setIsUploading(true)
+                  try {
+                    const asset = await uploadAssetWithPresigned(f, undefined, undefined)
+                    // avoid state updates if component unmounted
+                    if (!isMountedRef.current) return
+                    // store both URL for preview and asset id for backend
+                    setForm(s => ({ ...s, header_image: asset.assets_url, asset_id: asset.id }))
+                    showToast('Header image uploaded', 'success')
+                  } catch (err) {
+                    console.error('Header image upload failed', err)
+                    if (isMountedRef.current) showToast('Failed to upload image', 'error')
+                  } finally {
+                    if (isMountedRef.current) setIsUploading(false)
+                  }
                 }
                 input.click()
-              }}>Upload</Button>
+              }}>{isUploading ? 'Uploading...' : 'Upload'}</Button>
             </div>
 
             <label className="label"><span className="label-text">Type</span></label>
@@ -128,6 +144,7 @@ const News = () => {
           ))}
         </div>
       </div>
+      <ToastContainer />
     </Container>
   )
 }

@@ -24,6 +24,10 @@
 
 
 .wysiwyg-reset span {
+  /* make span use box model so vertical margins take effect
+     using inline-block preserves inline flow while allowing margins */
+  display: inline-block;
+  vertical-align: baseline;
   margin-bottom: 1em;
   font-size: 16px;
 }
