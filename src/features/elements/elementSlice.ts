@@ -2,14 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
-
-type Element = {
-    id: number;
-    name: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-}
+import { ElementArraySchema, ElementSchema, type Element } from '../../lib/schemas/element';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type ElementState = {
     data: Element[];
@@ -23,13 +17,14 @@ const initialState: ElementState = {
     error: null
 }
 
-export const fetchElements = createAsyncThunk('elements/fetchElements', async (_, thunkAPI) => {
+export const fetchElements = createAsyncThunk<Element[], void, { rejectValue: string }>('elements/fetchElements', async (_, thunkAPI) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/elements`, {
             headers: getAuthHeader()
         });
 
-        return response.data;
+        const payload = response.data?.data ?? response.data;
+        return validateOrReject(ElementArraySchema, payload, thunkAPI) as Element[];
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
@@ -38,16 +33,16 @@ export const fetchElements = createAsyncThunk('elements/fetchElements', async (_
     }
 })
 
-export const updateElement = createAsyncThunk(
+export const updateElement = createAsyncThunk<Element, { id: number; name: string; description?: string }, { rejectValue: string }>(
     'elements/updateElement',
-    async (payload: { id: number; name: string; description?: string }, thunkAPI) => {
+    async (payload, thunkAPI) => {
         try {
             const response = await axios.put(`${API_BASE_URL}/elements/${payload.id}`, {
                 name: payload.name,
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(ElementSchema, response.data?.data ?? response.data, thunkAPI) as Element;
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
@@ -57,16 +52,16 @@ export const updateElement = createAsyncThunk(
     }
 );
 
-export const createElement = createAsyncThunk(
+export const createElement = createAsyncThunk<Element, { name: string; description?: string }, { rejectValue: string }>(
     'elements/createElement',
-    async (payload: { name: string; description?: string }, thunkAPI) => {
+    async (payload, thunkAPI) => {
         try {
             const response = await axios.post(`${API_BASE_URL}/elements`, {
                 name: payload.name,
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(ElementSchema, response.data?.data ?? response.data, thunkAPI) as Element;
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 return thunkAPI.rejectWithValue(error.response?.data ?? String(error));

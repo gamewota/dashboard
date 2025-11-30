@@ -3,6 +3,8 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
+import { NewsArraySchema, NewsArticleSchema } from '../../lib/schemas/news';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type FetchAllResp = NewsArticle[] | { success: boolean; data: NewsArticle[] };
 type FetchByIdResp = NewsArticle | { success: boolean; data: NewsArticle };
@@ -29,8 +31,10 @@ export const fetchNews = createAsyncThunk<FetchAllResp, void, { rejectValue: str
     'news/fetchNews',
     async (_: void, thunkAPI) => {
         try {
-            const resp = await axios.get(`${API_BASE_URL}/news`, { headers: getAuthHeader() });
-            return resp.data;
+                const resp = await axios.get(`${API_BASE_URL}/news`, { headers: getAuthHeader() });
+                const raw = resp.data;
+                const toValidate = isWrappedArray(raw) ? raw.data : raw;
+                return validateOrReject(NewsArraySchema, toValidate, thunkAPI) as FetchAllResp;
         } catch (err: unknown) {
             return handleThunkError(err, thunkAPI);
         }
@@ -41,8 +45,10 @@ export const fetchNewsById = createAsyncThunk<FetchByIdResp, number, { rejectVal
     'news/fetchNewsById',
     async (id: number, thunkAPI) => {
         try {
-            const resp = await axios.get(`${API_BASE_URL}/news/${id}`, { headers: getAuthHeader() });
-            return resp.data;
+                const resp = await axios.get(`${API_BASE_URL}/news/${id}`, { headers: getAuthHeader() });
+                const raw = resp.data;
+                const toValidate = isWrappedItem(raw) ? raw.data : raw;
+                return validateOrReject(NewsArticleSchema, toValidate, thunkAPI) as FetchByIdResp;
         } catch (err: unknown) {
             return handleThunkError(err, thunkAPI);
         }
@@ -55,9 +61,9 @@ export const createNews = createAsyncThunk<NewsArticle, Partial<NewsArticle>, { 
     async (payload, thunkAPI) => {
         try {
             const resp = await axios.post(`${API_BASE_URL}/news`, payload, { headers: getAuthHeader() });
-            const data = resp.data;
-            if (isWrappedItem(data)) return data.data;
-            return data as NewsArticle;
+            const raw = resp.data;
+            const toValidate = isWrappedItem(raw) ? raw.data : raw;
+            return validateOrReject(NewsArticleSchema, toValidate, thunkAPI) as NewsArticle;
         } catch (err: unknown) {
             return handleThunkError(err, thunkAPI);
         }
@@ -70,9 +76,9 @@ export const updateNews = createAsyncThunk<NewsArticle, NewsArticle, { rejectVal
     async (article, thunkAPI) => {
         try {
             const resp = await axios.put(`${API_BASE_URL}/news/${article.id}`, article, { headers: getAuthHeader() });
-            const data = resp.data;
-            if (isWrappedItem(data)) return data.data;
-            return data as NewsArticle;
+            const raw = resp.data;
+            const toValidate = isWrappedItem(raw) ? raw.data : raw;
+            return validateOrReject(NewsArticleSchema, toValidate, thunkAPI) as NewsArticle;
         } catch (err: unknown) {
             return handleThunkError(err, thunkAPI);
         }

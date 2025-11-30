@@ -3,14 +3,10 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
+import { NewsTypeArraySchema, NewsTypeSchema, type NewsType } from '../../lib/schemas/newsType';
+import { validateOrReject } from '../../helpers/validateApi';
 
-export type NewsTypeItem = {
-    id: number;
-    name: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-}
+export type NewsTypeItem = NewsType;
 
 type NewsTypeState = {
     data: NewsTypeItem[];
@@ -24,7 +20,7 @@ const initialState: NewsTypeState = {
     error: null
 }
 
-export const fetchNewsTypes = createAsyncThunk<NewsTypeItem[], void, { rejectValue: string }>(
+export const fetchNewsTypes = createAsyncThunk<NewsType[], void, { rejectValue: string }>(
     'newsTypes/fetchNewsTypes',
     async (_, thunkAPI) => {
     try {
@@ -32,14 +28,14 @@ export const fetchNewsTypes = createAsyncThunk<NewsTypeItem[], void, { rejectVal
             headers: getAuthHeader()
         });
 
-        return response.data;
+        return validateOrReject(NewsTypeArraySchema, response.data, thunkAPI) as NewsType[];
     }
     catch (error: unknown) {
         return handleThunkError(error, thunkAPI);
     }
 })
 
-export const createNewsType = createAsyncThunk<NewsTypeItem, { name: string; description?: string }, { rejectValue: string }>(
+export const createNewsType = createAsyncThunk<NewsType, { name: string; description?: string }, { rejectValue: string }>(
     'newsTypes/createNewsType',
     async (payload, thunkAPI) => {
         try {
@@ -48,14 +44,14 @@ export const createNewsType = createAsyncThunk<NewsTypeItem, { name: string; des
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(NewsTypeSchema, response.data, thunkAPI) as NewsType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
     }
 )
 
-export const updateNewsType = createAsyncThunk<NewsTypeItem, { id: number; name: string; description?: string }, { rejectValue: string }>(
+export const updateNewsType = createAsyncThunk<NewsType, { id: number; name: string; description?: string }, { rejectValue: string }>(
     'newsTypes/updateNewsType',
     async (payload, thunkAPI) => {
         try {
@@ -64,7 +60,7 @@ export const updateNewsType = createAsyncThunk<NewsTypeItem, { id: number; name:
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(NewsTypeSchema, response.data, thunkAPI) as NewsType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -102,7 +98,7 @@ export const newsTypeSlice = createSlice({
             })
             .addCase(fetchNewsTypes.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload || 'Failed to fetch news types';
+                state.error = (action.payload as string) ?? 'Failed to fetch news types';
             })
             .addCase(createNewsType.pending, (state) => {
                 state.loading = true;
@@ -114,7 +110,33 @@ export const newsTypeSlice = createSlice({
             })
             .addCase(createNewsType.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload || 'Failed to create news type';
+                state.error = (action.payload as string) ?? 'Failed to create news type';
+            })
+            .addCase(updateNewsType.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateNewsType.fulfilled, (state, action) => {
+                state.loading = false;
+                const idx = state.data.findIndex((t) => t.id === action.payload.id);
+                if (idx >= 0) state.data[idx] = action.payload;
+                else state.data.push(action.payload);
+            })
+            .addCase(updateNewsType.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string) ?? 'Failed to update news type';
+            })
+            .addCase(deleteNewsType.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteNewsType.fulfilled, (state, action) => {
+                state.loading = false;
+                state.data = state.data.filter((t) => t.id !== action.payload);
+            })
+            .addCase(deleteNewsType.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string) ?? 'Failed to delete news type';
             });
     }
 });

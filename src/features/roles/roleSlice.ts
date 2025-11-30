@@ -2,20 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
-
-
-type Permission = {
-  id: number;
-  name: string;
-  description: string;
-};
-
-type Role = {
-  id: number;
-  name: string;
-  description: string;
-  permissions: Permission[];
-};
+import { RoleArraySchema, type Role } from '../../lib/schemas/role';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type AssignRole = {
     userId: number;
@@ -41,13 +29,35 @@ const initialState: RoleState = {
     error: null
 }
 
-export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAPI) => {
+export const fetchRoles = createAsyncThunk<Role[], void, { rejectValue: string }>(
+  'roles/fetchRoles',
+  async (_, thunkAPI) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/rbac/role-permissions`, {
       headers: getAuthHeader()
     });
 
-    const rolePermissions = response.data.data as Array<{ role: Role; permission: Permission }>;
+    const raw = response.data?.data ?? response.data;
+
+    if (!Array.isArray(raw)) {
+      return thunkAPI.rejectWithValue('Invalid role-permissions response');
+    }
+
+    // Defensive filter: accept items that look like { role: { id, name, description }, permission: { id, name, description } }
+    const rolePermissions = raw.filter((it) => {
+      if (!it || typeof it !== 'object') return false;
+      const obj = it as Record<string, unknown>;
+      const role = obj['role'] as Record<string, unknown> | undefined;
+      const permission = obj['permission'] as Record<string, unknown> | undefined;
+      return (
+        !!role && typeof role['id'] === 'number' && typeof role['name'] === 'string' &&
+        !!permission && typeof permission['id'] === 'number' && typeof permission['name'] === 'string'
+      );
+    }) as Array<{ role: Role; permission: { id: number; name: string; description: string } }>;
+
+    if (rolePermissions.length === 0) {
+      return thunkAPI.rejectWithValue('No role-permission entries returned');
+    }
 
     // Group roles and attach permissions
     const roleMap: Record<number, Role> = {};
@@ -71,8 +81,15 @@ export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAP
       });
     });
 
-    // Convert to array
-    return Object.values(roleMap);
+    // Convert to array and validate shape
+    const roles = Object.values(roleMap);
+    const parsed = validateOrReject(RoleArraySchema, roles, thunkAPI);
+    if (!parsed || !Array.isArray(parsed)) {
+      const msg = typeof parsed === 'string' ? parsed : 'Invalid roles shape';
+      return thunkAPI.rejectWithValue(msg);
+    }
+
+    return parsed as Role[];
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data ?? String(err));

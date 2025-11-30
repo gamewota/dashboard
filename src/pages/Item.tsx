@@ -256,12 +256,19 @@ const Item = () => {
                   const dialog = document.getElementById('add_item') as HTMLDialogElement;
                   dialog?.close();
             
-                  // Show success toast with message from payload
-                  showToast(result.payload?.message || 'Item added successfully!', 'success');
+                  // Show success toast. payload is the created ShopItem; some backends may include a message.
+                    {
+                      let successMsg = 'Item added successfully!';
+                      if (result.payload && typeof result.payload === 'object' && 'message' in result.payload && typeof (result.payload as Record<string, unknown>).message === 'string') {
+                        successMsg = (result.payload as { message?: string }).message || successMsg;
+                      }
+                      showToast(successMsg, 'success');
+                    }
                 } else if (addShopItem.rejected.match(result)) {
                   // Show error toast with message from error
-                  const payload = result.payload as { message?: string } | undefined;
-                  showToast(payload?.message || 'Failed to add item.', 'error');
+                  const payload = result.payload as { message?: string } | string | undefined;
+                  const message = typeof payload === 'string' ? payload : (payload?.message ?? 'Failed to add item.');
+                  showToast(message, 'error');
                 }
               }}
             >

@@ -3,14 +3,8 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
-
-type GameItemsType = {
-    id: number;
-    name: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-}
+import { GameItemsTypeArraySchema, GameItemsTypeSchema, type GameItemsType } from '../../lib/schemas/gameItemType';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type GameItemsTypeState = {
     data: GameItemsType[];
@@ -32,7 +26,8 @@ export const fetchGameItemsTypes = createAsyncThunk<GameItemsType[], void, { rej
             headers: getAuthHeader()
         });
 
-        return response.data;
+        const payload = response.data?.data ?? response.data;
+        return validateOrReject(GameItemsTypeArraySchema, payload, thunkAPI) as GameItemsType[];
     } catch (error: unknown) {
         // Ensure we always return a string payload when rejecting so the rejectValue type is consistent
         if (axios.isAxiosError(error)) {
@@ -57,7 +52,7 @@ export const createGameItemsType = createAsyncThunk<GameItemsType, { name: strin
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(GameItemsTypeSchema, response.data?.data ?? response.data, thunkAPI) as GameItemsType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -73,7 +68,7 @@ export const updateGameItemsType = createAsyncThunk<GameItemsType, { id: number;
                 description: payload.description,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return response.data;
+            return validateOrReject(GameItemsTypeSchema, response.data?.data ?? response.data, thunkAPI) as GameItemsType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }

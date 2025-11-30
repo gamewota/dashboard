@@ -3,12 +3,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { API_BASE_URL } from "../../helpers/constants";
 import { getAuthHeader } from "../../helpers/getAuthHeader";
-
-export type Permission = {
-  id: number;
-  name: string;
-  description: string;
-};
+import { PermissionArraySchema, PermissionSchema, type Permission } from "../../lib/schemas/permission";
+import { validateOrReject } from "../../helpers/validateApi";
 
 type PermissionState = {
   data: Permission[];
@@ -34,7 +30,15 @@ export const fetchPermissions = createAsyncThunk<
     const res = await axios.get(`${API_BASE_URL}/rbac/permissions`, {
       headers: getAuthHeader(),
     });
-    return res.data.data as Permission[];
+    const payload = res.data?.data ?? res.data;
+    const parsed = validateOrReject(PermissionArraySchema, payload, thunkAPI);
+
+    if (!parsed || !Array.isArray(parsed)) {
+      const msg = typeof parsed === 'string' ? parsed : 'Invalid permissions response';
+      return thunkAPI.rejectWithValue(msg);
+    }
+
+    return parsed as Permission[];
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to fetch permissions");
@@ -48,11 +52,16 @@ export const createPermission = createAsyncThunk<
   { name: string; description: string },
   { rejectValue: string }
 >("permissions/createPermission", async (payload, thunkAPI) => {
-  try {
+    try {
     const res = await axios.post(`${API_BASE_URL}/rbac/permissions`, payload, {
       headers: getAuthHeader(),
     });
-    return res.data.data as Permission;
+    const parsed = validateOrReject(PermissionSchema, res.data?.data ?? res.data, thunkAPI);
+    if (!parsed || typeof parsed !== 'object' || !('id' in parsed)) {
+      const msg = typeof parsed === 'string' ? parsed : 'Invalid permission response';
+      return thunkAPI.rejectWithValue(msg);
+    }
+    return parsed as Permission;
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to create permission");
@@ -66,13 +75,18 @@ export const updatePermission = createAsyncThunk<
   { id: number; name: string; description: string },
   { rejectValue: string }
 >("permissions/updatePermission", async ({ id, ...payload }, thunkAPI) => {
-  try {
+    try {
     const res = await axios.put(
       `${API_BASE_URL}/rbac/permissions/${id}`,
       payload,
       { headers: getAuthHeader() }
     );
-    return res.data.data as Permission;
+    const parsed = validateOrReject(PermissionSchema, res.data?.data ?? res.data, thunkAPI);
+    if (!parsed || typeof parsed !== 'object' || !('id' in parsed)) {
+      const msg = typeof parsed === 'string' ? parsed : 'Invalid permission response';
+      return thunkAPI.rejectWithValue(msg);
+    }
+    return parsed as Permission;
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data?.message ?? "Failed to update permission");

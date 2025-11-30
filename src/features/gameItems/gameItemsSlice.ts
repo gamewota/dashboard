@@ -4,18 +4,10 @@ import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
 import { uploadAssetWithPresigned } from '../../helpers/uploadAsset';
+import { GameItemArraySchema, GameItemSchema, type GameItem } from '../../lib/schemas/gameItem';
+import { validateOrReject } from '../../helpers/validateApi';
 
-type GameItemsType = {
-    id: number;
-    name: string;
-    description: string;
-    tier: number;
-    asset_id: number;
-    element_id: number;
-    game_items_type_id: number;
-    created_at: string;
-    updated_at: string;
-}
+type GameItemsType = GameItem;
 
 type GameItemsTypeState = {
     data: GameItemsType[];
@@ -29,15 +21,17 @@ const initialState: GameItemsTypeState = {
     error: null
 }
 
-export const fetchGameItems = createAsyncThunk<GameItemsType[], void, { rejectValue: string }>(
+export const fetchGameItems = createAsyncThunk<GameItem[], void, { rejectValue: string }>(
     'gameItems/fetchGameItems',
     async (_, thunkAPI) => {
         try {
-                const response = await axios.get(`${API_BASE_URL}/items`, {
-                        headers: getAuthHeader()
-                });
+        const response = await axios.get(`${API_BASE_URL}/items`, {
+            headers: getAuthHeader()
+        });
 
-                return response.data;
+        const payload = response.data?.data ?? response.data;
+
+        return validateOrReject(GameItemArraySchema, payload, thunkAPI) as GameItem[];
         } catch (error: unknown) {
                 return handleThunkError(error, thunkAPI);
         }
@@ -83,7 +77,8 @@ export const createGameItem = createAsyncThunk<GameItemsType, {
             };
 
             const resp = await axios.post(`${API_BASE_URL}/items`, body, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
-            return resp.data;
+            const respPayload = resp.data?.data ?? resp.data;
+            return validateOrReject(GameItemSchema, respPayload, thunkAPI) as GameItem;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -129,7 +124,8 @@ export const updateGameItem = createAsyncThunk<GameItemsType, {
             };
 
             const resp = await axios.put(`${API_BASE_URL}/items/${payload.id}`, body, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
-            return resp.data;
+            const respPayload = resp.data?.data ?? resp.data;
+            return validateOrReject(GameItemSchema, respPayload, thunkAPI) as GameItem;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }

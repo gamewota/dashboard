@@ -2,29 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
-
-type UserRole = {
-    role_id: number;
-    role_name: string;
-    role_description: string;
-    granted_by: number;
-    expires_at: string | null;
-    granted_at: string;
-};
-
-type User = {
-    user_id: number;
-    first_name: string;
-    last_name: string;
-    username: string;
-    email: string;
-    profile_created_at: string;
-    profile_updated_at: string;
-    profile_deleted_at: string | null;
-    is_verified: boolean;
-    unbanned_at: string | null;
-    roles: UserRole[];
-}
+import { UserArraySchema, type User } from '../../lib/schemas/user';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type BanUser = {
     userId: string;
@@ -43,20 +22,25 @@ const initialState: UserState = {
     error: null,
 };
 
-export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, thunkAPI) => {
+export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }>(
+  'users/fetchUsers',
+  async (_, thunkAPI) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/users`, {
-            headers: getAuthHeader()
-        });
+      const response = await axios.get(`${API_BASE_URL}/users`, {
+        headers: getAuthHeader()
+      });
 
-        return response.data.data;
+      // backend wraps list under `data.data` in this API
+      const payload = response.data?.data ?? response.data;
+      return validateOrReject(UserArraySchema, payload, thunkAPI) as User[];
     } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-            return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
-        }
-        return thunkAPI.rejectWithValue(String(error));
+      if (axios.isAxiosError(error)) {
+        return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+      }
+      return thunkAPI.rejectWithValue(String(error));
     }
-})
+  }
+)
 
 export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {rejectWithValue}) => {
     try {
@@ -70,21 +54,20 @@ export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {
     }
 })
 
-export const deleteUser = createAsyncThunk(
+export const deleteUser = createAsyncThunk<number, number, { rejectValue: string }>(
     'users/deleteUser',
     async (userId: number, { rejectWithValue }) => {
       try {
-        await axios.delete(`${API_BASE_URL}/users/${userId}`);
+        await axios.delete(`${API_BASE_URL}/users/${userId}`, { headers: getAuthHeader() });
         return userId; // just return the ID so we can filter it out
-                    } catch (error: unknown) {
-                        if (axios.isAxiosError(error)) {
-                            return rejectWithValue(error.response?.data?.message ?? 'Failed to delete user');
-                        }
-                        return rejectWithValue(String(error));
-                    }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return rejectWithValue(error.response?.data?.message ?? 'Failed to delete user');
+        }
+        return rejectWithValue(String(error));
+      }
     }
   );
-  
 
 
 const userSlice = createSlice({
@@ -92,12 +75,12 @@ const userSlice = createSlice({
     initialState,
     reducers: {
         updateUserRoles: (state, action) => {
-    const { userId, roles } = action.payload;
-    const user = state.data.find(u => u.user_id === userId);
-    if (user) {
-      user.roles = roles;
-    }
-  }
+            const { userId, roles } = action.payload;
+            const user = state.data.find(u => u.user_id === userId);
+            if (user) {
+              user.roles = roles;
+            }
+        }
     },
     extraReducers(builder) {
         builder
@@ -111,7 +94,7 @@ const userSlice = createSlice({
             })
             .addCase(fetchUsers.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch users';
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to fetch users';
             })
             .addCase(deleteUser.fulfilled, (state, action) => {
                 state.data = state.data.filter(
@@ -119,7 +102,7 @@ const userSlice = createSlice({
                 );
             })
             .addCase(deleteUser.rejected, (state, action) => {
-                state.error = action.payload as string;
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to delete user';
             });
     }
 })
