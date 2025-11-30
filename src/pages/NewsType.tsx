@@ -8,6 +8,7 @@ import { Button } from '../components/Button';
 import type { NewsTypeItem } from '../features/newsType/newsTypeSlice';
 import { createNewsType, fetchNewsTypes, updateNewsType, deleteNewsType } from '../features/newsType/newsTypeSlice';
 import Modal from '../components/Modal';
+import { useHasPermission } from '../hooks/usePermissions';
 
 
 
@@ -21,6 +22,9 @@ const NewsType = () => {
       const [createForm, setCreateForm] = useState({ name: '', description: '' });
       const [editForm, setEditForm] = useState({ name: '', description: '' });
       const [deletingId, setDeletingId] = useState<number | null>(null);
+      const canCreateNewsType = useHasPermission('news_type.create');
+      const canEditNewsType = useHasPermission('news_type.edit');
+      const canDeleteNewsType = useHasPermission('news_type.delete');
 
     useEffect(() => {
         dispatch(fetchNewsTypes());
@@ -105,7 +109,9 @@ const NewsType = () => {
         <div className="overflow-x-auto">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold">News Types</h1>
-                <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Type</Button>
+                {canCreateNewsType && (
+                  <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Type</Button>
+                )}
             </div>
 
             <DataTable 
@@ -121,8 +127,12 @@ const NewsType = () => {
             { header: 'Updated At', accessor: (row: NewsTypeItem) => row.updated_at || '-' },
             { header: 'Actions', accessor: (row: NewsTypeItem) => (
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>Edit</Button>
-                <Button size="sm" variant="error" onClick={() => openDelete(row.id)}>Delete</Button>
+                {canEditNewsType && (
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>Edit</Button>
+                )}
+                {canDeleteNewsType && (
+                  <Button size="sm" variant="error" onClick={() => openDelete(row.id)}>Delete</Button>
+                )}
               </div>
             )},
           ]}

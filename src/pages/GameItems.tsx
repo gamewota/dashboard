@@ -26,12 +26,16 @@ import { useToast } from '../hooks/useToast';
 import { Button } from '../components/Button';
 import Modal from '../components/Modal';
 import GameItemForm from '../components/GameItemForm';
+import { useHasPermission } from '../hooks/usePermissions';
 
 const GameItems = () => {
   const dispatch = useDispatch<AppDispatch>();
   const gameItems = useSelector((state: RootState) => state.gameItems.data ?? []);
   const loading = useSelector((state: RootState) => state.gameItems.loading);
   const error = useSelector((state: RootState) => state.gameItems.error);
+  const canCreateGameItem = useHasPermission('game_items.create');
+  const canEditGameItem = useHasPermission('game_items.edit');
+  const canDeleteGameItem = useHasPermission('game_items.delete');
 
 
   useEffect(() => {
@@ -164,22 +168,12 @@ const GameItems = () => {
 
   return (
     <Container>
-      {loading && (
-        <div className='flex items-center'>
-          <span className="loading loading-spinner" />
-          <span className="ml-2">Loading game items...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className='text-error'>Error: {error}</div>
-      )}
-
-
       <div className='overflow-x-auto'>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Game Items</h1>
-          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Item</Button>
+          {canCreateGameItem && (
+            <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Item</Button>
+          )}
         </div>
         <DataTable<GameItems>
           columns={[
@@ -194,8 +188,12 @@ const GameItems = () => {
             { header: 'Updated At', accessor: (row: GameItems) => row.updated_at || '-' },
             { header: 'Actions', accessor: (row: GameItems) => (
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>Edit</Button>
-                <Button size="sm" variant="error" onClick={() => openDelete(row.id)}>Delete</Button>
+                {canEditGameItem && (
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>Edit</Button>
+                )}
+                {canDeleteGameItem && (
+                  <Button size="sm" variant="error" onClick={() => openDelete(row.id)}>Delete</Button>
+                )}
               </div>
             )},
           ]}
