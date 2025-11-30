@@ -168,6 +168,55 @@ const gameItemsSlice = createSlice({
                 // prefer the payload returned via rejectWithValue for meaningful errors
                 state.error = (action.payload as string) ?? action.error.message ?? 'Failed to fetch game items';
             })
+            // create / update / delete handlers to keep state in sync
+            .addCase(createGameItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createGameItem.fulfilled, (state, action) => {
+                state.loading = false;
+                // append created item
+                if (action.payload) {
+                    state.data.push(action.payload as unknown as GameItemsType);
+                }
+            })
+            .addCase(createGameItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to create game item';
+            })
+            .addCase(updateGameItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateGameItem.fulfilled, (state, action) => {
+                state.loading = false;
+                if (action.payload) {
+                    const updated = action.payload as unknown as GameItemsType;
+                    const idx = state.data.findIndex((it) => it.id === updated.id);
+                    if (idx >= 0) state.data[idx] = updated;
+                    else state.data.push(updated);
+                }
+            })
+            .addCase(updateGameItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to update game item';
+            })
+            .addCase(deleteGameItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteGameItem.fulfilled, (state, action) => {
+                state.loading = false;
+                const payload = action.payload as unknown as { id?: number };
+                const id = payload?.id;
+                if (typeof id === 'number') {
+                    state.data = state.data.filter((it) => it.id !== id);
+                }
+            })
+            .addCase(deleteGameItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = (action.payload as string) ?? action.error.message ?? 'Failed to delete game item';
+            })
     }
 })
 

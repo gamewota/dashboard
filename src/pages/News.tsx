@@ -104,7 +104,10 @@ const News = () => {
             <div className="flex gap-2 justify-end mt-3">
               <Button onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button onClick={async () => {
-                if (!form.title || !form.content) return
+                if (!form.title || !form.content) {
+                  showToast('Title and content are required', 'error')
+                  return
+                }
                 // send news_type_id and asset_id to backend (asset_id references uploaded asset)
                 try {
                   // unwrap to throw on rejection so we can handle errors
@@ -113,8 +116,10 @@ const News = () => {
                   dispatch(fetchNews())
                   setCreateOpen(false)
                   setForm({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
-                } catch (err) {
+                } catch (err: unknown) {
                   console.error('Failed to create news', err)
+                  const message = err instanceof Error ? err.message : String(err)
+                  showToast(`Failed to create news: ${message}`, 'error')
                 }
               }}>Create</Button>
             </div>
