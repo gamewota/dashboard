@@ -19,11 +19,15 @@ import Modal from '../components/Modal';
 import { Button } from '../components/Button';
 import { createElement } from '../features/elements/elementSlice';
 import { useToast } from '../hooks/useToast';
+import { useHasPermission } from '../hooks/usePermissions';
 
 const Element = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data: elements = [], loading, error } = useSelector((state: RootState) => state.elements);
   const { showToast } = useToast();
+  const canCreateElement = useHasPermission('elements.create');
+  const canEditElement = useHasPermission('elements.edit');
+  const canDeleteElement = useHasPermission('elements.delete');
 
   const [editing, setEditing] = useState<null | ElementType>(null);
   const [editForm, setEditForm] = useState({ name: '', description: '' });
@@ -102,7 +106,9 @@ const Element = () => {
       <div className='overflow-x-auto'>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Elements</h1>
-          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Element</Button>
+          {canCreateElement && (
+            <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Element</Button>
+          )}
         </div>
         <DataTable<ElementType>
           columns={[
@@ -113,8 +119,12 @@ const Element = () => {
             { header: 'Updated At', accessor: (row: ElementType) => row.updated_at || '-' },
             { header: 'Actions', accessor: (row: ElementType) => (
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => openEditModal(row)}>Edit</Button>
-                <Button size="sm" variant="error" onClick={() => openDeleteModal(row.id)}>Delete</Button>
+                {canEditElement && (
+                  <Button size="sm" variant="ghost" onClick={() => openEditModal(row)}>Edit</Button>
+                )}
+                {canDeleteElement && (
+                  <Button size="sm" variant="error" onClick={() => openDeleteModal(row.id)}>Delete</Button>
+                )}
               </div>
             ) },
           ]}

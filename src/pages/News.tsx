@@ -1,48 +1,65 @@
 import Container from '../components/Container'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
-
-interface NewsItem {
-  id: number;
-  title: string;
-  news_type: string;
-  header_image: string;
-  created_at: string;
-  preview: string;
-}
-
-const dummyData: NewsItem[] = [
-  {
-    id: 3,
-    title: 'Patch 1.3.0 - New Arena Mode',
-    news_type: 'patch',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-15T14:30:00Z',
-    preview: "New Arena Mode Live! What's New: New Mode: 5v5 Arena battles; New Maps: 3 arena maps...",
-  },
-  {
-    id: 2,
-    title: 'Winter Event Started!',
-    news_type: 'event',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-10T10:15:00Z',
-    preview: 'Enjoy the winter event with special rewards! Duration: Dec 15 - Jan 10',
-  },
-  {
-    id: 1,
-    title: 'Server Maintenance - Jan 15',
-    news_type: 'maintenance',
-    header_image: 'https://gamecdn.b-cdn.net/mrt-banner.jpeg',
-    created_at: '2024-01-08T09:00:00Z',
-    preview: "We'll have server maintenance on January 15, 2:00-4:00 AM UTC. Expected downtime: 2 hours",
-  },
-]
+import { useEffect, useState, useRef, useMemo } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState, AppDispatch } from '../store'
+import { fetchNews, createNews } from '../features/news/newsSlice'
+import { fetchNewsTypes } from '../features/newsType/newsTypeSlice'
+import type { NewsArticle } from '../features/news/newsSlice'
+import { stripHtml } from '../helpers/sanitizeHtml'
+import Modal from '../components/Modal'
+import Wysiwyg from '../components/Wysiwyg'
+import { uploadAssetWithPresigned } from '../helpers/uploadAsset'
+import { useToast } from '../hooks/useToast'
+import { useHasPermission } from "../hooks/usePermissions";
 
 const News = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const [searchParams] = useSearchParams()
   const category = searchParams.get('category')
+  const canCreateNews = useHasPermission('news.create')
 
-  const filtered = category ? dummyData.filter(d => d.news_type === category) : dummyData
+  const { entities, ids, isLoading, error } = useSelector((s: RootState) => s.news)
+  const newsTypes = useSelector((s: RootState) => s.newsTypes.data)
+  const [isCreateOpen, setCreateOpen] = useState(false)
+  const { showToast, ToastContainer } = useToast()
+  const [isUploading, setIsUploading] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const isMountedRef = useRef(true)
+  useEffect(() => { return () => { isMountedRef.current = false } }, [])
+  const hasSetDefaultRef = useRef(false)
+  const [form, setForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: number; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
+
+  useEffect(() => {
+    dispatch(fetchNews())
+    dispatch(fetchNewsTypes())
+  }, [dispatch])
+
+  // set default news_type_id when modal opens and types are available
+  useEffect(() => {
+    if (!isCreateOpen) return
+    if (!hasSetDefaultRef.current && newsTypes && newsTypes.length > 0) {
+      setForm(f => ({ ...f, news_type_id: newsTypes[0].id }))
+      hasSetDefaultRef.current = true
+    }
+  }, [newsTypes, isCreateOpen])
+
+  // reset the flag when modal closes so the default can be reapplied on next open
+  useEffect(() => {
+    if (!isCreateOpen) {
+      hasSetDefaultRef.current = false
+    }
+  }, [isCreateOpen])
+
+  const list = ids.map(id => entities[id]).filter(Boolean) as NewsArticle[]
+  const filtered = category ? list.filter(d => d.news_type === category) : list
+
+  const newsTypeOptions = useMemo(() => {
+    return (newsTypes ?? []).map(nt => (
+      <option key={nt.id} value={nt.id}>{nt.name}</option>
+    ))
+  }, [newsTypes])
 
   return (
     <Container>
@@ -50,20 +67,85 @@ const News = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">News</h1>
           <div className="flex gap-2">
-            <Link to="/dashboard/news">
-              <Button size="sm">All</Button>
-            </Link>
-            <Link to="/dashboard/news?category=patch">
-              <Button size="sm">Patch</Button>
-            </Link>
-            <Link to="/dashboard/news?category=event">
-              <Button size="sm">Event</Button>
-            </Link>
-            <Link to="/dashboard/news?category=maintenance">
-              <Button size="sm">Maintenance</Button>
-            </Link>
+            {canCreateNews && (
+              <Button size="sm" onClick={() => setCreateOpen(true)}>Create</Button>
+            )}
           </div>
         </div>
+
+        <Modal isOpen={isCreateOpen} onClose={() => setCreateOpen(false)} title="Create News">
+          <div className="flex flex-col gap-3">
+            <label className="label"><span className="label-text">Title</span></label>
+            <input className="input input-bordered w-full" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+
+            <label className="label"><span className="label-text">Header image URL</span></label>
+            <div className="flex gap-2">
+              <input className="input input-bordered flex-1" value={form.header_image} onChange={e => setForm(f => ({ ...f, header_image: e.target.value }))} />
+              <Button disabled={isUploading} onClick={async () => {
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = 'image/*'
+                input.onchange = async () => {
+                  const f = input.files?.[0]
+                  if (!f) return
+                  setIsUploading(true)
+                  try {
+                    const asset = await uploadAssetWithPresigned(f, undefined, undefined)
+                    // avoid state updates if component unmounted
+                    if (!isMountedRef.current) return
+                    // store both URL for preview and asset id for backend
+                    setForm(s => ({ ...s, header_image: asset.assets_url, asset_id: asset.id }))
+                    showToast('Header image uploaded', 'success')
+                  } catch (err) {
+                    console.error('Header image upload failed', err)
+                    if (isMountedRef.current) showToast('Failed to upload image', 'error')
+                  } finally {
+                    if (isMountedRef.current) setIsUploading(false)
+                  }
+                }
+                input.click()
+              }}>{isUploading ? 'Uploading...' : 'Upload'}</Button>
+            </div>
+
+            <label className="label"><span className="label-text">Type</span></label>
+            <select className="select select-bordered w-full" value={form.news_type_id ?? ''} onChange={e => setForm(f => ({ ...f, news_type_id: e.target.value ? Number(e.target.value) : undefined }))}>
+              <option value="">Select type</option>
+              {newsTypeOptions}
+            </select>
+
+            <label className="label"><span className="label-text">Content</span></label>
+            <Wysiwyg value={form.content} onChange={val => setForm(f => ({ ...f, content: val }))} />
+
+            <div className="flex gap-2 justify-end mt-3">
+              <Button onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button disabled={isCreating} onClick={async () => {
+                if (!form.title || !form.content) {
+                  showToast('Title and content are required', 'error')
+                  return
+                }
+                setIsCreating(true)
+                // send news_type_id and asset_id to backend (asset_id references uploaded asset)
+                try {
+                  // unwrap to throw on rejection so we can handle errors
+                  await dispatch(createNews({ title: form.title, content: form.content, news_type_id: form.news_type_id, asset_id: form.asset_id })).unwrap()
+                  // refresh list after successful create
+                  dispatch(fetchNews())
+                  setCreateOpen(false)
+                  setForm({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
+                } catch (err: unknown) {
+                  console.error('Failed to create news', err)
+                  const message = err instanceof Error ? err.message : String(err)
+                  showToast(`Failed to create news: ${message}`, 'error')
+                } finally {
+                  if (isMountedRef.current) setIsCreating(false)
+                }
+              }}>{isCreating ? 'Creating...' : 'Create'}</Button>
+            </div>
+          </div>
+        </Modal>
+
+        {isLoading && <div className="mb-4">Loading...</div>}
+        {error && <div className="mb-4 text-error">Error: {error}</div>}
 
         <div className="flex flex-col gap-4">
           {filtered.map(item => (
@@ -72,8 +154,8 @@ const News = () => {
                 <img src={item.header_image} alt={item.title} className="w-full md:w-40 h-36 md:h-28 object-cover rounded" />
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold">{item.title}</h2>
-                  <p className="text-xs text-content-600">{new Date(item.created_at).toLocaleString()}</p>
-                  <p className="mt-2 text-sm text-content-700">{item.preview}</p>
+                  <p className="text-xs text-content-600">{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</p>
+                  <p className="mt-2 text-sm text-content-700">{stripHtml(item.content).slice(0, 200)}</p>
                   <div className="mt-3">
                     <Link to={`/dashboard/news/${item.id}`}>
                       <Button size="sm">Read more</Button>
@@ -85,6 +167,7 @@ const News = () => {
           ))}
         </div>
       </div>
+      <ToastContainer />
     </Container>
   )
 }

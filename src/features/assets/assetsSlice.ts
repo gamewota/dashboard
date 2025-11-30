@@ -41,6 +41,23 @@ export const fetchAssets = createAsyncThunk<AssetItem[], void, { rejectValue: st
   }
 );
 
+export const fetchAssetById = createAsyncThunk<AssetItem, number, { rejectValue: string }>(
+  'assets/fetchAssetById',
+  async (id, thunkAPI) => {
+    try {
+      const resp = await axios.get(`${API_BASE_URL}/assets/${id}`, { headers: getAuthHeader() });
+      return resp.data as AssetItem;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const respData = err.response?.data;
+        const message = typeof respData === 'string' ? respData : (respData && typeof respData === 'object' ? (respData.message ?? JSON.stringify(respData)) : String(err));
+        return thunkAPI.rejectWithValue(message);
+      }
+      return thunkAPI.rejectWithValue(String(err));
+    }
+  }
+);
+
 const assetsSlice = createSlice({
   name: 'assets',
   initialState,
@@ -58,6 +75,16 @@ const assetsSlice = createSlice({
       .addCase(fetchAssets.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string | undefined) ?? action.error.message ?? 'Failed to fetch assets';
+      });
+    builder
+      .addCase(fetchAssetById.fulfilled, (state, action) => {
+        // merge or replace single asset into data array
+        const idx = state.data.findIndex((a) => a.id === action.payload.id);
+        if (idx >= 0) {
+          state.data[idx] = action.payload;
+        } else {
+          state.data.push(action.payload);
+        }
       });
   },
 });

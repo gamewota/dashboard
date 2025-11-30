@@ -91,6 +91,12 @@ const Sidebar = () => {
             <li>
               <Link to="/dashboard/assets">Assets</Link>
             </li>
+            <li>
+              <Link to="/dashboard/news">News</Link>
+            </li>
+            <li>
+              <Link to="/dashboard/news-type">News Type</Link>
+            </li>
             {canViewLogs && (
               <>
                 <li>
