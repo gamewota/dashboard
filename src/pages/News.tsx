@@ -1,7 +1,7 @@
 import Container from '../components/Container'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState, AppDispatch } from '../store'
 import { fetchNews, createNews } from '../features/news/newsSlice'
@@ -55,6 +55,12 @@ const News = () => {
   const list = ids.map(id => entities[id]).filter(Boolean) as NewsArticle[]
   const filtered = category ? list.filter(d => d.news_type === category) : list
 
+  const newsTypeOptions = useMemo(() => {
+    return (newsTypes ?? []).map(nt => (
+      <option key={nt.id} value={nt.id}>{nt.name}</option>
+    ))
+  }, [newsTypes])
+
   return (
     <Container>
       <div className="w-full">
@@ -104,9 +110,7 @@ const News = () => {
             <label className="label"><span className="label-text">Type</span></label>
             <select className="select select-bordered w-full" value={form.news_type_id ?? ''} onChange={e => setForm(f => ({ ...f, news_type_id: e.target.value ? Number(e.target.value) : undefined }))}>
               <option value="">Select type</option>
-              {newsTypes.map(nt => (
-                <option key={nt.id} value={nt.id}>{nt.name}</option>
-              ))}
+              {newsTypeOptions}
             </select>
 
             <label className="label"><span className="label-text">Content</span></label>
