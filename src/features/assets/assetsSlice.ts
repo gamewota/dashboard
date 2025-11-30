@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
+import { AssetArraySchema, AssetSchema, type Asset } from '../../lib/schemas/asset';
+import { validateOrReject } from '../../helpers/validateApi';
 
 export type AssetItem = {
   id: number;
@@ -24,12 +26,12 @@ const initialState: AssetsState = {
   error: null,
 };
 
-export const fetchAssets = createAsyncThunk<AssetItem[], void, { rejectValue: string }>(
+export const fetchAssets = createAsyncThunk<Asset[], void, { rejectValue: string }>(
   'assets/fetchAssets',
   async (_, thunkAPI) => {
     try {
       const resp = await axios.get(`${API_BASE_URL}/assets`, { headers: getAuthHeader() });
-      return resp.data;
+      return validateOrReject(AssetArraySchema, resp.data, thunkAPI) as Asset[];
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const respData = err.response?.data;
@@ -41,12 +43,12 @@ export const fetchAssets = createAsyncThunk<AssetItem[], void, { rejectValue: st
   }
 );
 
-export const fetchAssetById = createAsyncThunk<AssetItem, number, { rejectValue: string }>(
+export const fetchAssetById = createAsyncThunk<Asset, number, { rejectValue: string }>(
   'assets/fetchAssetById',
   async (id, thunkAPI) => {
     try {
       const resp = await axios.get(`${API_BASE_URL}/assets/${id}`, { headers: getAuthHeader() });
-      return resp.data as AssetItem;
+      return validateOrReject(AssetSchema, resp.data, thunkAPI) as Asset;
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const respData = err.response?.data;

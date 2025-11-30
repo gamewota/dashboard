@@ -2,20 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
-
-
-type Permission = {
-  id: number;
-  name: string;
-  description: string;
-};
-
-type Role = {
-  id: number;
-  name: string;
-  description: string;
-  permissions: Permission[];
-};
+import { RoleArraySchema, type Role } from '../../lib/schemas/role';
+import { validateOrReject } from '../../helpers/validateApi';
 
 type AssignRole = {
     userId: number;
@@ -41,13 +29,14 @@ const initialState: RoleState = {
     error: null
 }
 
-export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAPI) => {
+export const fetchRoles = createAsyncThunk<Role[], void, { rejectValue: string }>(
+  'roles/fetchRoles',
+  async (_, thunkAPI) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/rbac/role-permissions`, {
       headers: getAuthHeader()
     });
-
-    const rolePermissions = response.data.data as Array<{ role: Role; permission: Permission }>;
+    const rolePermissions = response.data.data as Array<{ role: Role; permission: { id: number; name: string; description: string } }>;
 
     // Group roles and attach permissions
     const roleMap: Record<number, Role> = {};
@@ -71,8 +60,9 @@ export const fetchRoles = createAsyncThunk('roles/fetchRoles', async (_, thunkAP
       });
     });
 
-    // Convert to array
-    return Object.values(roleMap);
+    // Convert to array and validate shape
+    const roles = Object.values(roleMap);
+    return validateOrReject(RoleArraySchema, roles, thunkAPI) as Role[];
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       return thunkAPI.rejectWithValue(err.response?.data ?? String(err));

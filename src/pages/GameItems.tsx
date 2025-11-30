@@ -47,14 +47,6 @@ const GameItems = () => {
   }, [dispatch]);
 
   const { showToast, ToastContainer } = useToast();
-
-  const { data: gameItemsTypes = [] } = useSelector((s: RootState) => s.gameItemsTypes);
-  const { data: elements = [] } = useSelector((s: RootState) => s.elements);
-  // current asset preview is derived from redux assets state
-  // we don't keep a separate local url state to avoid races — we fetch the asset into the store
-  const currentAsset = useSelector((s: RootState) => (editing?.asset_id ? s.assets.data.find(a => a.id === editing.asset_id) : undefined));
-  const currentAssetUrl = currentAsset?.assets_url ?? null;
-
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -63,6 +55,13 @@ const GameItems = () => {
 
   const [createForm, setCreateForm] = useState({ name: '', description: '', tier: 1, element_id: undefined as number | undefined, game_items_type_id: undefined as number | undefined, assetFile: undefined as File | undefined });
   const [editForm, setEditForm] = useState({ name: '', description: '', tier: 1, element_id: undefined as number | undefined, game_items_type_id: undefined as number | undefined, assetFile: undefined as File | undefined });
+
+  const { data: gameItemsTypes = [] } = useSelector((s: RootState) => s.gameItemsTypes);
+  const { data: elements = [] } = useSelector((s: RootState) => s.elements);
+  // current asset preview is derived from redux assets state
+  // we don't keep a separate local url state to avoid races — we fetch the asset into the store
+  const currentAsset = useSelector((s: RootState) => (editing?.asset_id ? s.assets.data.find(a => a.id === editing.asset_id) : undefined));
+  const currentAssetUrl = currentAsset?.assets_url ?? null;
 
   const openEdit = async (item: GameItems) => {
     // prepare editing state
