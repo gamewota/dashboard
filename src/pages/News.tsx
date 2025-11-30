@@ -27,6 +27,7 @@ const News = () => {
   const [isUploading, setIsUploading] = useState(false)
   const isMountedRef = useRef(true)
   useEffect(() => { return () => { isMountedRef.current = false } }, [])
+  const hasSetDefaultRef = useRef(false)
   const [form, setForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: number; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
 
   useEffect(() => {
@@ -34,12 +35,21 @@ const News = () => {
     dispatch(fetchNewsTypes())
   }, [dispatch])
 
-  // set default news_type_id when types load
+  // set default news_type_id when modal opens and types are available
   useEffect(() => {
-    if ((form.news_type_id === undefined || form.news_type_id === null) && newsTypes && newsTypes.length > 0) {
+    if (!isCreateOpen) return
+    if (!hasSetDefaultRef.current && newsTypes && newsTypes.length > 0) {
       setForm(f => ({ ...f, news_type_id: newsTypes[0].id }))
+      hasSetDefaultRef.current = true
     }
-  }, [newsTypes, form.news_type_id])
+  }, [newsTypes, isCreateOpen])
+
+  // reset the flag when modal closes so the default can be reapplied on next open
+  useEffect(() => {
+    if (!isCreateOpen) {
+      hasSetDefaultRef.current = false
+    }
+  }, [isCreateOpen])
 
   const list = ids.map(id => entities[id]).filter(Boolean) as NewsArticle[]
   const filtered = category ? list.filter(d => d.news_type === category) : list

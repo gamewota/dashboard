@@ -44,34 +44,34 @@ export const fetchGameItems = createAsyncThunk<GameItemsType[], void, { rejectVa
     }
 )
 
-export const createGameItem = createAsyncThunk(
+export const createGameItem = createAsyncThunk<GameItemsType, {
+    name: string;
+    description?: string;
+    tier?: number;
+    assetFile?: File | Blob;
+    assetId?: number;
+    element_id?: number;
+    game_items_type_id?: number;
+}, { rejectValue: string }
+>(
     'gameItems/createGameItem',
     async (
-        payload: {
-            name: string;
-            description?: string;
-            tier?: number;
-            assetFile?: File | Blob;
-            assetId?: number;
-            element_id?: number;
-            game_items_type_id?: number;
-        },
+        payload,
         thunkAPI
     ) => {
         try {
             let asset_id = payload.assetId;
-
-                        if (payload.assetFile && !asset_id) {
-                                // For game items, only image uploads are accepted
-                                        // Read content type from the provided file/blob (avoid instanceof File checks)
-                                        const assetFile = payload.assetFile as Blob | undefined;
-                                        const contentType = assetFile?.type;
-                                        if (!contentType || !contentType.startsWith('image/')) {
-                                            return thunkAPI.rejectWithValue('Only image files are allowed for game items');
-                                        }
-                                        const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
-                                asset_id = uploaded.id;
-                        }
+            if (payload.assetFile && !asset_id) {
+                // For game items, only image uploads are accepted
+                // Read content type from the provided file/blob (avoid instanceof File checks)
+                const assetFile = payload.assetFile;
+                const contentType = assetFile?.type;
+                if (!contentType || !contentType.startsWith('image/')) {
+                    return thunkAPI.rejectWithValue('Only image files are allowed for game items');
+                }
+                const uploaded = await uploadAssetWithPresigned(assetFile, undefined, contentType, 1);
+                asset_id = uploaded.id;
+            }
 
             const body = {
                 name: payload.name,
@@ -90,34 +90,34 @@ export const createGameItem = createAsyncThunk(
     }
 );
 
-export const updateGameItem = createAsyncThunk(
+export const updateGameItem = createAsyncThunk<GameItemsType, {
+    id: number;
+    name?: string;
+    description?: string;
+    tier?: number;
+    assetFile?: File | Blob;
+    assetId?: number;
+    element_id?: number;
+    game_items_type_id?: number;
+}, { rejectValue: string }
+>(
     'gameItems/updateGameItem',
     async (
-        payload: {
-            id: number;
-            name?: string;
-            description?: string;
-            tier?: number;
-            assetFile?: File | Blob;
-            assetId?: number;
-            element_id?: number;
-            game_items_type_id?: number;
-        },
+        payload,
         thunkAPI
     ) => {
         try {
             let asset_id = payload.assetId;
-                        if (payload.assetFile && !asset_id) {
-                                // For game items, only image uploads are accepted
-                                        // Read content type from the provided file/blob (avoid instanceof File checks)
-                                        const assetFile = payload.assetFile as Blob | undefined;
-                                        const contentType = assetFile?.type;
-                                        if (!contentType || !contentType.startsWith('image/')) {
-                                            return thunkAPI.rejectWithValue('Only image files are allowed for game items');
-                                        }
-                                        const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
-                                asset_id = uploaded.id;
-                        }
+            if (payload.assetFile && !asset_id) {
+                // For game items, only image uploads are accepted
+                // Read content type from the provided file/blob (avoid instanceof File checks)
+                const contentType = payload.assetFile?.type;
+                if (!contentType || !contentType.startsWith('image/')) {
+                    return thunkAPI.rejectWithValue('Only image files are allowed for game items');
+                }
+                const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
+                asset_id = uploaded.id;
+            }
 
             const body = {
                 name: payload.name,
@@ -136,7 +136,7 @@ export const updateGameItem = createAsyncThunk(
     }
 );
 
-export const deleteGameItem = createAsyncThunk(
+export const deleteGameItem = createAsyncThunk<{ id: number }, number, { rejectValue: string }>(
     'gameItems/deleteGameItem',
     async (id: number, thunkAPI) => {
         try {
@@ -176,9 +176,8 @@ const gameItemsSlice = createSlice({
             .addCase(createGameItem.fulfilled, (state, action) => {
                 state.loading = false;
                 // append created item
-                if (action.payload) {
-                    state.data.push(action.payload as unknown as GameItemsType);
-                }
+                const created = action.payload;
+                if (created) state.data.push(created);
             })
             .addCase(createGameItem.rejected, (state, action) => {
                 state.loading = false;
@@ -190,8 +189,8 @@ const gameItemsSlice = createSlice({
             })
             .addCase(updateGameItem.fulfilled, (state, action) => {
                 state.loading = false;
-                if (action.payload) {
-                    const updated = action.payload as unknown as GameItemsType;
+                const updated = action.payload;
+                if (updated) {
                     const idx = state.data.findIndex((it) => it.id === updated.id);
                     if (idx >= 0) state.data[idx] = updated;
                     else state.data.push(updated);
@@ -207,7 +206,7 @@ const gameItemsSlice = createSlice({
             })
             .addCase(deleteGameItem.fulfilled, (state, action) => {
                 state.loading = false;
-                const payload = action.payload as unknown as { id?: number };
+                const payload = action.payload;
                 const id = payload?.id;
                 if (typeof id === 'number') {
                     state.data = state.data.filter((it) => it.id !== id);
