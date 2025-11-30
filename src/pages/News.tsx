@@ -25,6 +25,7 @@ const News = () => {
   const [isCreateOpen, setCreateOpen] = useState(false)
   const { showToast, ToastContainer } = useToast()
   const [isUploading, setIsUploading] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
   const isMountedRef = useRef(true)
   useEffect(() => { return () => { isMountedRef.current = false } }, [])
   const hasSetDefaultRef = useRef(false)
@@ -113,11 +114,12 @@ const News = () => {
 
             <div className="flex gap-2 justify-end mt-3">
               <Button onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button onClick={async () => {
+              <Button disabled={isCreating} onClick={async () => {
                 if (!form.title || !form.content) {
                   showToast('Title and content are required', 'error')
                   return
                 }
+                setIsCreating(true)
                 // send news_type_id and asset_id to backend (asset_id references uploaded asset)
                 try {
                   // unwrap to throw on rejection so we can handle errors
@@ -130,8 +132,10 @@ const News = () => {
                   console.error('Failed to create news', err)
                   const message = err instanceof Error ? err.message : String(err)
                   showToast(`Failed to create news: ${message}`, 'error')
+                } finally {
+                  if (isMountedRef.current) setIsCreating(false)
                 }
-              }}>Create</Button>
+              }}>{isCreating ? 'Creating...' : 'Create'}</Button>
             </div>
           </div>
         </Modal>
