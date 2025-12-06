@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Container from '../components/Container';
+import arrowLeft from '/image/arrow-left.svg';
 import { Button } from '../components/Button';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { useDispatch, useSelector } from 'react-redux';
@@ -144,7 +145,7 @@ const NewsDetail: React.FC = () => {
       <Container>
         <div className="w-full">
           <h1 className="text-2xl font-bold">News not found</h1>
-          <Link to="/dashboard/news"><Button>Back to news</Button></Link>
+          <Link to="/dashboard/news"><Button className='mb-8 w-14 h-14 border-[#BDD4FFCC] bg-[#8D8D96] hover:bg-[#63636a]'>Back to news</Button></Link>
         </div>
       </Container>
     );
@@ -153,11 +154,15 @@ const NewsDetail: React.FC = () => {
   return (
     <Container>
       <div className="w-full max-w-3xl">
+        <Link to="/dashboard/news"><Button className='mb-8 w-14 h-14 border-[#BDD4FFCC] bg-[#8D8D96] hover:bg-[#63636a]'><img src={arrowLeft} alt="White arrow left" /></Button></Link>
+        <div className='flex w-full justify-between bg-[#2C2C2C] py-2 px-4 mb-6'>
+          <p className="text-md text-content-600 capitalize text-white">{article.news_type}</p>
+          <p className="text-md text-content-600 text-white">{article.created_at ? new Date(article.created_at).toLocaleString() : ''}</p>
+        </div>
+        <h1 className="text-2xl font-semibold mb-4">{article.title}</h1>
         {article.header_image && (
-          <img src={article.header_image} alt={article.title} className="w-full h-48 object-cover rounded" />
+          <img src={article.header_image} alt={article.title} className="w-full h-48 object-cover rounded mb-4" />
         )}
-        <h1 className="text-3xl font-bold mt-4">{article.title}</h1>
-        <p className="text-sm text-content-600">{article.created_at ? new Date(article.created_at).toLocaleString() : ''}</p>
         <div className="mt-4 max-w-none wysiwyg-reset not-prose">
           <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content ?? '') }} />
         </div>
@@ -208,7 +213,6 @@ const NewsDetail: React.FC = () => {
           </div>
         </Modal>
         <div className="mt-6">
-          <Link to="/dashboard/news"><Button>Back to news</Button></Link>
         </div>
       </div>
     </Container>

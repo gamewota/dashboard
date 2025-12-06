@@ -27,11 +27,17 @@ const isWrappedItem = (p: unknown): p is { success: boolean; data: NewsArticle }
     );
 };
 
-export const fetchNews = createAsyncThunk<FetchAllResp, void, { rejectValue: string }>(
+export const fetchNews = createAsyncThunk<FetchAllResp, { category?: string } | void, { rejectValue: string }>(
     'news/fetchNews',
-    async (_: void, thunkAPI) => {
+    async (params, thunkAPI) => {
         try {
-                const resp = await axios.get(`${API_BASE_URL}/news`, { headers: getAuthHeader() });
+                const queryParams = params && typeof params === 'object' && 'category' in params && params.category 
+                    ? { category: params.category } 
+                    : {};
+                const resp = await axios.get(`${API_BASE_URL}/news`, { 
+                    headers: getAuthHeader(),
+                    params: queryParams
+                });
                 const raw = resp.data;
                 const toValidate = isWrappedArray(raw) ? raw.data : raw;
                 return validateOrReject(NewsArraySchema, toValidate, thunkAPI) as FetchAllResp;

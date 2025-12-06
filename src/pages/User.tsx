@@ -3,13 +3,13 @@ import { fetchUsers, banUser, deleteUser, updateUserRoles } from '../features/us
 import { fetchRoles, assignRoles, deleteUserRoles } from '../features/roles/roleSlice';
 import type { RootState, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
+import { getUserColumns } from './userColumns';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
 import Modal from '../components/Modal';
 import { Button } from '../components/Button';
 import { useHasPermission } from '../hooks/usePermissions';
-import MultiSelect from '../components/MultiSelect';
-import type { MultiSelectOption } from '../components/MultiSelect';
+// columns moved to separate module
 import { DataTable } from '../components/DataTable';
 
 // Local types (mirror of slice shapes) to avoid `any`
@@ -20,20 +20,6 @@ type UserRole = {
   granted_by: number;
   expires_at: string | null;
   granted_at: string;
-};
-
-type UserItem = {
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  username: string;
-  email: string;
-  profile_created_at: string;
-  profile_updated_at: string;
-  profile_deleted_at: string | null;
-  is_verified: boolean;
-  unbanned_at: string | null;
-  roles: UserRole[];
 };
 
 type RoleSimple = {
@@ -58,42 +44,7 @@ const User = () => {
   const [isBanConfirmOpen, setIsBanConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const columns = 
-  [
-  { header: '#', accessor: (_row: UserItem, i: number) => i + 1 },
-    { header: 'First Name', accessor: (row: UserItem) => row.first_name || '-' },
-    { header: 'Last Name', accessor: (row: UserItem) => row.last_name || '-' },
-    { header: 'Username', accessor: (row: UserItem) => row.username || '-' },
-    { header: 'Email', accessor: (row: UserItem) => row.email || '-' },
-    { header: 'Is Verified', accessor: (row: UserItem) => typeof row.is_verified === 'boolean' ? (row.is_verified ? 'True' : 'False') : '-' },
-    { header: 'Created At', accessor: (row: UserItem) => row.profile_created_at ? new Date(row.profile_created_at).toLocaleString() : '-' },
-    { header: 'Updated At', accessor: (row: UserItem) => row.profile_updated_at ? new Date(row.profile_updated_at).toLocaleString() : '-' },
-    { header: 'Deleted At', accessor: (row: UserItem) => row.profile_deleted_at ? new Date(row.profile_deleted_at).toLocaleString() : '-' },
-    { header: 'Unbanned At', accessor: (row: UserItem) => row.unbanned_at ? new Date(row.unbanned_at).toLocaleString() : '-' },
-    { header: 'Roles', accessor: (row: UserItem) => (
-      <MultiSelect
-        options={roles as RoleSimple[]}
-        initialSelected={row.roles.map((r: UserRole) => r.role_id)}
-        onAdd={handleAddRole(row.user_id, row.roles, roles as RoleSimple[])}
-        onRemove={handleRemoveRole(row.user_id, row.roles)}
-        onSuccess={(msg?: string) => showToast(msg || 'Success', 'success')}
-        onFailure={(err?: unknown) => showToast(String(err) || 'Error', 'error')}
-  formatAddMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been assigned`}
-  formatRemoveMessage={(option: MultiSelectOption<number>) => `Role "${option.name}" has been removed`}
-        addButtonLabel="Add Role"
-        emptyLabel="No roles selected"
-        />
-        )},
-        { header: 'Actions', accessor: (row: UserItem) => (
-          <div className='flex align-center justify-center gap-3'>
-            {canBanUser && (
-              <Button variant="error" size="sm" onClick={() => handleOpenBanUserModal(row.user_id, row.username)}>Ban</Button>
-            )}
-              <Button variant="error" size="sm" onClick={() => handleOpenDeleteUserModal(row.user_id, row.username)}>Delete</Button>
-          </div>
-          )
-        }
-      ]
+  // columns are created after handler functions so closures capture defined values
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -201,6 +152,17 @@ const User = () => {
     const newRoles = userRoles.filter((r) => r.role_id !== roleId);
     dispatch(updateUserRoles({ userId, roles: newRoles }));
   };
+
+  // create columns after handlers so the handlers exist when building callbacks
+  const columns = getUserColumns({
+    roles: roles as RoleSimple[] | undefined,
+    handleAddRole,
+    handleRemoveRole,
+    showToast,
+    canBanUser,
+    handleOpenBanUserModal,
+    handleOpenDeleteUserModal,
+  });
 
   if (loading) return (
     <div className='min-h-screen w-screen flex justify-center items-center'>

@@ -32,9 +32,9 @@ const News = () => {
   const [form, setForm] = useState<{ title: string; content: string; header_image?: string; news_type_id?: number; asset_id?: number }>({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
 
   useEffect(() => {
-    dispatch(fetchNews())
+    dispatch(fetchNews(category ? { category } : undefined))
     dispatch(fetchNewsTypes())
-  }, [dispatch])
+  }, [dispatch, category])
 
   // set default news_type_id when modal opens and types are available
   useEffect(() => {
@@ -52,8 +52,8 @@ const News = () => {
     }
   }, [isCreateOpen])
 
+  // backend now handles filtering, so just use the list directly
   const list = ids.map(id => entities[id]).filter(Boolean) as NewsArticle[]
-  const filtered = category ? list.filter(d => d.news_type === category) : list
 
   const newsTypeOptions = useMemo(() => {
     return (newsTypes ?? []).map(nt => (
@@ -129,7 +129,7 @@ const News = () => {
                   // unwrap to throw on rejection so we can handle errors
                   await dispatch(createNews({ title: form.title, content: form.content, news_type_id: form.news_type_id, asset_id: form.asset_id })).unwrap()
                   // refresh list after successful create
-                  dispatch(fetchNews())
+                  dispatch(fetchNews(category ? { category } : undefined))
                   setCreateOpen(false)
                   setForm({ title: '', content: '', header_image: '', news_type_id: undefined, asset_id: undefined })
                 } catch (err: unknown) {
@@ -148,22 +148,22 @@ const News = () => {
         {error && <div className="mb-4 text-error">Error: {error}</div>}
 
         <div className="flex flex-col gap-4">
-          {filtered.map(item => (
-            <article key={item.id} className="w-full bg-base-100 rounded shadow-sm border">
-              <div className="p-4 md:p-6 flex flex-col md:flex-row items-start gap-4">
-                <img src={item.header_image} alt={item.title} className="w-full md:w-40 h-36 md:h-28 object-cover rounded" />
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold">{item.title}</h2>
-                  <p className="text-xs text-content-600">{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</p>
-                  <p className="mt-2 text-sm text-content-700">{stripHtml(item.content).slice(0, 200)}</p>
-                  <div className="mt-3">
-                    <Link to={`/dashboard/news/${item.id}`}>
-                      <Button size="sm">Read more</Button>
-                    </Link>
+          {list.map(item => (
+            <Link to={`/dashboard/news/${item.id}`} key={item.id}>
+              <article className="w-full bg-base-100 rounded shadow-sm border">
+                <div className="p-4 md:p-6 flex flex-col md:flex-row items-start gap-4">
+                  <img src={item.header_image} alt={item.title} className="w-full md:w-1/4 aspect-[4/2] object-cover rounded" />
+                  <div className="flex-1">
+                    <div className='flex justify-between bg-[#2C2C2C] py-2 px-4 mb-6'>
+                      <h2 className='text-xl text-content-600 capitalize text-white'>{item.news_type}</h2>
+                      <p className="text-md text-content-600 capitalize text-white">{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</p>
+                    </div>
+                      <h3 className="text-xl font-semibold">{item.title}</h3>
+                    <p className="mt-2 text-sm text-content-700">{stripHtml(item.content).slice(0, 200)}</p>
                   </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </Link>
           ))}
         </div>
       </div>
