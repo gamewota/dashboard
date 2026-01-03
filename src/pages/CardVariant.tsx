@@ -39,10 +39,12 @@ function CardVariantContent() {
 const CardVariant = () => {
   return (
     <Container>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Card Variants</h1>
-      </div>
-      <CardVariantContent />
+        <div>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold">Card Variants</h1>
+            </div>
+            <CardVariantContent />
+        </div>
     </Container>
   )
 }
