@@ -22,6 +22,7 @@ import News from "./pages/News"
 import NewsDetail from "./pages/NewsDetail"
 import NewsType from "./pages/NewsType"
 import CardVariant from "./pages/CardVariant"
+import GachaPack from "./pages/GachaPack"
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route path="/dashboard/" element={<Home />}/>
         <Route path="/dashboard/cards" element={<Card />}/>
         <Route path="/dashboard/cards/variant" element={<CardVariant />}/>
+        <Route path="/dashboard/cards/gacha-pack" element={<GachaPack />}/>
         <Route path="/dashboard/songs" element={<Song />}/>
         <Route path="/dashboard/quotes" element={<Quote />}/>
         <Route path="/dashboard/users" element={<User />}/>

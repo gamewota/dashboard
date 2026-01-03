@@ -91,7 +91,10 @@ export const sidebarMenu: MenuItem[] = [
         label: 'Cards',
         path: '/dashboard/cards',
         icon: Icons.Cards,
-        children: [{ key: 'card-variants', label: 'Card Variants', path: '/dashboard/cards/variant' }],
+        children: [
+            { key: 'card-variants', label: 'Card Variants', path: '/dashboard/cards/variant' },
+            { key: 'gacha-packs', label: 'Gacha Packs', path: '/dashboard/cards/gacha-pack' }
+        ],
       },
       { key: 'elements', label: 'Elements', path: '/dashboard/element', icon: Icons.Element },
       { key: 'assets', label: 'Assets', path: '/dashboard/assets', icon: Icons.Assets },
