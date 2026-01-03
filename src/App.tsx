@@ -21,6 +21,7 @@ import Assets from "./pages/Assets"
 import News from "./pages/News"
 import NewsDetail from "./pages/NewsDetail"
 import NewsType from "./pages/NewsType"
+import CardVariant from "./pages/CardVariant"
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
       <Routes>
         <Route path="/dashboard/" element={<Home />}/>
         <Route path="/dashboard/cards" element={<Card />}/>
+        <Route path="/dashboard/cards/variant" element={<CardVariant />}/>
         <Route path="/dashboard/songs" element={<Song />}/>
         <Route path="/dashboard/quotes" element={<Quote />}/>
         <Route path="/dashboard/users" element={<User />}/>
