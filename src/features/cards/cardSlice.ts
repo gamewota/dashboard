@@ -25,7 +25,7 @@ const initialState: CardState = {
 
 export const fetchCards = createAsyncThunk('cards/fetchCards', async () => {
     const response = await axios.get(`${API_BASE_URL}/cards`);
-    return response.data.data;
+    return response.data;
 })
 
 const cardSlice = createSlice({
