@@ -4,7 +4,7 @@ import songsReducer from '../features/songs/songSlice';
 import quotesReducer from '../features/quotes/quoteSlice';
 import shopItemsReducer from '../features/shopItems/shopItemsSlice';
 import cardsReducer from '../features/cards/cardSlice'
-import cardVariantReducer from '../features/cardVariants/cardVariantSlice'
+import cardVariantReducer from '../features/cards/cardVariantSlice'
 import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice'
 import transactionLogReducer from '../features/transactionLog/transactionLogSlice'
 import authReducer from '../features/auth/authSlice'

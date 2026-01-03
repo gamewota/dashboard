@@ -5,7 +5,7 @@ import Container from '../components/Container'
 import { DataTable } from '../components/DataTable'
 import { ErrorFallback } from '../components/ErrorFallback'
 import { LoadingFallback } from '../components/LoadingFallback'
-import { fetchCardVariants, selectCardVariants } from '../features/cardVariants/cardVariantSlice'
+import { fetchCardVariants, selectCardVariants } from '../features/cards/cardVariantSlice'
 import type { AppDispatch } from '../store'
 
 function CardVariantTable() {
