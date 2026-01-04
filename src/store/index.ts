@@ -16,6 +16,7 @@ import gameItemsReducer from '../features/gameItems/gameItemsSlice'
 import assetsReducer from '../features/assets/assetsSlice'
 import newsTypeReducer from '../features/newsType/newsTypeSlice'
 import newsReducer from '../features/news/newsSlice'
+import gachaPackReducer from '../features/cards/gachaPackSlice'
 
 
 export const store = configureStore({
@@ -36,7 +37,8 @@ export const store = configureStore({
         gameItems: gameItemsReducer,
         assets: assetsReducer,
         newsTypes: newsTypeReducer,
-        news: newsReducer
+        news: newsReducer,
+        gachaPack: gachaPackReducer
     }
 })
 
