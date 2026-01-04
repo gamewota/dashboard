@@ -8,7 +8,9 @@ export type GachaPack = {
     name: string;
     price: number;
     currency_id?: number;
+    currency_name?: string;
     item_id?: number;
+    item_name?: string;
 }
 
 type GachaPackState = {

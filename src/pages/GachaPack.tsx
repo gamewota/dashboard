@@ -18,8 +18,8 @@ function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
     { header: 'ID', accessor: 'id' as const },
     { header: 'Name', accessor: 'name' as const },
     { header: 'Price', accessor: 'price' as const },
-    { header: 'Currency ID', accessor: (row: GachaPackType) => (row.currency_id == null ? '-' : String(row.currency_id)) },
-    { header: 'Item ID', accessor: (row: GachaPackType) => (row.item_id == null ? '-' : String(row.item_id)) },
+    { header: 'Currency', accessor: (row: GachaPackType) => (row.currency_name == null ? '-' : String(row.currency_name)) },
+    { header: 'Item', accessor: (row: GachaPackType) => (row.item_name == null ? '-' : String(row.item_name)) },
   ]
 
   return <ErrorBoundary FallbackComponent={() => <div>Error loading gacha packs.</div>}> 
