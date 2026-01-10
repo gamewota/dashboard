@@ -32,7 +32,7 @@ function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
 
 const GachaPack = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: gachaPacks = [], loading, error } = useSelector((state: RootState) => state.gachaPack);
+  const { list: gachaPacks = [], loading, error } = useSelector((state: RootState) => state.gachaPack);
 
   useEffect(() => {
     dispatch(fetchGachaPacks());
