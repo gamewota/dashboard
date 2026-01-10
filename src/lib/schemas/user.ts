@@ -21,6 +21,8 @@ export const UserSchema = z.object({
   profile_deleted_at: z.string().nullable(),
   is_verified: z.preprocess((val) => {
     // backend sometimes returns 0/1 as numbers (or strings). Normalize to boolean.
+    // Treat null/undefined as false, normalize numeric/string 1/'1'/true to boolean true.
+    if (val === null || val === undefined) return false;
     if (typeof val === 'number') return val === 1;
     if (typeof val === 'string') return val === '1' || val.toLowerCase() === 'true';
     return val;
