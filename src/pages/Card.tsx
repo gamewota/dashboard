@@ -1,18 +1,10 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCards } from '../features/cards/cardSlice';
+import type { Card } from '../features/cards/cardSlice';
 import { useEffect } from 'react';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import Container from '../components/Container';
-
-type CardItem = {
-  id: number;
-  name: string;
-  art?: string | null;
-  element?: string | null;
-  card_variant_id?: number | null;
-  rarity_id?: number | null;
-};
 
 type Column<T> = {
   header: string;
@@ -23,13 +15,13 @@ const Card = () => {
   const dispatch = useDispatch<AppDispatch>();
   const {data, loading, error} = useSelector((state: RootState) => state.cards);
 
-  const columns: Column<CardItem>[] = [
-    { header: '#', accessor: (_row: CardItem, i: number) => i + 1 as React.ReactNode },
-    { header: 'Card Name', accessor: (row: CardItem) => row.name || '-' },
-    { header: 'Art', accessor: (row: CardItem) => row.art || '-' },
-    { header: 'Card Element', accessor: (row: CardItem) => row.element || '-' },
-    { header: 'Card Variant Id', accessor: (row: CardItem) => row.card_variant_id ?? '-' },
-    { header: 'Rarity Id', accessor: (row: CardItem) => row.rarity_id ?? '-' },
+  const columns: Column<Card>[] = [
+    { header: '#', accessor: (_row: Card, i: number) => i + 1 as React.ReactNode },
+    { header: 'Card Name', accessor: (row: Card) => row.name || '-' },
+    { header: 'Art', accessor: (row: Card) => row.url ? <img src={row.url} alt={row.name} style={{ width: '50px', height: '50px' }} /> : '-' },
+    { header: 'Card Element', accessor: (row: Card) => row.element_name || '-' },
+    { header: 'Card Variant Id', accessor: (row: Card) => row.variant_name ?? '-' },
+    { header: 'Rarity Id', accessor: (row: Card) => row.rarity_name ?? '-' },
   ];
 
   useEffect(() => {

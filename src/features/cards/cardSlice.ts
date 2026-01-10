@@ -2,13 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 
-type Card = {
+export type Card = {
     id: number;
     name: string;
-    art: string;
-    element: string;
-    card_variant_id: number;
-    rarity_id: number;
+    url: string;
+    element_name: string;
+    variant_name: string;
+    rarity_name: string;
 }
 
 type CardState = {
