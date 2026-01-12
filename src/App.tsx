@@ -24,6 +24,7 @@ import NewsType from "./pages/NewsType"
 import CardVariant from "./pages/CardVariant"
 import GachaPack from "./pages/GachaPack"
 import GachaPackDetails from "./pages/GachaPackDetails"
+import Member from "./pages/Member"
 
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
         <Route path="/dashboard/news" element={<News />} />
         <Route path="/dashboard/news/:id" element={<NewsDetail />} />
         <Route path="/dashboard/news-type" element={<NewsType />} />
+        <Route path="/dashboard/member" element={<Member />} />
       </Routes>
     </div>
   )

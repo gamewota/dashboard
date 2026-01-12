@@ -17,6 +17,7 @@ import assetsReducer from '../features/assets/assetsSlice'
 import newsTypeReducer from '../features/newsType/newsTypeSlice'
 import newsReducer from '../features/news/newsSlice'
 import gachaPackReducer from '../features/cards/gachaPackSlice'
+import memberReducer from '../features/members/membersSlice'
 
 
 export const store = configureStore({
@@ -38,7 +39,8 @@ export const store = configureStore({
         assets: assetsReducer,
         newsTypes: newsTypeReducer,
         news: newsReducer,
-        gachaPack: gachaPackReducer
+        gachaPack: gachaPackReducer,
+        members: memberReducer
     }
 })
 
