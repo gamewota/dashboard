@@ -19,6 +19,7 @@ import newsReducer from '../features/news/newsSlice'
 import gachaPackReducer from '../features/cards/gachaPackSlice'
 import memberReducer from '../features/members/membersSlice'
 import rarityReducer from '../features/cards/raritySlice'
+import currencyReducer from '../features/currencies/currencySlice'
 
 
 export const store = configureStore({
@@ -43,6 +44,7 @@ export const store = configureStore({
         gachaPack: gachaPackReducer,
         members: memberReducer,
         rarity: rarityReducer,
+        currency: currencyReducer,
     }
 })
 

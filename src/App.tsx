@@ -26,6 +26,7 @@ import GachaPack from "./pages/GachaPack"
 import GachaPackDetails from "./pages/GachaPackDetails"
 import Member from "./pages/Member"
 import Rarity from "./pages/Rarity"
+import Currency from "./pages/Currency"
 
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
         <Route path="/dashboard/news-type" element={<NewsType />} />
         <Route path="/dashboard/member" element={<Member />} />
         <Route path="/dashboard/rarity" element={<Rarity />} />
+        <Route path="/dashboard/currency" element={<Currency />} />
       </Routes>
     </div>
   )
