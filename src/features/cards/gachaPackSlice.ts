@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { API_BASE_URL } from '../../helpers/constants';
 
 
@@ -25,6 +26,13 @@ export type GachaPackDetail = {
     member_name: string;
     variant_name: string;
     rarity_name: string;
+}
+
+export type GachaPackPayload = {
+    name: string;
+    price: number;
+    currencyId?: number;
+    itemId?: number;
 }
 
 type GachaPackState = {
@@ -53,6 +61,11 @@ export const fetchGachaPackById = createAsyncThunk('gachaPacks/fetchGachaPackByI
 
 export const fetchGachaPacksDetail = createAsyncThunk('gachaPacks/fetchGachaPacksDetail', async (id: number) => {
     const response = await axios.get(`${API_BASE_URL}/cards/gacha-pack/${id}`);
+    return response.data;
+})
+
+export const createGachaPack = createAsyncThunk('gachaPacks/createGachaPack', async (payload: GachaPackPayload) => {
+    const response = await axios.post(`${API_BASE_URL}/gacha/create-gacha-pack`, payload, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
     return response.data;
 })
 
