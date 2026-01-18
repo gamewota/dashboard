@@ -4,7 +4,20 @@ import { API_BASE_URL } from '../../helpers/constants';
 
 export type MemberType = {
     id: number;
+    jkt48_member_id: number | null;
     member_name: string;
+    name: string | null;
+    stage_name: string | null;
+    profile_url: string | null;
+    birth_date: string | null;
+    blood_type: string | null;
+    zodiac: string | null;
+    height: string | null;
+    current_photo_url: string | null;
+    current_photo_filename: string | null;
+    photo_last_updated_at: string | null;
+    last_scraped_at: string | null;
+    scrape_error: string | null;
     is_active: boolean;
     created_at: string;
     updated_at: string;
