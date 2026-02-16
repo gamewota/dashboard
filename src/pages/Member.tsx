@@ -50,7 +50,7 @@ const Member = () => {
   )
   if (!data || data.length === 0) return (
     <div className='min-h-screen w-screen flex justify-center items-center'>
-      <p>No items found.</p>
+      <p>No members found.</p>
     </div>
   )
 
@@ -61,7 +61,7 @@ const Member = () => {
           data={data}
           loading={loading}
           error={error}
-          emptyMessage={'No cards found.'}
+          emptyMessage={'No members found.'}
           columns={columns}
         />
       </div>

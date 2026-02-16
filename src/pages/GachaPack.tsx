@@ -30,7 +30,7 @@ function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
 
   return <ErrorBoundary FallbackComponent={() => <div>Error loading gacha packs.</div>}> 
   <Suspense fallback={<div>Loading...</div>}>
-    <DataTable columns={columns} data={packs} />
+    <DataTable columns={columns} data={packs} emptyMessage="No gacha packs available." />
   </Suspense>
   </ErrorBoundary>;
 }
@@ -38,7 +38,7 @@ function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
 
 const GachaPack = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { list: gachaPacks = [], loading, error } = useSelector((state: RootState) => state.gachaPack);
+  const { list: gachaPacks = [], listLoading: loading, error } = useSelector((state: RootState) => state.gachaPack);
   const currencies = useSelector((state: RootState) => state.currency.data);
   const gameItems = useSelector((state: RootState) => state.gameItems.data);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,14 +110,6 @@ const GachaPack = () => {
             <p className="text-sm mt-2">{error}</p>
           </div>
         </div>
-      </Container>
-    )
-  }
-
-  if (!gachaPacks || gachaPacks.length === 0) {
-    return (
-      <Container>
-        <div className="py-12 text-center text-sm text-content-400">No gacha packs available.</div>
       </Container>
     )
   }

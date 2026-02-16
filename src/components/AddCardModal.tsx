@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch } from '../store';
 import { addCard, type CardPayload } from '../features/cards/cardSlice';
-import axios from 'axios';
-import { API_BASE_URL } from '../helpers/constants';
+import { fetchRarities, selectRarities } from '../features/cards/raritySlice';
+import { fetchCardVariants, selectCardVariants } from '../features/cards/cardVariantSlice';
+import { fetchElements, selectElements } from '../features/elements/elementSlice';
+import { fetchMembers, selectMembers, type MemberType } from '../features/members/membersSlice';
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
 
 type Props = {
@@ -21,10 +23,10 @@ export function AddCardModal({ isOpen, onClose }: Props) {
   const [memberId, setMemberId] = useState<number | ''>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rarities, setRarities] = useState<Array<{ id: number; name: string }>>([]);
-  const [variants, setVariants] = useState<Array<{ id: number; variant_name?: string }>>([]);
-  const [elements, setElements] = useState<Array<{ id: number; name?: string }>>([]);
-  const [members, setMembers] = useState<Array<{ id: number; member_name?: string }>>([]);
+  const rarities = useSelector(selectRarities);
+  const variants = useSelector(selectCardVariants);
+  const elements = useSelector(selectElements);
+  const members = useSelector(selectMembers);
   const [memberQuery, setMemberQuery] = useState('');
   const [uploading, setUploading] = useState(false);
 
@@ -38,31 +40,13 @@ export function AddCardModal({ isOpen, onClose }: Props) {
       setMemberId('');
       setError(null);
       setLoading(false);
-      // fetch related lists
-      (async () => {
-        try {
-          const [rRes, vRes, eRes, mRes] = await Promise.all([
-            axios.get(`${API_BASE_URL}/rarities`),
-            axios.get(`${API_BASE_URL}/cards/variant`),
-            axios.get(`${API_BASE_URL}/elements`),
-            axios.get(`${API_BASE_URL}/members`),
-          ]);
-
-          const rData = rRes.data?.data ?? rRes.data ?? [];
-          const vData = vRes.data?.data ?? vRes.data ?? [];
-          const eData = eRes.data?.data ?? eRes.data ?? [];
-          const mData = mRes.data?.data ?? mRes.data ?? [];
-
-          setRarities(rData);
-          setVariants(vData);
-          setElements(eData);
-          setMembers(mData);
-        } catch (err) {
-          // swallow here; show specific errors on save if needed
-        }
-      })();
+      // fetch related lists via Redux thunks
+      dispatch(fetchRarities());
+      dispatch(fetchCardVariants());
+      dispatch(fetchElements());
+      dispatch(fetchMembers());
     }
-  }, [isOpen]);
+  }, [isOpen, dispatch]);
 
   if (!isOpen) return null;
 
@@ -79,15 +63,11 @@ export function AddCardModal({ isOpen, onClose }: Props) {
     };
 
     try {
-      // dispatch addCard thunk
-      // await the dispatch result; createAsyncThunk returns a promise
-      // we don't rely on unwrap typings here
-      // @ts-ignore
-      await dispatch(addCard(payload));
-      setLoading(false);
+      await dispatch(addCard(payload)).unwrap();
       onClose();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to add card');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to add card');
+    } finally {
       setLoading(false);
     }
   };
@@ -98,20 +78,18 @@ export function AddCardModal({ isOpen, onClose }: Props) {
     setError(null);
     try {
       const asset = await uploadAssetWithPresigned(file);
-      // asset may have assets_url or assetsUrl depending on backend
-      // prefer assets_url per helper typing
-      const url = (asset as any).assets_url || (asset as any).assetsUrl || (asset as any).assets_url || '';
+      const url = asset.assets_url;
       if (!url) throw new Error('Upload succeeded but no asset URL returned');
       setArt(url);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to upload asset');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload asset');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-lg">
         <h2 className="text-lg font-bold mb-4">Add Card</h2>
 
@@ -155,7 +133,7 @@ export function AddCardModal({ isOpen, onClose }: Props) {
               className="select select-bordered w-full"
             >
               <option value="">Select variant</option>
-              {variants.map((v: any) => (
+              {variants.map((v) => (
                 <option key={v.id} value={v.id}>{v.variant_name ?? v.variant_value ?? v.id}</option>
               ))}
             </select>
@@ -169,8 +147,8 @@ export function AddCardModal({ isOpen, onClose }: Props) {
               className="select select-bordered w-full"
             >
               <option value="">Select element</option>
-              {elements.map((el: any) => (
-                <option key={el.id} value={el.id}>{el.name ?? el.element_name ?? el.id}</option>
+              {elements.map((el) => (
+                <option key={el.id} value={el.id}>{el.name ?? el.id}</option>
               ))}
             </select>
           </label>
@@ -187,8 +165,8 @@ export function AddCardModal({ isOpen, onClose }: Props) {
             {memberQuery && (
               <ul className="absolute left-0 right-0 bg-base-100 border rounded mt-1 max-h-40 overflow-auto z-20">
                 {members
-                  .filter((m: any) => (m.member_name ?? '').toLowerCase().includes(memberQuery.toLowerCase()))
-                  .map((m: any) => (
+                  .filter((m: MemberType) => (m.member_name ?? '').toLowerCase().includes(memberQuery.toLowerCase()))
+                  .map((m: MemberType) => (
                     <li key={m.id}>
                       <button
                         type="button"
@@ -202,7 +180,7 @@ export function AddCardModal({ isOpen, onClose }: Props) {
                       </button>
                     </li>
                   ))}
-                {members.filter((m: any) => (m.member_name ?? '').toLowerCase().includes(memberQuery.toLowerCase())).length === 0 && (
+                {members.filter((m: MemberType) => (m.member_name ?? '').toLowerCase().includes(memberQuery.toLowerCase())).length === 0 && (
                   <li className="px-3 py-2 text-sm text-gray-400">No members found</li>
                 )}
               </ul>

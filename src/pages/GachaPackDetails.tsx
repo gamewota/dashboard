@@ -37,7 +37,7 @@ function GachaPackDetailTable({ packs }: { packs: GachaPackDetailType[] }) {
 
 const GachaPackDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { details: gachaPackDetails = [], loading, error, list: gachaPacks = [] } = useSelector((state: RootState) => state.gachaPack);
+  const { details: gachaPackDetails = [], detailsLoading: loading, error, pack: gachaPack } = useSelector((state: RootState) => state.gachaPack);
   const dispatch = useDispatch<AppDispatch>();
   const cards = useSelector((state: RootState) => state.cards.data ?? []);
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -49,8 +49,10 @@ const GachaPackDetails = () => {
   const existingCardIds = useMemo(() => new Set(gachaPackDetails.map((d) => d.id)), [gachaPackDetails]);
 
     useEffect(() => {
-      dispatch(fetchGachaPacksDetail(Number(id)));
-      dispatch(fetchGachaPackById(Number(id)));
+      const parsedId = Number(id);
+      if (!Number.isFinite(parsedId) || parsedId <= 0) return;
+      dispatch(fetchGachaPacksDetail(parsedId));
+      dispatch(fetchGachaPackById(parsedId));
       dispatch(fetchCards());
     }, [dispatch, id]);
 
@@ -83,7 +85,7 @@ const GachaPackDetails = () => {
     <Container>
       <div>
         <div className='mb-6 flex items-center justify-between'>
-          <div>Gacha Pack Details for: {gachaPacks[0]?.name ?? '—'}</div>
+          <div>Gacha Pack Details for: {gachaPack?.name ?? '—'}</div>
           <div>
             <Button onClick={() => setIsAddOpen(true)}>Add Cards</Button>
           </div>
@@ -105,8 +107,7 @@ const GachaPackDetails = () => {
                   weight,
                 };
                 try {
-                  await dispatch(addGachaPackCard(payload));
-                  // backend returns inserted rows; consider success if fulfilled
+                  await dispatch(addGachaPackCard(payload)).unwrap();
                   showToast('Cards added to gacha pack', 'success');
                   setIsAddOpen(false);
                   setSelectedCardIds([]);

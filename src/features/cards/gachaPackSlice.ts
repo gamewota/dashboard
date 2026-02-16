@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { API_BASE_URL } from '../../helpers/constants';
+import type { RootState } from '../../store';
 
 
 export type GachaPack = {
@@ -38,14 +39,20 @@ export type GachaPackPayload = {
 type GachaPackState = {
     list: GachaPack[];
     details: GachaPackDetail[];
-    loading: boolean;
+    pack: GachaPack | null;
+    listLoading: boolean;
+    packLoading: boolean;
+    detailsLoading: boolean;
     error: string | null;
 }
 
 const initialState: GachaPackState = {
     list: [],
     details: [],
-    loading: false,
+    pack: null,
+    listLoading: false,
+    packLoading: false,
+    detailsLoading: false,
     error: null
 }
 
@@ -76,42 +83,50 @@ const gachaPackSlice = createSlice({
     extraReducers(builder) {
         builder
             .addCase(fetchGachaPacks.pending, (state) => {
-                state.loading = true;
+                state.listLoading = true;
                 state.error = null;
             })
             .addCase(fetchGachaPacks.fulfilled, (state, action) => {
-                state.loading = false;
+                state.listLoading = false;
                 state.list = action.payload;
             })
             .addCase(fetchGachaPacks.rejected, (state, action) => {
-                state.loading = false;
+                state.listLoading = false;
                 state.error = action.error.message || 'Failed to fetch gacha packs';
             })
             .addCase(fetchGachaPackById.pending, (state) => {
-                state.loading = true;
+                state.packLoading = true;
                 state.error = null;
             })
             .addCase(fetchGachaPackById.fulfilled, (state, action) => {
-                state.loading = false;
-                state.list = action.payload;
+                state.packLoading = false;
+                state.pack = action.payload;
             })
             .addCase(fetchGachaPackById.rejected, (state, action) => {
-                state.loading = false;
+                state.packLoading = false;
                 state.error = action.error.message || 'Failed to fetch gacha pack';
             })
             .addCase(fetchGachaPacksDetail.pending, (state) => {
-                state.loading = true;
+                state.detailsLoading = true;
                 state.error = null;
             })
             .addCase(fetchGachaPacksDetail.fulfilled, (state, action) => {
-                state.loading = false;
+                state.detailsLoading = false;
                 state.details = action.payload;
             })
             .addCase(fetchGachaPacksDetail.rejected, (state, action) => {
-                state.loading = false;
+                state.detailsLoading = false;
                 state.error = action.error.message || 'Failed to fetch gacha pack details';
             });
     }
 })
+
+export const selectGachaPacks = (state: RootState) => state.gachaPack.list;
+export const selectGachaPack = (state: RootState) => state.gachaPack.pack;
+export const selectGachaPackDetails = (state: RootState) => state.gachaPack.details;
+export const selectGachaPacksListLoading = (state: RootState) => state.gachaPack.listLoading;
+export const selectGachaPackLoading = (state: RootState) => state.gachaPack.packLoading;
+export const selectGachaPackDetailsLoading = (state: RootState) => state.gachaPack.detailsLoading;
+export const selectGachaPackError = (state: RootState) => state.gachaPack.error;
 
 export default gachaPackSlice.reducer;

@@ -20,9 +20,9 @@ const Rarity = () => {
     const columns : Column<RarityType>[] = [
         { header: '#', accessor: (_row: RarityType, i: number) => i + 1 as React.ReactNode },
         { header: 'Rarity Name', accessor: (row: RarityType) => row.name || '-' },
-        { header: 'Probability', accessor: (row: RarityType) => row.probability || '-' },
-        { header: 'Base Multiplier', accessor: (row: RarityType) => row.base_multiplier || '-' },
-        { header: 'Incremental Multiplier', accessor: (row: RarityType) => row.increment_multiplier || '-' },
+        { header: 'Probability', accessor: (row: RarityType) => row.probability ?? '-' },
+        { header: 'Base Multiplier', accessor: (row: RarityType) => row.base_multiplier ?? '-' },
+        { header: 'Incremental Multiplier', accessor: (row: RarityType) => row.increment_multiplier ?? '-' },
     ];
 
     useEffect(() => {

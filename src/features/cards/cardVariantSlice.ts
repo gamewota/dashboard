@@ -23,7 +23,6 @@ const initialState: CardVariantState = {
 
 export const fetchCardVariants = createAsyncThunk('cardVariants/fetchCardVariants', async () => {
     const response = await axios.get(`${API_BASE_URL}/cards/variant`)
-    console.log('response', response)
     return response.data
 })
 

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import type { RootState } from '../../store';
 
 export type MemberType = {
     id: number;
@@ -62,5 +63,9 @@ const membersSlice = createSlice({
             })
     }
 })
+
+export const selectMembers = (state: RootState) => state.members.data
+export const selectMembersLoading = (state: RootState) => state.members.loading
+export const selectMembersError = (state: RootState) => state.members.error
 
 export default membersSlice.reducer;
