@@ -56,22 +56,22 @@ const initialState: GachaPackState = {
     error: null
 }
 
-export const fetchGachaPacks = createAsyncThunk('gachaPacks/fetchGachaPacks', async () => {
+export const fetchGachaPacks = createAsyncThunk<GachaPack[], void>('gachaPacks/fetchGachaPacks', async () => {
     const response = await axios.get(`${API_BASE_URL}/gacha/prices`);
     return response.data;
 })
 
-export const fetchGachaPackById = createAsyncThunk('gachaPacks/fetchGachaPackById', async (id: number) => {
+export const fetchGachaPackById = createAsyncThunk<GachaPack, number>('gachaPacks/fetchGachaPackById', async (id: number) => {
     const response = await axios.get(`${API_BASE_URL}/gacha/prices/${id}`);
     return response.data;
 })
 
-export const fetchGachaPacksDetail = createAsyncThunk('gachaPacks/fetchGachaPacksDetail', async (id: number) => {
+export const fetchGachaPacksDetail = createAsyncThunk<GachaPackDetail[], number>('gachaPacks/fetchGachaPacksDetail', async (id: number) => {
     const response = await axios.get(`${API_BASE_URL}/cards/gacha-pack/${id}`);
     return response.data;
 })
 
-export const createGachaPack = createAsyncThunk('gachaPacks/createGachaPack', async (payload: GachaPackPayload) => {
+export const createGachaPack = createAsyncThunk<GachaPack, GachaPackPayload>('gachaPacks/createGachaPack', async (payload: GachaPackPayload) => {
     const response = await axios.post(`${API_BASE_URL}/gacha/create-gacha-pack`, payload, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
     return response.data;
 })

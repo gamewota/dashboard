@@ -37,7 +37,8 @@ function GachaPackDetailTable({ packs }: { packs: GachaPackDetailType[] }) {
 
 const GachaPackDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { details: gachaPackDetails = [], detailsLoading: loading, error, pack: gachaPack } = useSelector((state: RootState) => state.gachaPack);
+  const { details: gachaPackDetails = [], detailsLoading, packLoading, error, pack: gachaPack } = useSelector((state: RootState) => state.gachaPack);
+  const loading = detailsLoading || packLoading;
   const dispatch = useDispatch<AppDispatch>();
   const cards = useSelector((state: RootState) => state.cards.data ?? []);
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -101,10 +102,14 @@ const GachaPackDetails = () => {
               <Button onClick={async () => {
                 if (!id) return showToast('Missing gacha pack id', 'error');
                 if (selectedCardIds.length === 0) return showToast('Select at least one card', 'warning');
+                const finalWeight = Math.max(1, weight);
+                if (finalWeight !== weight) {
+                  setWeight(finalWeight);
+                }
                 const payload = {
                   gachaPackId: Number(id),
                   cardId: selectedCardIds.map((s) => Number(s)),
-                  weight,
+                  weight: finalWeight,
                 };
                 try {
                   await dispatch(addGachaPackCard(payload)).unwrap();
@@ -155,7 +160,7 @@ const GachaPackDetails = () => {
             </label>
             <label className='flex flex-col'>
               <span className='text-sm'>Weight</span>
-              <input className='input input-bordered' type='number' min={1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
+              <input className='input input-bordered' type='number' min={1} value={weight} onChange={(e) => setWeight(Math.max(1, Number(e.target.value)))} />
             </label>
           </div>
         </Modal>

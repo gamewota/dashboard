@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import type { RootState } from '../../store';
 
@@ -38,9 +38,16 @@ const initialState: MemberState = {
     error: null
 }
 
-export const fetchMembers = createAsyncThunk('members/fetchMembers', async () => {
-    const response = await axios.get(`${API_BASE_URL}/members`);
-    return response.data;
+export const fetchMembers = createAsyncThunk<MemberType[], void, { rejectValue: string }>('members/fetchMembers', async (_, thunkAPI) => {
+    try {
+        const response: AxiosResponse<MemberType[]> = await axios.get(`${API_BASE_URL}/members`);
+        return response.data;
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+        }
+        return thunkAPI.rejectWithValue(String(error));
+    }
 })
 
 const membersSlice = createSlice({

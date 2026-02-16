@@ -1,13 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import axios from 'axios'
 import { API_BASE_URL } from '../../helpers/constants'
+import { getAuthHeader } from '../../helpers/getAuthHeader'
+import { CardVariantArraySchema, type CardVariant } from '../../lib/schemas/cardVariant'
+import { validateOrReject } from '../../helpers/validateApi'
 import type { RootState } from '../../store'
-
-type CardVariant = {
-    id: number
-    variant_name: string
-    variant_value: string
-}
 
 type CardVariantState = {
     data: CardVariant[]
@@ -21,9 +18,19 @@ const initialState: CardVariantState = {
     error: null
 }
 
-export const fetchCardVariants = createAsyncThunk('cardVariants/fetchCardVariants', async () => {
-    const response = await axios.get(`${API_BASE_URL}/cards/variant`)
-    return response.data
+export const fetchCardVariants = createAsyncThunk<CardVariant[], void, { rejectValue: string }>('cardVariants/fetchCardVariants', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/cards/variant`, {
+            headers: getAuthHeader()
+        })
+        const payload = response.data?.data ?? response.data
+        return validateOrReject(CardVariantArraySchema, payload, thunkAPI) as CardVariant[]
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(error.response?.data ?? String(error))
+        }
+        return thunkAPI.rejectWithValue(String(error))
+    }
 })
 
 const cardVariantSlice = createSlice({
