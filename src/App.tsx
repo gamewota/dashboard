@@ -21,6 +21,12 @@ import Assets from "./pages/Assets"
 import News from "./pages/News"
 import NewsDetail from "./pages/NewsDetail"
 import NewsType from "./pages/NewsType"
+import CardVariant from "./pages/CardVariant"
+import GachaPack from "./pages/GachaPack"
+import GachaPackDetails from "./pages/GachaPackDetails"
+import Member from "./pages/Member"
+import Rarity from "./pages/Rarity"
+import Currency from "./pages/Currency"
 
 
 function App() {
@@ -34,6 +40,9 @@ function App() {
       <Routes>
         <Route path="/dashboard/" element={<Home />}/>
         <Route path="/dashboard/cards" element={<Card />}/>
+        <Route path="/dashboard/cards/variant" element={<CardVariant />}/>
+        <Route path="/dashboard/cards/gacha-pack" element={<GachaPack />}/>
+        <Route path="/dashboard/cards/gacha-pack/:id" element={<GachaPackDetails />}/>
         <Route path="/dashboard/songs" element={<Song />}/>
         <Route path="/dashboard/quotes" element={<Quote />}/>
         <Route path="/dashboard/users" element={<User />}/>
@@ -52,6 +61,9 @@ function App() {
         <Route path="/dashboard/news" element={<News />} />
         <Route path="/dashboard/news/:id" element={<NewsDetail />} />
         <Route path="/dashboard/news-type" element={<NewsType />} />
+        <Route path="/dashboard/member" element={<Member />} />
+        <Route path="/dashboard/rarity" element={<Rarity />} />
+        <Route path="/dashboard/currency" element={<Currency />} />
       </Routes>
     </div>
   )

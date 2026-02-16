@@ -3,7 +3,8 @@ import usersReducer from '../features/users/userSlice';
 import songsReducer from '../features/songs/songSlice';
 import quotesReducer from '../features/quotes/quoteSlice';
 import shopItemsReducer from '../features/shopItems/shopItemsSlice';
-import cardsReducer from '../features/cards/cardSlice';
+import cardsReducer from '../features/cards/cardSlice'
+import cardVariantReducer from '../features/cards/cardVariantSlice'
 import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice'
 import transactionLogReducer from '../features/transactionLog/transactionLogSlice'
 import authReducer from '../features/auth/authSlice'
@@ -15,6 +16,10 @@ import gameItemsReducer from '../features/gameItems/gameItemsSlice'
 import assetsReducer from '../features/assets/assetsSlice'
 import newsTypeReducer from '../features/newsType/newsTypeSlice'
 import newsReducer from '../features/news/newsSlice'
+import gachaPackReducer from '../features/cards/gachaPackSlice'
+import memberReducer from '../features/members/membersSlice'
+import rarityReducer from '../features/cards/raritySlice'
+import currencyReducer from '../features/currencies/currencySlice'
 
 
 export const store = configureStore({
@@ -24,6 +29,7 @@ export const store = configureStore({
         quotes: quotesReducer,
         shopItems: shopItemsReducer,
         cards: cardsReducer,
+        cardVariants: cardVariantReducer,
         roles: rolesReducer,
         shopTransactions: shopTransactionsReducer,
         transactionsLog: transactionLogReducer,
@@ -34,7 +40,11 @@ export const store = configureStore({
         gameItems: gameItemsReducer,
         assets: assetsReducer,
         newsTypes: newsTypeReducer,
-        news: newsReducer
+        news: newsReducer,
+        gachaPack: gachaPackReducer,
+        members: memberReducer,
+        rarity: rarityReducer,
+        currency: currencyReducer,
     }
 })
 

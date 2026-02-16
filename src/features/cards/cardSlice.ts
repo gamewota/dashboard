@@ -1,18 +1,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 
-type Card = {
+export type CardType = {
     id: number;
     name: string;
-    art: string;
-    element: string;
-    card_variant_id: number;
+    url: string;
+    element_name: string;
+    variant_name: string;
+    rarity_name: string;
+}
+
+export type CardPayload = {
+    name: string;
     rarity_id: number;
+    cards_variant_id: number;
+    art: string;
+    element: number;
+    member: number;
 }
 
 type CardState = {
-    data: Card[];
+    data: CardType[];
     loading: boolean;
     error: string | null;
 }
@@ -25,7 +35,12 @@ const initialState: CardState = {
 
 export const fetchCards = createAsyncThunk('cards/fetchCards', async () => {
     const response = await axios.get(`${API_BASE_URL}/cards`);
-    return response.data.data;
+    return response.data;
+})
+
+export const addCard = createAsyncThunk('cards/addCard', async (cardData: CardPayload) => {
+    const response = await axios.post(`${API_BASE_URL}/cards/add`, cardData, { headers: getAuthHeader() });
+    return response.data;
 })
 
 const cardSlice = createSlice({

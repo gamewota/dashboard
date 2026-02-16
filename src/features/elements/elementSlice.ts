@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { ElementArraySchema, ElementSchema, type Element } from '../../lib/schemas/element';
 import { validateOrReject } from '../../helpers/validateApi';
+import type { RootState } from '../../store';
 
 type ElementState = {
     data: Element[];
@@ -146,5 +147,9 @@ const elementSlice = createSlice({
             })
     }
 })
+
+export const selectElements = (state: RootState) => state.elements.data
+export const selectElementsLoading = (state: RootState) => state.elements.loading
+export const selectElementsError = (state: RootState) => state.elements.error
 
 export default elementSlice.reducer;
