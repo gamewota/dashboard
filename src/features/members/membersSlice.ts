@@ -44,7 +44,18 @@ export const fetchMembers = createAsyncThunk<MemberType[], void, { rejectValue: 
         return response.data;
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            return thunkAPI.rejectWithValue(error.response?.data ?? String(error));
+            const data = error.response?.data;
+            let message: string;
+            if (typeof data === 'string') {
+                message = data;
+            } else if (data && typeof data === 'object' && 'message' in data) {
+                message = String((data as { message: unknown }).message);
+            } else if (data !== undefined) {
+                message = JSON.stringify(data);
+            } else {
+                message = String(error);
+            }
+            return thunkAPI.rejectWithValue(message);
         }
         return thunkAPI.rejectWithValue(String(error));
     }
@@ -66,7 +77,7 @@ const membersSlice = createSlice({
             })
             .addCase(fetchMembers.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch members';
+                state.error = action.payload ?? action.error.message ?? 'Failed to fetch members';
             })
     }
 })

@@ -27,7 +27,18 @@ export const fetchCardVariants = createAsyncThunk<CardVariant[], void, { rejectV
         return validateOrReject(CardVariantArraySchema, payload, thunkAPI) as CardVariant[]
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            return thunkAPI.rejectWithValue(error.response?.data ?? String(error))
+            const data = error.response?.data
+            let message: string
+            if (typeof data === 'string') {
+                message = data
+            } else if (data && typeof data === 'object' && 'message' in data) {
+                message = String((data as { message: unknown }).message)
+            } else if (data !== undefined) {
+                message = JSON.stringify(data)
+            } else {
+                message = String(error)
+            }
+            return thunkAPI.rejectWithValue(message)
         }
         return thunkAPI.rejectWithValue(String(error))
     }
@@ -49,7 +60,7 @@ const cardVariantSlice = createSlice({
             })
             .addCase(fetchCardVariants.rejected, (state, action) => {
                 state.loading = false
-                state.error = action.error.message || 'Failed to fetch card variants'
+                state.error = action.payload ?? action.error.message ?? 'Failed to fetch card variants'
             })
     }
 })
