@@ -2,7 +2,7 @@
 
 ## 📋 Repository Overview
 
-This is a **React-based admin dashboard** for the GameWota platform. It provides a comprehensive management interface for users, game content (cards, songs, quotes), shop items, transactions, roles/permissions, and news. The application is built with modern web technologies emphasizing type safety, state management, and role-based access control.
+This is a **React-based admin dashboard** for the Rythm Game platform. It provides a comprehensive management interface for users, game content (cards, songs, quotes), shop items, transactions, roles/permissions, and news. The application is built with modern web technologies emphasizing type safety, state management, and role-based access control.
 
 **Live Deployment:** https://gamewota.github.io/dashboard  
 **Base Path:** `/dashboard/` (configured for GitHub Pages)
