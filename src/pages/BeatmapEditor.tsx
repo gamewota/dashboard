@@ -1,23 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BeatmapEditorElement, BeatmapNote, NotesChangeEvent } from '../types/beatmap-editor';
 
+// Constants
+const DEFAULT_BPM = 120;
+const DEFAULT_SNAP_DIVISION = 4;
+const DEFAULT_OFFSET_MS = 0;
+const DEFAULT_ZOOM = 100;
+const DEFAULT_DURATION = 300;
+const BEATMAP_EDITOR_SCRIPT_ID = 'beatmap-editor-script';
+const BEATMAP_EDITOR_SCRIPT_URL = 'https://gamewota.github.io/beatmap-editor/beatmap-editor.es.js';
+
 export default function BeatmapEditor() {
   const editorRef = useRef<BeatmapEditorElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [bpm, setBpm] = useState(120);
+  const [bpm, setBpm] = useState(DEFAULT_BPM);
   const [snapEnabled, setSnapEnabled] = useState(true);
-  const [snapDivision, setSnapDivision] = useState(4);
-  const [offsetMs, setOffsetMs] = useState(0);
-  const [zoom, setZoom] = useState(100);
-  const [duration, setDuration] = useState(300);
+  const [snapDivision, setSnapDivision] = useState(DEFAULT_SNAP_DIVISION);
+  const [offsetMs, setOffsetMs] = useState(DEFAULT_OFFSET_MS);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [notes, setNotes] = useState<BeatmapNote[]>([]);
 
   useEffect(() => {
+    // Check if script already exists
+    if (document.getElementById(BEATMAP_EDITOR_SCRIPT_ID)) {
+      setIsLoaded(true);
+      // Create editor element if script already loaded
+      if (containerRef.current && !editorRef.current) {
+        const editor = document.createElement('beatmap-editor') as BeatmapEditorElement;
+        editor.style.minHeight = '600px';
+        editor.style.display = 'block';
+        containerRef.current.appendChild(editor);
+        editorRef.current = editor;
+      }
+      return;
+    }
+
     // Load the web component script from GitHub Pages
     const script = document.createElement('script');
+    script.id = BEATMAP_EDITOR_SCRIPT_ID;
     script.type = 'module';
-    script.src = 'https://gamewota.github.io/beatmap-editor/beatmap-editor.es.js';
+    script.src = BEATMAP_EDITOR_SCRIPT_URL;
     script.onload = () => {
       setIsLoaded(true);
       // Create the editor element after script loads
@@ -96,7 +120,8 @@ export default function BeatmapEditor() {
   };
 
   const handleClear = () => {
-    if (editorRef.current && confirm('Are you sure you want to clear all notes?')) {
+    // Use a simple confirmation - this could be replaced with a custom modal in the future
+    if (editorRef.current && window.confirm('Are you sure you want to clear all notes?')) {
       editorRef.current.importBeatmap('[]');
       setNotes([]);
     }
@@ -135,7 +160,7 @@ export default function BeatmapEditor() {
                   type="number"
                   className="input input-bordered"
                   value={bpm}
-                  onChange={(e) => setBpm(parseInt(e.target.value) || 120)}
+                  onChange={(e) => setBpm(parseInt(e.target.value) || DEFAULT_BPM)}
                   min="1"
                   max="300"
                 />
@@ -167,7 +192,7 @@ export default function BeatmapEditor() {
                   type="number"
                   className="input input-bordered"
                   value={offsetMs}
-                  onChange={(e) => setOffsetMs(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setOffsetMs(parseInt(e.target.value) || DEFAULT_OFFSET_MS)}
                   step="10"
                 />
               </div>
@@ -180,7 +205,7 @@ export default function BeatmapEditor() {
                   type="number"
                   className="input input-bordered"
                   value={zoom}
-                  onChange={(e) => setZoom(parseInt(e.target.value) || 100)}
+                  onChange={(e) => setZoom(parseInt(e.target.value) || DEFAULT_ZOOM)}
                   min="50"
                   max="200"
                   step="10"
@@ -195,7 +220,7 @@ export default function BeatmapEditor() {
                   type="number"
                   className="input input-bordered"
                   value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value) || 300)}
+                  onChange={(e) => setDuration(parseInt(e.target.value) || DEFAULT_DURATION)}
                   min="1"
                   max="600"
                 />
