@@ -4,24 +4,50 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ## Beatmap Editor Integration
 
-This dashboard includes an integrated beatmap editor from the [gamewota/beatmap-editor](https://github.com/gamewota/beatmap-editor) repository.
+This dashboard integrates with the [gamewota/beatmap-editor](https://github.com/gamewota/beatmap-editor) repository using a separation of concerns architecture.
+
+### Architecture
+
+**Dashboard Responsibilities:**
+- **Data Management**: Loads and manages song data from the API
+- **RBAC (Role-Based Access Control)**: Controls who can access the beatmap editor via permissions
+- **User Context**: Provides authenticated user information to the editor
+- **Data Integration**: Passes selected song data to the editor via URL parameters
+
+**Beatmap Editor Responsibilities:**
+- **Editor Functionality**: All beatmap editing features and UI
+- **Independent Deployment**: Deployed separately on GitHub Pages
+- **Zero Dashboard Coupling**: Can be updated without dashboard changes
 
 ### Features
-The beatmap editor is embedded directly from GitHub Pages, providing all features from the standalone editor:
-- Create and edit beatmaps for rhythm game songs
-- All controls and functionality from the standalone editor
-- Automatic updates when the beatmap-editor is updated
+
+- **Permission-Based Access**: Requires `beatmap.edit` permission to access
+- **Song Selection**: Dropdown to select which song to edit beatmaps for
+- **Data Passing**: Selected song data (ID, title, assets) passed to editor via URL parameters
+- **User Context**: User information (ID, username) passed for authentication/tracking
+- **Automatic Updates**: Changes to beatmap-editor are automatically available
 
 ### Accessing the Editor
-Once logged in, navigate to **Content > Beatmap Editor** in the sidebar menu, or visit `/dashboard/beatmap-editor`.
+
+Once logged in with the appropriate permissions, navigate to **Content > Beatmap Editor** in the sidebar menu, or visit `/dashboard/beatmap-editor`.
 
 ### Technical Details
-The beatmap editor is loaded as an iframe from GitHub Pages:
-- URL: `https://gamewota.github.io/beatmap-editor/`
-- All features and updates from the standalone editor are automatically available
-- No duplication of controls or logic needed
 
-For more information about the beatmap editor, see the [beatmap-editor repository](https://github.com/gamewota/beatmap-editor).
+**Integration Method:**
+- iframe embedding from `https://gamewota.github.io/beatmap-editor/`
+- URL parameters for data passing:
+  - `songId` - Selected song ID
+  - `songTitle` - Selected song title
+  - `songAssets` - Song asset URL
+  - `userId` - Current user ID
+  - `username` - Current username
+
+**RBAC:**
+- Page requires `beatmap.edit` permission
+- Sidebar menu item hidden for users without permission
+- Permission error displayed when accessing directly without permission
+
+For more information about the beatmap editor itself, see the [beatmap-editor repository](https://github.com/gamewota/beatmap-editor).
 
 Currently, two official plugins are available:
 

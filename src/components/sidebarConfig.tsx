@@ -103,7 +103,7 @@ export const sidebarMenu: MenuItem[] = [
       },
       { key: 'elements', label: 'Elements', path: '/dashboard/element', icon: Icons.Element },
       { key: 'assets', label: 'Assets', path: '/dashboard/assets', icon: Icons.Assets },
-      { key: 'beatmap-editor', label: 'Beatmap Editor', path: '/dashboard/beatmap-editor', icon: Icons.Editor },
+      { key: 'beatmap-editor', label: 'Beatmap Editor', path: '/dashboard/beatmap-editor', icon: Icons.Editor, permission: 'beatmap.edit' },
     ],
   },
   {
