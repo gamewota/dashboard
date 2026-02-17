@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHasPermission } from '../hooks/usePermissions';
 import { fetchSongs } from '../features/songs/songSlice';
@@ -10,6 +10,9 @@ type Song = {
   song_assets: string;
 };
 
+// Constants
+const BEATMAP_EDITOR_URL = 'https://gamewota.github.io/beatmap-editor/';
+
 export default function BeatmapEditor() {
   const dispatch = useDispatch<AppDispatch>();
   const canEditBeatmap = useHasPermission('beatmap.edit');
@@ -17,25 +20,28 @@ export default function BeatmapEditor() {
   const user = useSelector((state: RootState) => state.auth.user);
   
   const [selectedSong, setSelectedSong] = useState<number | null>(null);
-  const [iframeUrl, setIframeUrl] = useState('https://gamewota.github.io/beatmap-editor/');
+  const [iframeUrl, setIframeUrl] = useState(BEATMAP_EDITOR_URL);
 
   useEffect(() => {
     dispatch(fetchSongs());
   }, [dispatch]);
 
+  // Memoize song lookup to avoid unnecessary iterations
+  const selectedSongData = useMemo(() => {
+    if (!selectedSong) return null;
+    return songs.find((s: Song) => s.id === selectedSong);
+  }, [selectedSong, songs]);
+
   useEffect(() => {
     // Update iframe URL with selected song and user context
-    let url = 'https://gamewota.github.io/beatmap-editor/';
+    let url = BEATMAP_EDITOR_URL;
     const params = new URLSearchParams();
     
-    if (selectedSong) {
-      const song = songs.find((s: Song) => s.id === selectedSong);
-      if (song) {
-        params.append('songId', String(song.id));
-        params.append('songTitle', song.song_title);
-        if (song.song_assets) {
-          params.append('songAssets', song.song_assets);
-        }
+    if (selectedSongData) {
+      params.append('songId', String(selectedSongData.id));
+      params.append('songTitle', selectedSongData.song_title);
+      if (selectedSongData.song_assets) {
+        params.append('songAssets', selectedSongData.song_assets);
       }
     }
     
@@ -50,7 +56,7 @@ export default function BeatmapEditor() {
     }
     
     setIframeUrl(url);
-  }, [selectedSong, songs, user]);
+  }, [selectedSongData, user]);
 
   if (!canEditBeatmap) {
     return (
