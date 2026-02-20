@@ -56,9 +56,13 @@ export default function BeatmapEditorPage() {
   const [bpm, setBpm] = useState(selectedSong.bpm)
   const [isDetectingBPM, setIsDetectingBPM] = useState(false)
   
-  // Detect BPM when audio buffer is loaded
+  // Detect BPM when audio buffer is loaded (only once per song)
   useEffect(() => {
     if (!audioBuffer) return
+    
+    // Check if already detected for this audio buffer
+    const bufferId = selectedSong.id
+    if (bpmDetectedRef.current.has(bufferId)) return
     
     const detect = async () => {
       setIsDetectingBPM(true)
@@ -68,22 +72,31 @@ export default function BeatmapEditorPage() {
         if (result.offsetMs !== 0) {
           setOffsetMs(result.offsetMs)
         }
+        bpmDetectedRef.current.add(bufferId)
         showToast(`BPM detected: ${result.bpm}`, 'success')
       } catch (error) {
         console.error('BPM detection failed:', error)
         showToast('BPM detection failed, using song default', 'warning')
         setBpm(selectedSong.bpm)
+        bpmDetectedRef.current.add(bufferId) // Mark as processed even on failure
       } finally {
         setIsDetectingBPM(false)
       }
     }
     
     detect()
-  }, [audioBuffer, selectedSong.bpm, showToast])
+  }, [audioBuffer, selectedSong.id, selectedSong.bpm, showToast])
+  
+  // Clear BPM detection tracking when song changes
+  useEffect(() => {
+    bpmDetectedRef.current.clear()
+    setBpm(selectedSong.bpm)
+  }, [selectedSong])
   
   // Refs
   const audioRef = useRef<HTMLAudioElement>(null)
   const waveformContainerRef = useRef<HTMLDivElement | null>(null)
+  const bpmDetectedRef = useRef<Set<string>>(new Set())
   
   // Set audio volume via effect (not a valid React prop)
   useEffect(() => {
