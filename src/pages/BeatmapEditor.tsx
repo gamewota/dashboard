@@ -453,10 +453,11 @@ export default function BeatmapEditorPage() {
                     max="999"
                     step="1"
                     disabled={isDetectingBPM}
+                    aria-busy={isDetectingBPM}
                     aria-label="Beats per minute"
                   />
                   {isDetectingBPM && (
-                    <span className="loading loading-spinner loading-xs"></span>
+                    <span className="loading loading-spinner loading-xs" aria-label="Detecting BPM" role="status"></span>
                   )}
                 </div>
                 
