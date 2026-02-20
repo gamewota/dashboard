@@ -176,7 +176,13 @@ export default function BeatmapEditorPage() {
     const a = document.createElement('a')
     a.href = url
     a.download = `${selectedSong.title.replace(/\s+/g, '_')}_beatmap.json`
+    
+    // Append to body for compatibility with older browsers
+    document.body.appendChild(a)
     a.click()
+    
+    // Clean up
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }, [selectedSong, notes, offsetMs])
   
