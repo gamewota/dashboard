@@ -1,5 +1,5 @@
 // src/hooks/useToast.tsx
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Toast } from "../components/Toast";
 
 export const useToast = () => {
@@ -8,12 +8,12 @@ export const useToast = () => {
     type: "success" | "error" | "warning" | "info";
   } | null>(null);
 
-  const showToast = (
+  const showToast = useCallback((
     message: string,
     type: "success" | "error" | "warning" | "info" = "info"
   ) => {
     setToast({ message, type });
-  };
+  }, []);
 
   const ToastContainer = () =>
     toast ? (

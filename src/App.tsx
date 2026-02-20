@@ -27,6 +27,7 @@ import GachaPackDetails from "./pages/GachaPackDetails"
 import Member from "./pages/Member"
 import Rarity from "./pages/Rarity"
 import Currency from "./pages/Currency"
+import BeatmapEditor from "./pages/BeatmapEditor"
 
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
         <Route path="/dashboard/member" element={<Member />} />
         <Route path="/dashboard/rarity" element={<Rarity />} />
         <Route path="/dashboard/currency" element={<Currency />} />
+        <Route path="/dashboard/beatmap-editor" element={<BeatmapEditor />} />
       </Routes>
     </div>
   )
