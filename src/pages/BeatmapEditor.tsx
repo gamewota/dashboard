@@ -269,6 +269,7 @@ export default function BeatmapEditorPage() {
                   className={`btn btn-circle ${isPlaying ? 'btn-error' : 'btn-primary'}`}
                   onClick={togglePlay}
                   title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -287,6 +288,7 @@ export default function BeatmapEditorPage() {
                   className="btn btn-circle btn-secondary"
                   onClick={handleStop}
                   title="Stop (Reset to beginning)"
+                  aria-label="Stop"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                     <rect x="6" y="6" width="12" height="12" rx="2" />
