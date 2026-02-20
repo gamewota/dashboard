@@ -36,6 +36,7 @@ export default function BeatmapEditorPage() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null)
+  const [audioError, setAudioError] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(1)
   
@@ -82,6 +83,7 @@ export default function BeatmapEditorPage() {
       try {
         // Reset states
         setAudioBuffer(null)
+        setAudioError(null)
         setNotes([])
         setCurrentTime(0)
         setDuration(0)
@@ -112,8 +114,8 @@ export default function BeatmapEditorPage() {
       } catch (error) {
         // Ignore abort errors
         if (error instanceof DOMException && error.name === 'AbortError') return
-        if (error instanceof Error && error.message === 'Failed to fetch audio') return
         console.error('Failed to load audio:', error)
+        setAudioError(error instanceof Error ? error.message : 'Failed to load audio')
       }
     }
     
@@ -442,7 +444,11 @@ export default function BeatmapEditorPage() {
                 ref={waveformContainerRef}
                 className="h-32 overflow-x-auto"
               >
-                {audioBuffer ? (
+                {audioError ? (
+                  <div className="h-full flex items-center justify-center text-error">
+                    Error: {audioError}
+                  </div>
+                ) : audioBuffer ? (
                   <Waveform
                     audioBuffer={audioBuffer}
                     currentTime={currentTime}
@@ -453,7 +459,7 @@ export default function BeatmapEditorPage() {
                   />
                 ) : (
                   <div className="h-full flex items-center justify-center text-base-content/50">
-                    {audioBuffer === null ? 'Loading audio waveform...' : 'No audio loaded'}
+                    Loading audio waveform...
                   </div>
                 )}
               </div>
