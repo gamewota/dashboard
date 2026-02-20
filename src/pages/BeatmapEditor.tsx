@@ -155,8 +155,9 @@ export default function BeatmapEditorPage() {
           setDuration(decoded.duration)
         }
       } catch (error) {
-        // Ignore abort errors
+        // Ignore abort errors and errors after intentional abort/cleanup
         if (error instanceof DOMException && error.name === 'AbortError') return
+        if (controller.signal.aborted) return
         console.error('Failed to load audio:', error)
         setAudioError(error instanceof Error ? error.message : 'Failed to load audio')
       }
