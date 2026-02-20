@@ -9,6 +9,7 @@ import {
 } from '@gamewota/beatmap-editor'
 import '@gamewota/beatmap-editor/style.css'
 import Container from '../components/Container'
+import { useToast } from '../hooks/useToast'
 
 // Available songs for editing
 const AVAILABLE_SONGS: Song[] = [
@@ -22,6 +23,9 @@ const AVAILABLE_SONGS: Song[] = [
 ]
 
 export default function BeatmapEditorPage() {
+  // Toast notification
+  const { showToast, ToastContainer } = useToast()
+  
   // Selected song
   const [selectedSong, setSelectedSong] = useState<Song>(AVAILABLE_SONGS[0])
   
@@ -203,7 +207,7 @@ export default function BeatmapEditorPage() {
         }
       } catch (error) {
         console.error('Failed to parse beatmap file:', error)
-        alert('Invalid beatmap file')
+        showToast('Invalid beatmap file', 'error')
       }
     }
     reader.readAsText(file)
@@ -496,6 +500,7 @@ export default function BeatmapEditorPage() {
           </div>
 
         </div>
+        <ToastContainer />
     </Container>
   );
 }
