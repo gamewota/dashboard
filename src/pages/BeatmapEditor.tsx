@@ -206,6 +206,7 @@ export default function BeatmapEditorPage() {
           if (data.offset !== undefined) {
             setOffsetMs(data.offset)
           }
+          showToast('Beatmap imported successfully', 'success')
         }
       } catch (error) {
         console.error('Failed to parse beatmap file:', error)
@@ -214,7 +215,7 @@ export default function BeatmapEditorPage() {
     }
     reader.readAsText(file)
     event.target.value = '' // Reset input
-  }, [])
+  }, [showToast])
   
   // Keyboard shortcuts
   useEffect(() => {
