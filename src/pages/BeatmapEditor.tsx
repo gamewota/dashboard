@@ -4,8 +4,9 @@ import {
   Waveform, 
   AudioScrubber,
   TimelineViewport,
+  detectBPM,
   type Note, 
-  type Song 
+  type Song
 } from '@gamewota/beatmap-editor'
 import '@gamewota/beatmap-editor/style.css'
 import Container from '../components/Container'
@@ -50,6 +51,35 @@ export default function BeatmapEditorPage() {
   
   // Offset
   const [offsetMs, setOffsetMs] = useState(0)
+  
+  // BPM (editable, auto-detected from audio)
+  const [bpm, setBpm] = useState(selectedSong.bpm)
+  const [isDetectingBPM, setIsDetectingBPM] = useState(false)
+  
+  // Detect BPM when audio buffer is loaded
+  useEffect(() => {
+    if (!audioBuffer) return
+    
+    const detect = async () => {
+      setIsDetectingBPM(true)
+      try {
+        const result = await detectBPM(audioBuffer)
+        setBpm(result.bpm)
+        if (result.offsetMs !== 0) {
+          setOffsetMs(result.offsetMs)
+        }
+        showToast(`BPM detected: ${result.bpm}`, 'success')
+      } catch (error) {
+        console.error('BPM detection failed:', error)
+        showToast('BPM detection failed, using song default', 'warning')
+        setBpm(selectedSong.bpm)
+      } finally {
+        setIsDetectingBPM(false)
+      }
+    }
+    
+    detect()
+  }, [audioBuffer, selectedSong.bpm, showToast])
   
   // Refs
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -394,6 +424,27 @@ export default function BeatmapEditorPage() {
                   <span className="text-sm">ms</span>
                 </div>
                 
+                <div className="divider divider-horizontal"></div>
+                
+                {/* BPM Control */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">BPM:</span>
+                  <input
+                    type="number"
+                    value={bpm}
+                    onChange={(e) => setBpm(Number(e.target.value))}
+                    className="input input-bordered input-xs w-16"
+                    min="1"
+                    max="999"
+                    step="1"
+                    disabled={isDetectingBPM}
+                    aria-label="Beats per minute"
+                  />
+                  {isDetectingBPM && (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  )}
+                </div>
+                
                 <div className="flex-1"></div>
                 
                 {/* Import/Export */}
@@ -475,6 +526,7 @@ export default function BeatmapEditorPage() {
             <div className="card-body p-0">
               <BeatmapEditor
                 song={selectedSong}
+                bpm={bpm}
                 notes={notes}
                 onNotesChange={setNotes}
                 currentTime={currentTime}
