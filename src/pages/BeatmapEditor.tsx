@@ -71,7 +71,8 @@ export default function BeatmapEditorPage() {
   
   // Load audio and decode for waveform when song changes
   useEffect(() => {
-    let isCancelled = false
+    const controller = new AbortController()
+    let audioContext: AudioContext | null = null
     
     const loadAudio = async () => {
       try {
@@ -81,21 +82,33 @@ export default function BeatmapEditorPage() {
         setCurrentTime(0)
         setDuration(0)
         
-        // Fetch audio file
-        const response = await fetch(selectedSong.audioUrl)
+        // Fetch audio file with abort signal
+        const response = await fetch(selectedSong.audioUrl, {
+          signal: controller.signal
+        })
         if (!response.ok) throw new Error('Failed to fetch audio')
         
         const arrayBuffer = await response.arrayBuffer()
         
+        // Check if aborted before creating AudioContext
+        if (controller.signal.aborted) return
+        
         // Decode audio for waveform
-        const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        if (!AudioContextClass) throw new Error('AudioContext not supported')
+        
+        audioContext = new AudioContextClass()
         const decoded = await audioContext.decodeAudioData(arrayBuffer)
         
-        if (!isCancelled) {
+        // Only update state if not aborted
+        if (!controller.signal.aborted) {
           setAudioBuffer(decoded)
           setDuration(decoded.duration)
         }
       } catch (error) {
+        // Ignore abort errors
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        if (error instanceof Error && error.message === 'Failed to fetch audio') return
         console.error('Failed to load audio:', error)
       }
     }
@@ -103,7 +116,12 @@ export default function BeatmapEditorPage() {
     loadAudio()
     
     return () => {
-      isCancelled = true
+      controller.abort()
+      if (audioContext) {
+        audioContext.close().catch(() => {
+          // Ignore close errors
+        })
+      }
     }
   }, [selectedSong])
   
