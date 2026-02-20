@@ -6,7 +6,7 @@ export function ErrorFallback({ error }: FallbackProps) {
       <div className="alert alert-error shadow-lg max-w-md">
         <div>
           <span className="font-semibold">Something went wrong!</span>
-          <p className="text-sm mt-2">{error.message}</p>
+          <p className="text-sm mt-2">{error instanceof Error ? error.message : String(error)}</p>
         </div>
       </div>
     </div>
