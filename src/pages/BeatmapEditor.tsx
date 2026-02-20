@@ -245,8 +245,9 @@ export default function BeatmapEditorPage() {
             
             {/* Song Selector */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Song:</label>
+              <label htmlFor="song-select" className="text-sm font-medium">Song:</label>
               <select 
+                id="song-select"
                 className="select select-bordered select-sm"
                 value={selectedSong.id}
                 onChange={(e) => {
