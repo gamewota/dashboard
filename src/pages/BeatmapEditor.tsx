@@ -217,7 +217,7 @@ export default function BeatmapEditorPage() {
     const beatmapData = {
       songId: selectedSong.id,
       title: selectedSong.title,
-      bpm: selectedSong.bpm,
+      bpm: bpm,
       offset: offsetMs,
       notes: notes
     }
@@ -234,7 +234,7 @@ export default function BeatmapEditorPage() {
     // Clean up
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [selectedSong, notes, offsetMs])
+  }, [selectedSong, notes, offsetMs, bpm])
   
   // Import beatmap
   const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
