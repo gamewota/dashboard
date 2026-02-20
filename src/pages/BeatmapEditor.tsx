@@ -434,6 +434,7 @@ export default function BeatmapEditorPage() {
                     onChange={(e) => setOffsetMs(Number(e.target.value))}
                     className="input input-bordered input-xs w-20"
                     step="10"
+                    aria-label="Offset in milliseconds"
                   />
                   <span className="text-sm">ms</span>
                 </div>
