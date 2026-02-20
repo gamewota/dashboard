@@ -135,12 +135,18 @@ export default function BeatmapEditorPage() {
   }, [duration, selectedSong.duration])
   
   // Handle play/pause
-  const togglePlay = useCallback(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play()
+  const togglePlay = useCallback(async () => {
+    if (!audioRef.current) return
+    
+    if (isPlaying) {
+      audioRef.current.pause()
+    } else {
+      try {
+        await audioRef.current.play()
+      } catch (error) {
+        console.error('Failed to play audio:', error)
+        // Update state to reflect that playback didn't start
+        setIsPlaying(false)
       }
     }
   }, [isPlaying])
