@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@gamewota/beatmap-editor": "github:gamewota/beatmap-editor#v1.0.0",
+    "@gamewota/beatmap-editor": "github:gamewota/beatmap-editor#v1.0.3",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.9.0",

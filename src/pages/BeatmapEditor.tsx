@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { 
   BeatmapEditor, 
   Waveform, 
@@ -6,14 +8,18 @@ import {
   TimelineViewport,
   detectBPM,
   type Note, 
-  type Song
+  type Song as BeatmapSong
 } from '@gamewota/beatmap-editor'
 import '@gamewota/beatmap-editor/style.css'
 import Container from '../components/Container'
 import { useToast } from '../hooks/useToast'
+import { fetchSongById, clearSelectedSong } from '../features/songs/songSlice'
+import type { RootState, AppDispatch } from '../store'
+import type { Beatmap } from '../lib/schemas/song'
 
-// Available songs for editing
-const AVAILABLE_SONGS: Song[] = [
+
+// Available songs for editing (fallback when no song_id param)
+const AVAILABLE_SONGS: BeatmapSong[] = [
   {
     id: 'sukinanda',
     title: 'Suki Nanda',
@@ -24,11 +30,66 @@ const AVAILABLE_SONGS: Song[] = [
 ]
 
 export default function BeatmapEditorPage() {
+  const { song_id } = useParams<{ song_id?: string }>();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { selectedSong, selectedSongLoading, selectedSongError } = useSelector((state: RootState) => state.songs);
+  
   // Toast notification
   const { showToast, ToastContainer } = useToast()
   
-  // Selected song
-  const [selectedSong, setSelectedSong] = useState<Song>(AVAILABLE_SONGS[0])
+  // Determine if we're in "specific song mode" or "selector mode"
+  const isSpecificSongMode = !!song_id;
+  
+  // Build song object from API data or use selector
+  const [song, setSong] = useState<BeatmapSong>(AVAILABLE_SONGS[0]);
+  
+  // Level/Difficulty selection
+  const [availableBeatmaps, setAvailableBeatmaps] = useState<Beatmap[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+  
+  // Fetch song data when song_id param is present
+  useEffect(() => {
+    if (song_id) {
+      const id = parseInt(song_id, 10);
+      if (!isNaN(id)) {
+        dispatch(fetchSongById(id));
+      }
+    }
+    
+    // Cleanup when unmounting
+    return () => {
+      dispatch(clearSelectedSong());
+    };
+  }, [song_id, dispatch]);
+  
+  // Update song object when API data is loaded
+  useEffect(() => {
+    if (isSpecificSongMode && selectedSong) {
+      // Calculate duration from reff_start and reff_end if needed, or use a default
+      const duration = selectedSong.reff_end > selectedSong.reff_start 
+        ? selectedSong.reff_end 
+        : 180; // fallback duration
+        
+      setSong({
+        id: String(selectedSong.song_id),
+        title: selectedSong.song_title,
+        bpm: 120, // Default BPM, will be auto-detected
+        duration: duration,
+        audioUrl: selectedSong.audio_url,
+      });
+      
+      // Set available beatmaps
+      setAvailableBeatmaps(selectedSong.beatmaps || []);
+      
+      // Reset difficulty selection when song changes
+      setSelectedDifficulty('');
+      
+      // Reset BPM when song changes - it will be auto-detected from audio
+      setBpm(120);
+      bpmDetectedRef.current.clear();
+    }
+  }, [isSpecificSongMode, selectedSong]);
   
   // Notes state
   const [notes, setNotes] = useState<Note[]>([])
@@ -49,20 +110,34 @@ export default function BeatmapEditorPage() {
   const [snapDivision, setSnapDivision] = useState<1 | 2 | 4 | 8 | 16>(4)
   const [sfxEnabled, setSfxEnabled] = useState(true)
   
+  // SFX URL - stable during component lifecycle
+  const sfxUrl = useMemo(() => '/dashboard/sfx.mp3', [])
+  
   // Offset
   const [offsetMs, setOffsetMs] = useState(0)
   
   // BPM (editable, auto-detected from audio)
-  const [bpm, setBpm] = useState(selectedSong.bpm)
+  const [bpm, setBpm] = useState(song.bpm)
   const [isDetectingBPM, setIsDetectingBPM] = useState(false)
+  
+  // Refs - must be defined before effects that use them
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const waveformContainerRef = useRef<HTMLDivElement | null>(null)
+  const bpmDetectedRef = useRef<Set<string>>(new Set())
+  // Use refs that are updated directly in event handlers to avoid effect overhead
+  const songBpmRef = useRef(song.bpm)
+  const showToastRef = useRef(showToast)
+  
+  // Sync refs immediately (no effect needed - these are just for callbacks)
+  songBpmRef.current = song.bpm
+  showToastRef.current = showToast
   
   // Detect BPM when audio buffer is loaded (only once per song)
   useEffect(() => {
     if (!audioBuffer) return
     
-    // Check if already detected for this audio buffer
-    const bufferId = selectedSong.id
-    if (bpmDetectedRef.current.has(bufferId)) return
+    // Check if already detected for this song
+    if (bpmDetectedRef.current.has(song.id)) return
     
     const detect = async () => {
       setIsDetectingBPM(true)
@@ -72,50 +147,37 @@ export default function BeatmapEditorPage() {
         if (result.offsetMs !== 0) {
           setOffsetMs(result.offsetMs)
         }
-        bpmDetectedRef.current.add(bufferId)
-        showToast(`BPM detected: ${result.bpm}`, 'success')
+        bpmDetectedRef.current.add(song.id)
+        showToastRef.current(`BPM detected: ${result.bpm}`, 'success')
       } catch (error) {
         console.error('BPM detection failed:', error)
-        showToast('BPM detection failed, using song default', 'warning')
-        setBpm(selectedSong.bpm)
-        bpmDetectedRef.current.add(bufferId) // Mark as processed even on failure
+        showToastRef.current('BPM detection failed, using song default', 'warning')
+        setBpm(songBpmRef.current)
+        bpmDetectedRef.current.add(song.id) // Mark as processed even on failure
       } finally {
         setIsDetectingBPM(false)
       }
     }
     
     detect()
-  }, [audioBuffer, selectedSong.id, selectedSong.bpm, showToast])
+  }, [audioBuffer, song.id])
   
-  // Clear BPM detection tracking when song changes
+  // Clear BPM detection tracking when song ID changes (not when song object changes)
   useEffect(() => {
     bpmDetectedRef.current.clear()
-    setBpm(selectedSong.bpm)
-  }, [selectedSong])
+    setBpm(songBpmRef.current)
+  }, [song.id])
   
-  // Refs
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const waveformContainerRef = useRef<HTMLDivElement | null>(null)
-  const bpmDetectedRef = useRef<Set<string>>(new Set())
-  
-  // Set audio volume via effect (not a valid React prop)
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume
-    }
-  }, [volume])
+  // Volume is set directly in the onChange handler (no effect needed)
   
   // Create shared viewport for syncing Waveform and BeatmapEditor
   const viewport = useMemo(() => new TimelineViewport(0, 800), [])
   
-  // Update viewport when duration or zoom changes
+  // Update viewport when duration or zoom changes (combined into single effect)
   useEffect(() => {
-    viewport.setDuration(duration * 1000 || selectedSong.duration * 1000)
-  }, [duration, selectedSong.duration, viewport])
-  
-  useEffect(() => {
+    viewport.setDuration(duration * 1000 || song.duration * 1000)
     viewport.setZoom(zoom / 100)
-  }, [zoom, viewport])
+  }, [duration, song.duration, zoom, viewport])
   
   // Load audio and decode for waveform when song changes
   useEffect(() => {
@@ -132,7 +194,7 @@ export default function BeatmapEditorPage() {
         setDuration(0)
         
         // Fetch audio file with abort signal
-        const response = await fetch(selectedSong.audioUrl, {
+        const response = await fetch(song.audioUrl, {
           signal: controller.signal
         })
         if (!response.ok) throw new Error('Failed to fetch audio')
@@ -173,16 +235,16 @@ export default function BeatmapEditorPage() {
         })
       }
     }
-  }, [selectedSong])
+  }, [song])
   
   // Handle seek
   const handleSeek = useCallback((time: number) => {
-    const clampedTime = Math.max(0, Math.min(time, duration || selectedSong.duration))
+    const clampedTime = Math.max(0, Math.min(time, duration || song.duration))
     if (audioRef.current) {
       audioRef.current.currentTime = clampedTime
     }
     setCurrentTime(clampedTime)
-  }, [duration, selectedSong.duration])
+  }, [duration, song.duration])
   
   // Handle play/pause
   const togglePlay = useCallback(async () => {
@@ -212,20 +274,33 @@ export default function BeatmapEditorPage() {
     // Note: We can't access playedNotesRef directly, but the effect will handle it
   }, [])
   
-  // Export beatmap
+  // Export beatmap with structured format
   const handleExport = useCallback(() => {
+    // Map editor notes to the required format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mappedItems = notes.map((note: any, index: number) => ({
+      button_type: note.type === 'hold' ? 1 : 0,
+      button_direction: note.lane ?? note.column ?? (index % 5),
+      button_duration: note.duration ? Math.round(note.duration) : 0,
+      button_time: note.time ? note.time / 1000 : 0
+    }))
+
     const beatmapData = {
-      songId: selectedSong.id,
-      title: selectedSong.title,
-      bpm: bpm,
-      offset: offsetMs,
-      notes: notes
+      beatmap: {
+        id: 1,
+        song_id: parseInt(song.id, 10) || 0,
+        difficulty: selectedDifficulty || 'default',
+        items: mappedItems
+      }
     }
+    
     const blob = new Blob([JSON.stringify(beatmapData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${selectedSong.title.replace(/\s+/g, '_')}_beatmap.json`
+    const safeSongName = song.title.replace(/\s+/g, '_')
+    const safeDifficulty = selectedDifficulty || 'default'
+    a.download = `${safeSongName}_${safeDifficulty}_beatmaps.json`
     
     // Append to body for compatibility with older browsers
     document.body.appendChild(a)
@@ -234,7 +309,7 @@ export default function BeatmapEditorPage() {
     // Clean up
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [selectedSong, notes, offsetMs, bpm])
+  }, [song, notes, selectedDifficulty])
   
   // Import beatmap
   const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,6 +350,36 @@ export default function BeatmapEditorPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [togglePlay])
 
+  // Show loading state when fetching specific song
+  if (isSpecificSongMode && selectedSongLoading) {
+    return (
+      <Container className="min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="loading loading-infinity loading-xl text-warning"></span>
+          <p className="text-lg">Loading song data...</p>
+        </div>
+      </Container>
+    );
+  }
+
+  // Show error state
+  if (isSpecificSongMode && selectedSongError) {
+    return (
+      <Container className="min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-error text-xl">⚠️ Error</div>
+          <p>{selectedSongError}</p>
+          <button 
+            className="btn btn-primary"
+            onClick={() => navigate('/dashboard/songs')}
+          >
+            Back to Songs
+          </button>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container className="min-h-screen items-center">
       <div className="w-full max-w-7xl space-y-6">
@@ -287,25 +392,58 @@ export default function BeatmapEditorPage() {
               </p>
             </div>
             
-            {/* Song Selector */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="song-select" className="text-sm font-medium">Song:</label>
-              <select 
-                id="song-select"
-                className="select select-bordered select-sm"
-                value={selectedSong.id}
-                onChange={(e) => {
-                  const song = AVAILABLE_SONGS.find(s => s.id === e.target.value)
-                  if (song) setSelectedSong(song)
-                }}
-              >
-                {AVAILABLE_SONGS.map(song => (
-                  <option key={song.id} value={song.id}>
-                    {song.title} ({song.bpm} BPM)
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Song Selector (only in non-specific song mode) */}
+            {!isSpecificSongMode ? (
+              <div className="flex items-center gap-2">
+                <label htmlFor="song-select" className="text-sm font-medium">Song:</label>
+                <select 
+                  id="song-select"
+                  className="select select-bordered select-sm"
+                  value={song.id}
+                  onChange={(e) => {
+                    const selectedSong = AVAILABLE_SONGS.find(s => s.id === e.target.value)
+                    if (selectedSong) setSong(selectedSong)
+                  }}
+                >
+                  {AVAILABLE_SONGS.map(song => (
+                    <option key={song.id} value={song.id}>
+                      {song.title} ({song.bpm} BPM)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="badge badge-lg badge-primary">{song.title}</span>
+                
+                {/* Difficulty/Level Selector */}
+                {availableBeatmaps.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="difficulty-select" className="text-sm font-medium">Level:</label>
+                    <select 
+                      id="difficulty-select"
+                      className="select select-bordered select-sm"
+                      value={selectedDifficulty}
+                      onChange={(e) => setSelectedDifficulty(e.target.value)}
+                    >
+                      <option value="">Select difficulty...</option>
+                      {availableBeatmaps.map((beatmap) => (
+                        <option key={beatmap.difficulty_name} value={beatmap.difficulty_name}>
+                          {beatmap.difficulty_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <button 
+                  className="btn btn-sm btn-outline"
+                  onClick={() => navigate('/dashboard/songs')}
+                >
+                  Back to Songs
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Controls Card */}
@@ -357,6 +495,7 @@ export default function BeatmapEditorPage() {
                     onChange={(e) => {
                       const vol = parseFloat(e.target.value)
                       setVolume(vol)
+                      // Volume is set synchronously on the ref, no effect needed
                       if (audioRef.current) {
                         audioRef.current.volume = vol
                       }
@@ -394,15 +533,17 @@ export default function BeatmapEditorPage() {
                 </div>
                 
                 {/* SFX Toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="checkbox checkbox-primary checkbox-sm"
-                    checked={sfxEnabled}
-                    onChange={(e) => setSfxEnabled(e.target.checked)}
-                  />
-                  <span className="text-sm">SFX</span>
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="checkbox checkbox-primary checkbox-sm"
+                      checked={sfxEnabled}
+                      onChange={(e) => setSfxEnabled(e.target.checked)}
+                    />
+                    <span className="text-sm">SFX</span>
+                  </label>
+                </div>
                 
                 <div className="divider divider-horizontal"></div>
                 
@@ -488,7 +629,7 @@ export default function BeatmapEditorPage() {
           {/* Audio Element (Hidden) */}
           <audio
             ref={audioRef}
-            src={selectedSong.audioUrl}
+            src={song.audioUrl}
             onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
             onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
             onPlay={() => setIsPlaying(true)}
@@ -501,7 +642,7 @@ export default function BeatmapEditorPage() {
             <div className="card-body p-4">
               <AudioScrubber
                 currentTime={currentTime}
-                duration={duration || selectedSong.duration}
+                duration={duration || song.duration}
                 onSeek={handleSeek}
                 className="h-10 w-full"
               />
@@ -541,7 +682,8 @@ export default function BeatmapEditorPage() {
           <div className="card bg-base-200 shadow-lg">
             <div className="card-body p-0">
               <BeatmapEditor
-                song={selectedSong}
+                key={song.id}
+                song={song}
                 bpm={bpm}
                 notes={notes}
                 onNotesChange={setNotes}
@@ -551,6 +693,7 @@ export default function BeatmapEditorPage() {
                 snapDivision={snapDivision}
                 offsetMs={offsetMs}
                 sfxEnabled={sfxEnabled}
+                sfxUrl={sfxUrl}
                 className="min-h-100"
               />
             </div>
@@ -573,8 +716,13 @@ export default function BeatmapEditorPage() {
                   Current Time: {currentTime.toFixed(2)}s
                 </div>
                 <div className="badge badge-lg">
-                  Duration: {(duration || selectedSong.duration).toFixed(2)}s
+                  Duration: {(duration || song.duration).toFixed(2)}s
                 </div>
+                {selectedDifficulty && (
+                  <div className="badge badge-lg badge-primary">
+                    Level: {selectedDifficulty}
+                  </div>
+                )}
               </div>
             </div>
           </div>

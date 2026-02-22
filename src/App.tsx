@@ -66,6 +66,7 @@ function App() {
         <Route path="/dashboard/rarity" element={<Rarity />} />
         <Route path="/dashboard/currency" element={<Currency />} />
         <Route path="/dashboard/beatmap-editor" element={<BeatmapEditor />} />
+        <Route path="/dashboard/:song_id/beatmap-editor" element={<BeatmapEditor />} />
       </Routes>
     </div>
   )
