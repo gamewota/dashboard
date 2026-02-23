@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const BeatmapSchema = z.object({
+  id: z.number().optional(),
   difficulty_name: z.string(),
   beatmap_asset_key: z.string(),
   beatmap_asset_url: z.string().url(),

@@ -331,10 +331,7 @@ export default function BeatmapEditorPage() {
     const matchedBeatmap = availableBeatmaps.find(
       bm => bm.difficulty_name === selectedDifficulty
     )
-    const beatmapId = matchedBeatmap ? 0 : 0 // fallback to 0 if no match (maintaining existing behavior pattern)
-    // Note: The availableBeatmaps from API doesn't include beatmap IDs currently,
-    // so we use 0 as fallback. If IDs are added to the schema in the future,
-    // this should be updated to: matchedBeatmap?.id ?? 0
+    const beatmapId = matchedBeatmap?.id ?? 0 // fallback to 0 if no match or no id
 
     const beatmapData = {
       beatmap: {
