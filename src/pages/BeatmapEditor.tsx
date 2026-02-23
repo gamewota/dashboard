@@ -30,6 +30,11 @@ const AVAILABLE_SONGS: BeatmapSong[] = [
   },
 ]
 
+// Extended note type that includes optional column property
+interface EditorNote extends Note {
+  column?: number;
+}
+
 // Zod schema for validating imported beatmap notes
 const ImportedNoteSchema = z.object({
   type: z.enum(['tap', 'hold']),
@@ -319,8 +324,7 @@ export default function BeatmapEditorPage() {
   // Export beatmap with structured format
   const handleExport = useCallback(() => {
     // Map editor notes to the required format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mappedItems = notes.map((note: any, index: number) => ({
+    const mappedItems = notes.map((note: EditorNote, index: number) => ({
       button_type: note.type === 'hold' ? 1 : 0,
       button_direction: note.lane ?? note.column ?? (index % 5),
       button_duration: note.duration ? Math.round(note.duration) : 0,
@@ -381,7 +385,7 @@ export default function BeatmapEditorPage() {
         const data = validationResult.data;
         
         // Transform validated notes to the expected Note type
-        const validatedNotes: Note[] = data.notes.map((note, index) => ({
+        const validatedNotes: EditorNote[] = data.notes.map((note, index) => ({
           id: `imported-${index}`,
           type: note.type,
           time: note.time,
