@@ -17,7 +17,7 @@ export const SongDetailSchema = z.object({
   audio_duration: z.number().nonnegative().optional(),
   artwork_url: z.string().url(),
   audio_url: z.string().url(),
-  video_url: z.string().url(),
+  video_url: z.string().url().optional(),
   artwork_asset_key: z.string(),
   audio_asset_key: z.string(),
   video_asset_key: z.string(),
