@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { z } from 'zod'
 import { 
   TimelineViewport,
   detectBPM,
@@ -13,7 +12,7 @@ import Container from '../components/Container'
 import { useToast } from '../hooks/useToast'
 import { fetchSongById, clearSelectedSong } from '../features/songs/songSlice'
 import type { RootState, AppDispatch } from '../store'
-import type { Beatmap } from '../lib/schemas/song'
+import { ImportedBeatmapSchema, type Beatmap } from '../lib/schemas/song'
 import {
   Header,
   Controls,
@@ -37,20 +36,6 @@ const AVAILABLE_SONGS: BeatmapSong[] = [
 interface EditorNoteExt extends Note {
   column?: number;
 }
-
-// Zod schema for validating imported beatmap notes
-const ImportedNoteSchema = z.object({
-  type: z.enum(['tap', 'hold']),
-  time: z.number(),
-  lane: z.number().optional(),
-  column: z.number().optional(),
-  duration: z.number().optional(),
-});
-
-const ImportedBeatmapSchema = z.object({
-  notes: z.array(ImportedNoteSchema),
-  offset: z.number().optional(),
-});
 
 export default function BeatmapEditorPage() {
   const { song_id } = useParams<{ song_id?: string }>();

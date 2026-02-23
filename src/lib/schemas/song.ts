@@ -29,6 +29,20 @@ export const SongDetailResponseSchema = z.object({
   data: SongDetailSchema,
 });
 
+export const ImportedNoteSchema = z.object({
+  type: z.enum(['tap', 'hold']),
+  time: z.number(),
+  lane: z.number().optional(),
+  column: z.number().optional(),
+  duration: z.number().optional(),
+});
+
+export const ImportedBeatmapSchema = z.object({
+  notes: z.array(ImportedNoteSchema),
+  offset: z.number().optional(),
+});
+
 export type Beatmap = z.infer<typeof BeatmapSchema>;
 export type SongDetail = z.infer<typeof SongDetailSchema>;
 export type SongDetailResponse = z.infer<typeof SongDetailResponseSchema>;
+export type ImportedBeatmap = z.infer<typeof ImportedBeatmapSchema>;
