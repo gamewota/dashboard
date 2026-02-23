@@ -473,9 +473,9 @@ export default function BeatmapEditorPage() {
                     if (matchedSong) setSong(matchedSong)
                   }}
                 >
-                  {AVAILABLE_SONGS.map(song => (
-                    <option key={song.id} value={song.id}>
-                      {song.title} ({song.bpm} BPM)
+                  {AVAILABLE_SONGS.map(availableSong => (
+                    <option key={availableSong.id} value={availableSong.id}>
+                      {availableSong.title} ({availableSong.bpm} BPM)
                     </option>
                   ))}
                 </select>
