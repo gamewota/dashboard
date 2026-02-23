@@ -68,6 +68,7 @@ const songSlice = createSlice({
     reducers: {
         clearSelectedSong: (state) => {
             state.selectedSong = null;
+            state.selectedSongLoading = false;
             state.selectedSongError = null;
         }
     },

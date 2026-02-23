@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchSongs, fetchSongById, clearSelectedSong } from '../features/songs/songSlice';
@@ -18,7 +18,7 @@ type Song = {
 
 type Column<T> = {
   header: string;
-  accessor: keyof T | ((row: T, index: number) => React.ReactNode);
+  accessor: keyof T | ((row: T, index: number) => ReactNode);
 };
 
 const Song = () => {
@@ -42,7 +42,7 @@ const Song = () => {
     };
 
     const columns: Column<Song>[] = [
-        { header: '#', accessor: (_row: Song, i: number) => i + 1 as React.ReactNode },
+        { header: '#', accessor: (_row: Song, i: number) => i + 1 as ReactNode },
         { header: 'Song Title', accessor: (row: Song) => row.song_title },
         { header: 'Song Assets', accessor: (row: Song) => row.song_assets ? <img src={row.song_assets} className='max-w-25' alt={row.song_title} /> : '-' },
         { header: 'Created At', accessor: (row: Song) => row.created_at || '-' },
@@ -53,13 +53,23 @@ const Song = () => {
                 <div className="flex gap-2">
                     <button 
                         className="btn btn-sm btn-info"
-                        onClick={() => handleDetailClick(row.song_id || 0)}
+                        disabled={!row.song_id}
+                        onClick={() => {
+                            if (row.song_id != null) {
+                                handleDetailClick(row.song_id);
+                            }
+                        }}
                     >
                         Detail
                     </button>
                     <button 
                         className="btn btn-sm btn-primary"
-                        onClick={() => handleEditBeatmapClick(row.song_id || 0)}
+                        disabled={!row.song_id}
+                        onClick={() => {
+                            if (row.song_id != null) {
+                                handleEditBeatmapClick(row.song_id);
+                            }
+                        }}
                     >
                         Edit Beatmap
                     </button>
@@ -202,8 +212,8 @@ const Song = () => {
                             <div className="space-y-2">
                                 <h4 className="font-bold text-lg">Beatmaps</h4>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {selectedSong.beatmaps.map((beatmap, index) => (
-                                        <div key={index} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
+                                    {selectedSong.beatmaps.map((beatmap) => (
+                                        <div key={beatmap.difficulty_name} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
                                             <div>
                                                 <span className="badge badge-primary">{beatmap.difficulty_name}</span>
                                                 <p className="font-mono text-xs mt-1 text-gray-500">{beatmap.beatmap_asset_key}</p>

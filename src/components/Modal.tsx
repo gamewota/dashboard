@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 type ModalProps = {
   id?: string;
@@ -11,13 +11,32 @@ type ModalProps = {
 };
 
 export default function Modal(props: ModalProps) {
-  const { title, children, footer, className = '', isOpen, onClose } = props;
+  const { id, title, children, footer, className = '', isOpen, onClose } = props;
+  
+  // Add Escape key listener before early return so it runs when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   
   if (!isOpen) return null;
   
   // DaisyUI modal with backdrop - using modal-open class for proper centering
   return (
-    <div className={`modal modal-open ${className}`}>
+    <div 
+      id={id}
+      className={`modal modal-open ${className}`}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Close button in top right */}
         <button 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { z } from 'zod'
 import { 
   BeatmapEditor, 
   Waveform, 
@@ -28,6 +29,20 @@ const AVAILABLE_SONGS: BeatmapSong[] = [
     audioUrl: 'https://gamecdn.b-cdn.net/music_audios/sukinanda.mp3'
   },
 ]
+
+// Zod schema for validating imported beatmap notes
+const ImportedNoteSchema = z.object({
+  type: z.enum(['tap', 'hold']),
+  time: z.number(),
+  lane: z.number().optional(),
+  column: z.number().optional(),
+  duration: z.number().optional(),
+});
+
+const ImportedBeatmapSchema = z.object({
+  notes: z.array(ImportedNoteSchema),
+  offset: z.number().optional(),
+});
 
 export default function BeatmapEditorPage() {
   const { song_id } = useParams<{ song_id?: string }>();
@@ -66,10 +81,17 @@ export default function BeatmapEditorPage() {
   // Update song object when API data is loaded
   useEffect(() => {
     if (isSpecificSongMode && selectedSong) {
-      // Calculate duration from reff_start and reff_end if needed, or use a default
-      const duration = selectedSong.reff_end > selectedSong.reff_start 
-        ? selectedSong.reff_end 
-        : 180; // fallback duration
+      // Prefer audio_duration if present, then fall back to reff_end, then default
+      let duration: number;
+      if (selectedSong.audio_duration != null && selectedSong.audio_duration > 0) {
+        duration = selectedSong.audio_duration;
+      } else if (selectedSong.reff_end > selectedSong.reff_start) {
+        duration = selectedSong.reff_end;
+        console.warn('audio_duration missing, falling back to reff_end for duration calculation');
+      } else {
+        duration = 300; // generic safe default
+        console.warn('audio_duration and reff_end unavailable, using default duration of 300s');
+      }
         
       setSong({
         id: String(selectedSong.song_id),
@@ -110,8 +132,8 @@ export default function BeatmapEditorPage() {
   const [snapDivision, setSnapDivision] = useState<1 | 2 | 4 | 8 | 16>(4)
   const [sfxEnabled, setSfxEnabled] = useState(true)
   
-  // SFX URL - stable during component lifecycle
-  const sfxUrl = useMemo(() => '/dashboard/sfx.mp3', [])
+  // SFX URL - static string, no need for useMemo
+  const sfxUrl = '/dashboard/sfx.mp3'
   
   // Offset
   const [offsetMs, setOffsetMs] = useState(0)
@@ -139,27 +161,41 @@ export default function BeatmapEditorPage() {
     // Check if already detected for this song
     if (bpmDetectedRef.current.has(song.id)) return
     
+    // Use a cancelled flag to prevent stale updates
+    let cancelled = false
+    
     const detect = async () => {
       setIsDetectingBPM(true)
       try {
         const result = await detectBPM(audioBuffer)
-        setBpm(result.bpm)
-        if (result.offsetMs !== 0) {
-          setOffsetMs(result.offsetMs)
+        if (!cancelled) {
+          setBpm(result.bpm)
+          if (result.offsetMs !== 0) {
+            setOffsetMs(result.offsetMs)
+          }
+          bpmDetectedRef.current.add(song.id)
+          showToastRef.current(`BPM detected: ${result.bpm}`, 'success')
         }
-        bpmDetectedRef.current.add(song.id)
-        showToastRef.current(`BPM detected: ${result.bpm}`, 'success')
       } catch (error) {
-        console.error('BPM detection failed:', error)
-        showToastRef.current('BPM detection failed, using song default', 'warning')
-        setBpm(songBpmRef.current)
-        bpmDetectedRef.current.add(song.id) // Mark as processed even on failure
+        if (!cancelled) {
+          console.error('BPM detection failed:', error)
+          showToastRef.current('BPM detection failed, using song default', 'warning')
+          setBpm(songBpmRef.current)
+          bpmDetectedRef.current.add(song.id) // Mark as processed even on failure
+        }
       } finally {
-        setIsDetectingBPM(false)
+        if (!cancelled) {
+          setIsDetectingBPM(false)
+        }
       }
     }
     
     detect()
+    
+    // Cleanup function to cancel in-flight detection
+    return () => {
+      cancelled = true
+    }
   }, [audioBuffer, song.id])
   
   // Clear BPM detection tracking when song ID changes (not when song object changes)
@@ -180,6 +216,7 @@ export default function BeatmapEditorPage() {
   }, [duration, song.duration, zoom, viewport])
   
   // Load audio and decode for waveform when song changes
+  // Only depend on song.id and song.audioUrl to avoid unnecessary refetches
   useEffect(() => {
     const controller = new AbortController()
     let audioContext: AudioContext | null = null
@@ -235,7 +272,7 @@ export default function BeatmapEditorPage() {
         })
       }
     }
-  }, [song])
+  }, [song.id, song.audioUrl])
   
   // Handle seek
   const handleSeek = useCallback((time: number) => {
@@ -257,6 +294,11 @@ export default function BeatmapEditorPage() {
         await audioRef.current.play()
       } catch (error) {
         console.error('Failed to play audio:', error)
+        // Show error toast to user
+        showToastRef.current(
+          `Failed to play audio: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'error'
+        )
         // Update state to reflect that playback didn't start
         setIsPlaying(false)
       }
@@ -285,9 +327,18 @@ export default function BeatmapEditorPage() {
       button_time: note.time ? note.time / 1000 : 0
     }))
 
+    // Find the existing beatmap entry to get the real ID
+    const matchedBeatmap = availableBeatmaps.find(
+      bm => bm.difficulty_name === selectedDifficulty
+    )
+    const beatmapId = matchedBeatmap ? 0 : 0 // fallback to 0 if no match (maintaining existing behavior pattern)
+    // Note: The availableBeatmaps from API doesn't include beatmap IDs currently,
+    // so we use 0 as fallback. If IDs are added to the schema in the future,
+    // this should be updated to: matchedBeatmap?.id ?? 0
+
     const beatmapData = {
       beatmap: {
-        id: 1,
+        id: beatmapId,
         song_id: parseInt(song.id, 10) || 0,
         difficulty: selectedDifficulty || 'default',
         items: mappedItems
@@ -309,7 +360,7 @@ export default function BeatmapEditorPage() {
     // Clean up
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [song, notes, selectedDifficulty])
+  }, [song, notes, selectedDifficulty, availableBeatmaps])
   
   // Import beatmap
   const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,14 +370,34 @@ export default function BeatmapEditorPage() {
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string)
-        if (data.notes && Array.isArray(data.notes)) {
-          setNotes(data.notes)
-          if (data.offset !== undefined) {
-            setOffsetMs(data.offset)
-          }
-          showToast('Beatmap imported successfully', 'success')
+        const parsedData = JSON.parse(e.target?.result as string)
+        
+        // Validate with Zod schema
+        const validationResult = ImportedBeatmapSchema.safeParse(parsedData);
+        
+        if (!validationResult.success) {
+          console.error('Beatmap validation failed:', validationResult.error);
+          showToast('Invalid beatmap file format', 'error');
+          return;
         }
+        
+        const data = validationResult.data;
+        
+        // Transform validated notes to the expected Note type
+        const validatedNotes: Note[] = data.notes.map((note, index) => ({
+          id: `imported-${index}`,
+          type: note.type,
+          time: note.time,
+          lane: note.lane ?? note.column ?? 0,
+          column: note.column,
+          duration: note.duration,
+        }));
+        
+        setNotes(validatedNotes);
+        if (data.offset !== undefined) {
+          setOffsetMs(data.offset);
+        }
+        showToast('Beatmap imported successfully', 'success');
       } catch (error) {
         console.error('Failed to parse beatmap file:', error)
         showToast('Invalid beatmap file', 'error')
@@ -401,8 +472,8 @@ export default function BeatmapEditorPage() {
                   className="select select-bordered select-sm"
                   value={song.id}
                   onChange={(e) => {
-                    const selectedSong = AVAILABLE_SONGS.find(s => s.id === e.target.value)
-                    if (selectedSong) setSong(selectedSong)
+                    const matchedSong = AVAILABLE_SONGS.find(s => s.id === e.target.value)
+                    if (matchedSong) setSong(matchedSong)
                   }}
                 >
                   {AVAILABLE_SONGS.map(song => (
