@@ -29,9 +29,14 @@ jobs:
         with:
           node-version: 20 
           cache: 'npm'
+        env:
+          # Force fresh install when platform differs from cached modules
+          npm_config_arch: ${{ runner.arch }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean platform-incompatible dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
 
       - name: Add environment variables
         run: |
