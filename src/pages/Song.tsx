@@ -24,7 +24,7 @@ type Column<T> = {
 const Song = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
-    const { data, loading, error, selectedSong, selectedSongLoading } = useSelector((state: RootState) => state.songs);
+    const { data, loading, error, selectedSong, selectedSongLoading, selectedSongError } = useSelector((state: RootState) => state.songs);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     const handleDetailClick = (songId: number) => {
@@ -136,27 +136,27 @@ const Song = () => {
                         {/* Song Info Grid */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Song ID</span>
+                                <span className="text-sm text-base-content/50">Song ID</span>
                                 <p className="font-medium">{selectedSong.song_id}</p>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Element ID</span>
+                                <span className="text-sm text-base-content/50">Element ID</span>
                                 <p className="font-medium">{selectedSong.element_id}</p>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Title</span>
+                                <span className="text-sm text-base-content/50">Title</span>
                                 <p className="font-medium">{selectedSong.song_title}</p>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Reff Duration</span>
+                                <span className="text-sm text-base-content/50">Reff Duration</span>
                                 <p className="font-medium">{selectedSong.reff_duration}s</p>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Reff Start</span>
+                                <span className="text-sm text-base-content/50">Reff Start</span>
                                 <p className="font-medium">{selectedSong.reff_start}s</p>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Reff End</span>
+                                <span className="text-sm text-base-content/50">Reff End</span>
                                 <p className="font-medium">{selectedSong.reff_end}s</p>
                             </div>
                         </div>
@@ -165,7 +165,7 @@ const Song = () => {
                         <div className="space-y-2">
                             <h4 className="font-bold text-lg">Media URLs</h4>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Audio URL</span>
+                                <span className="text-sm text-base-content/50">Audio URL</span>
                                 <a 
                                     href={selectedSong.audio_url} 
                                     target="_blank" 
@@ -176,7 +176,7 @@ const Song = () => {
                                 </a>
                             </div>
                             <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-gray-500">Video URL</span>
+                                <span className="text-sm text-base-content/50">Video URL</span>
                                 <a 
                                     href={selectedSong.video_url} 
                                     target="_blank" 
@@ -193,15 +193,15 @@ const Song = () => {
                             <h4 className="font-bold text-lg">Asset Keys</h4>
                             <div className="grid grid-cols-1 gap-2">
                                 <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-gray-500">Artwork Asset Key</span>
+                                    <span className="text-sm text-base-content/50">Artwork Asset Key</span>
                                     <p className="font-mono text-sm">{selectedSong.artwork_asset_key}</p>
                                 </div>
                                 <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-gray-500">Audio Asset Key</span>
+                                    <span className="text-sm text-base-content/50">Audio Asset Key</span>
                                     <p className="font-mono text-sm">{selectedSong.audio_asset_key}</p>
                                 </div>
                                 <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-gray-500">Video Asset Key</span>
+                                    <span className="text-sm text-base-content/50">Video Asset Key</span>
                                     <p className="font-mono text-sm">{selectedSong.video_asset_key}</p>
                                 </div>
                             </div>
@@ -216,7 +216,7 @@ const Song = () => {
                                         <div key={beatmap.difficulty_name} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
                                             <div>
                                                 <span className="badge badge-primary">{beatmap.difficulty_name}</span>
-                                                <p className="font-mono text-xs mt-1 text-gray-500">{beatmap.beatmap_asset_key}</p>
+                                                <p className="font-mono text-xs mt-1 text-base-content/50">{beatmap.beatmap_asset_key}</p>
                                             </div>
                                             <a 
                                                 href={beatmap.beatmap_asset_url} 
@@ -233,8 +233,9 @@ const Song = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="flex justify-center items-center h-64">
-                        <p>Failed to load song details.</p>
+                    <div className="flex justify-center items-center h-64 flex-col gap-2">
+                        <p className="text-error">Failed to load song details.</p>
+                        {selectedSongError && <p className="text-sm text-base-content/50">{selectedSongError}</p>}
                     </div>
                 )}
                 
