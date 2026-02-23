@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 type ModalProps = {
   id?: string;
-  title?: React.ReactNode;
-  children?: React.ReactNode;
-  footer?: React.ReactNode;
+  title?: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
   className?: string;
   isOpen?: boolean;
   onClose?: () => void;
