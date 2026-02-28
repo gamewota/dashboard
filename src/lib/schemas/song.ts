@@ -9,11 +9,11 @@ export const BeatmapSchema = z.object({
 
 export const SongDetailSchema = z.object({
   song_id: z.number(),
-  element_id: z.number(),
+  element_id: z.number().nullable().optional(),
   song_title: z.string(),
-  reff_start: z.number().nonnegative(),
-  reff_end: z.number().nonnegative(),
-  reff_duration: z.number().nonnegative(),
+  reff_start: z.number().nonnegative().nullable().optional(),
+  reff_end: z.number().nonnegative().nullable().optional(),
+  reff_duration: z.number().nonnegative().nullable().optional(),
   audio_duration: z.number().nonnegative().optional(),
   artwork_url: z.string().url(),
   audio_url: z.string().url(),

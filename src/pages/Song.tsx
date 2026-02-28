@@ -5,7 +5,7 @@ import { fetchSongs, fetchSongById, clearSelectedSong } from '../features/songs/
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import Container from '../components/Container';
-import Modal from '../components/Modal';
+import { SongDetailModal } from '../components/SongDetailModal';
 
 // Local Song type to avoid `any`
 type Song = {
@@ -112,137 +112,13 @@ const Song = () => {
                 />
             </div>
 
-            {/* Song Detail Modal */}
-            <Modal
+            <SongDetailModal
                 isOpen={isDetailModalOpen}
                 onClose={handleCloseModal}
-                title={selectedSong?.song_title || 'Song Details'}
-            >
-                {selectedSongLoading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <span className="loading loading-infinity loading-lg text-warning"></span>
-                    </div>
-                ) : selectedSong ? (
-                    <div className="space-y-4">
-                        {/* Artwork */}
-                        <div className="flex justify-center">
-                            <img 
-                                src={selectedSong.artwork_url} 
-                                alt={selectedSong.song_title}
-                                className="max-w-48 rounded-lg shadow-lg"
-                            />
-                        </div>
-
-                        {/* Song Info Grid */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Song ID</span>
-                                <p className="font-medium">{selectedSong.song_id}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Element ID</span>
-                                <p className="font-medium">{selectedSong.element_id}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Title</span>
-                                <p className="font-medium">{selectedSong.song_title}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff Duration</span>
-                                <p className="font-medium">{selectedSong.reff_duration}s</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff Start</span>
-                                <p className="font-medium">{selectedSong.reff_start}s</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff End</span>
-                                <p className="font-medium">{selectedSong.reff_end}s</p>
-                            </div>
-                        </div>
-
-                        {/* Media URLs */}
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-lg">Media URLs</h4>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Audio URL</span>
-                                <a 
-                                    href={selectedSong.audio_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="block text-primary truncate hover:underline"
-                                >
-                                    {selectedSong.audio_url}
-                                </a>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Video URL</span>
-                                <a 
-                                    href={selectedSong.video_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="block text-primary truncate hover:underline"
-                                >
-                                    {selectedSong.video_url}
-                                </a>
-                            </div>
-                        </div>
-
-                        {/* Asset Keys */}
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-lg">Asset Keys</h4>
-                            <div className="grid grid-cols-1 gap-2">
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Artwork Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.artwork_asset_key}</p>
-                                </div>
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Audio Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.audio_asset_key}</p>
-                                </div>
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Video Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.video_asset_key}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Beatmaps */}
-                        {selectedSong.beatmaps && selectedSong.beatmaps.length > 0 && (
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-lg">Beatmaps</h4>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {selectedSong.beatmaps.map((beatmap) => (
-                                        <div key={beatmap.difficulty_name} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
-                                            <div>
-                                                <span className="badge badge-primary">{beatmap.difficulty_name}</span>
-                                                <p className="font-mono text-xs mt-1 text-base-content/50">{beatmap.beatmap_asset_key}</p>
-                                            </div>
-                                            <a 
-                                                href={beatmap.beatmap_asset_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="btn btn-sm btn-outline"
-                                            >
-                                                View
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex justify-center items-center h-64 flex-col gap-2">
-                        <p className="text-error">Failed to load song details.</p>
-                        {selectedSongError && <p className="text-sm text-base-content/50">{selectedSongError}</p>}
-                    </div>
-                )}
-                
-                <div className="modal-action">
-                    <button className="btn" onClick={handleCloseModal}>Close</button>
-                </div>
-            </Modal>
+                song={selectedSong}
+                loading={selectedSongLoading}
+                error={selectedSongError}
+            />
         </Container>
     );
 };

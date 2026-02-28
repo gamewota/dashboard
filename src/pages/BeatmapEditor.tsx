@@ -112,7 +112,7 @@ export default function BeatmapEditorPage() {
       let durationValue: number;
       if (selectedSong.audio_duration != null && selectedSong.audio_duration > 0) {
         durationValue = selectedSong.audio_duration;
-      } else if (selectedSong.reff_end > selectedSong.reff_start) {
+      } else if (selectedSong.reff_end != null && selectedSong.reff_start != null && selectedSong.reff_end > selectedSong.reff_start) {
         durationValue = selectedSong.reff_end;
         console.warn('audio_duration missing, falling back to reff_end for duration calculation');
       } else {
