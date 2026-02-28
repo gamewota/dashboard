@@ -1,11 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchSongs, fetchSongById, clearSelectedSong } from '../features/songs/songSlice';
+import { fetchSongs, fetchSongById, clearSelectedSong, deleteSong } from '../features/songs/songSlice';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import Container from '../components/Container';
 import { SongDetailModal } from '../components/SongDetailModal';
+import { AddSongModal } from '../components/AddSongModal';
+import { Button } from '../components/Button';
+import Modal from '../components/Modal';
+import { useToast } from '../hooks/useToast';
 
 // Local Song type to avoid `any`
 type Song = {
@@ -26,6 +30,9 @@ const Song = () => {
     const navigate = useNavigate();
     const { data, loading, error, selectedSong, selectedSongLoading, selectedSongError } = useSelector((state: RootState) => state.songs);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ songId: number; songTitle: string } | null>(null);
+    const { showToast, ToastContainer } = useToast();
 
     const handleDetailClick = (songId: number) => {
         dispatch(fetchSongById(songId));
@@ -41,6 +48,33 @@ const Song = () => {
         dispatch(clearSelectedSong());
     };
 
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
+    };
+
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+    };
+
+    const handleDeleteClick = (songId: number, songTitle: string) => {
+        setDeleteConfirm({ songId, songTitle });
+    };
+
+    const handleCloseDeleteModal = () => {
+        setDeleteConfirm(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirm) return;
+        try {
+            await dispatch(deleteSong(deleteConfirm.songId)).unwrap();
+            showToast(`"${deleteConfirm.songTitle}" has been deleted successfully`, 'success');
+            setDeleteConfirm(null);
+        } catch (err) {
+            showToast(err instanceof Error ? err.message : 'Failed to delete song', 'error');
+        }
+    };
+
     const columns: Column<Song>[] = [
         { header: '#', accessor: (_row: Song, i: number) => i + 1 as ReactNode },
         { header: 'Song Title', accessor: (row: Song) => row.song_title },
@@ -51,8 +85,9 @@ const Song = () => {
             header: 'Actions', 
             accessor: (row: Song) => (
                 <div className="flex gap-2">
-                    <button 
-                        className="btn btn-sm btn-info"
+                    <Button 
+                        variant="info"
+                        size="sm"
                         disabled={!row.song_id}
                         onClick={() => {
                             if (row.song_id != null) {
@@ -61,9 +96,10 @@ const Song = () => {
                         }}
                     >
                         Detail
-                    </button>
-                    <button 
-                        className="btn btn-sm btn-primary"
+                    </Button>
+                    <Button 
+                        variant="primary"
+                        size="sm"
                         disabled={!row.song_id}
                         onClick={() => {
                             if (row.song_id != null) {
@@ -72,7 +108,19 @@ const Song = () => {
                         }}
                     >
                         Edit Beatmap
-                    </button>
+                    </Button>
+                    <Button 
+                        variant="error"
+                        size="sm"
+                        disabled={!row.song_id}
+                        onClick={() => {
+                            if (row.song_id != null) {
+                                handleDeleteClick(row.song_id, row.song_title);
+                            }
+                        }}
+                    >
+                        Delete
+                    </Button>
                 </div>
             )
         }
@@ -103,6 +151,15 @@ const Song = () => {
     return (
         <Container>
             <div className='overflow-x-auto'>
+                <div className="flex justify-end mb-2">
+                    <Button 
+                        variant="primary"
+                        size="sm"
+                        onClick={handleOpenAddModal}
+                    >
+                        + Add New Song
+                    </Button>
+                </div>
                 <DataTable<Song>
                     data={data}
                     loading={loading}
@@ -119,8 +176,39 @@ const Song = () => {
                 loading={selectedSongLoading}
                 error={selectedSongError}
             />
+
+            <AddSongModal
+                isOpen={isAddModalOpen}
+                onClose={handleCloseAddModal}
+                onSuccess={(songTitle) => showToast(`"${songTitle}" has been created successfully`, 'success')}
+            />
+
+            <Modal
+                isOpen={!!deleteConfirm}
+                onClose={handleCloseDeleteModal}
+                title="Confirm Delete"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={handleCloseDeleteModal}>
+                            Cancel
+                        </Button>
+                        <Button variant="error" onClick={handleConfirmDelete}>
+                            Delete
+                        </Button>
+                    </>
+                }
+            >
+                {deleteConfirm && (
+                    <p>
+                        Are you sure you want to delete <strong>&quot;{deleteConfirm.songTitle}&quot;</strong>?
+                        This action cannot be undone.
+                    </p>
+                )}
+            </Modal>
+
+            <ToastContainer />
         </Container>
     );
-};
+}
 
 export default Song;
