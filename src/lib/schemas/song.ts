@@ -54,10 +54,10 @@ export const CreatedSongSchema = z.object({
 
 export const ImportedNoteSchema = z.object({
   type: z.enum(['tap', 'hold']),
-  time: z.number(),
+  time: z.number().nonnegative(),
   lane: z.number().optional(),
   column: z.number().optional(),
-  duration: z.number().optional(),
+  duration: z.number().nonnegative().optional(),
 });
 
 export const ImportedBeatmapSchema = z.object({
