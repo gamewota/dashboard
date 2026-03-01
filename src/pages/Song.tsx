@@ -1,11 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchSongs, fetchSongById, clearSelectedSong } from '../features/songs/songSlice';
+import { fetchSongs, fetchSongById, clearSelectedSong, deleteSong } from '../features/songs/songSlice';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import Container from '../components/Container';
+import { SongDetailModal } from '../components/SongDetailModal';
+import { AddSongModal } from '../components/AddSongModal';
+import { Button } from '../components/Button';
 import Modal from '../components/Modal';
+import { useToast } from '../hooks/useToast';
 
 // Local Song type to avoid `any`
 type Song = {
@@ -26,6 +30,9 @@ const Song = () => {
     const navigate = useNavigate();
     const { data, loading, error, selectedSong, selectedSongLoading, selectedSongError } = useSelector((state: RootState) => state.songs);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ songId: number; songTitle: string } | null>(null);
+    const { showToast, ToastContainer } = useToast();
 
     const handleDetailClick = (songId: number) => {
         dispatch(fetchSongById(songId));
@@ -41,6 +48,33 @@ const Song = () => {
         dispatch(clearSelectedSong());
     };
 
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
+    };
+
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+    };
+
+    const handleDeleteClick = (songId: number, songTitle: string) => {
+        setDeleteConfirm({ songId, songTitle });
+    };
+
+    const handleCloseDeleteModal = () => {
+        setDeleteConfirm(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirm) return;
+        try {
+            await dispatch(deleteSong(deleteConfirm.songId)).unwrap();
+            showToast(`"${deleteConfirm.songTitle}" has been deleted successfully`, 'success');
+            setDeleteConfirm(null);
+        } catch (err) {
+            showToast(err instanceof Error ? err.message : 'Failed to delete song', 'error');
+        }
+    };
+
     const columns: Column<Song>[] = [
         { header: '#', accessor: (_row: Song, i: number) => i + 1 as ReactNode },
         { header: 'Song Title', accessor: (row: Song) => row.song_title },
@@ -51,8 +85,9 @@ const Song = () => {
             header: 'Actions', 
             accessor: (row: Song) => (
                 <div className="flex gap-2">
-                    <button 
-                        className="btn btn-sm btn-info"
+                    <Button 
+                        variant="info"
+                        size="sm"
                         disabled={!row.song_id}
                         onClick={() => {
                             if (row.song_id != null) {
@@ -61,9 +96,10 @@ const Song = () => {
                         }}
                     >
                         Detail
-                    </button>
-                    <button 
-                        className="btn btn-sm btn-primary"
+                    </Button>
+                    <Button 
+                        variant="primary"
+                        size="sm"
                         disabled={!row.song_id}
                         onClick={() => {
                             if (row.song_id != null) {
@@ -72,7 +108,19 @@ const Song = () => {
                         }}
                     >
                         Edit Beatmap
-                    </button>
+                    </Button>
+                    <Button 
+                        variant="error"
+                        size="sm"
+                        disabled={!row.song_id}
+                        onClick={() => {
+                            if (row.song_id != null) {
+                                handleDeleteClick(row.song_id, row.song_title);
+                            }
+                        }}
+                    >
+                        Delete
+                    </Button>
                 </div>
             )
         }
@@ -103,6 +151,15 @@ const Song = () => {
     return (
         <Container>
             <div className='overflow-x-auto'>
+                <div className="flex justify-end mb-2">
+                    <Button 
+                        variant="primary"
+                        size="sm"
+                        onClick={handleOpenAddModal}
+                    >
+                        + Add New Song
+                    </Button>
+                </div>
                 <DataTable<Song>
                     data={data}
                     loading={loading}
@@ -112,139 +169,46 @@ const Song = () => {
                 />
             </div>
 
-            {/* Song Detail Modal */}
-            <Modal
+            <SongDetailModal
                 isOpen={isDetailModalOpen}
                 onClose={handleCloseModal}
-                title={selectedSong?.song_title || 'Song Details'}
+                song={selectedSong}
+                loading={selectedSongLoading}
+                error={selectedSongError}
+            />
+
+            <AddSongModal
+                isOpen={isAddModalOpen}
+                onClose={handleCloseAddModal}
+                onSuccess={(songTitle) => showToast(`"${songTitle}" has been created successfully`, 'success')}
+            />
+
+            <Modal
+                isOpen={!!deleteConfirm}
+                onClose={handleCloseDeleteModal}
+                title="Confirm Delete"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={handleCloseDeleteModal}>
+                            Cancel
+                        </Button>
+                        <Button variant="error" onClick={handleConfirmDelete}>
+                            Delete
+                        </Button>
+                    </>
+                }
             >
-                {selectedSongLoading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <span className="loading loading-infinity loading-lg text-warning"></span>
-                    </div>
-                ) : selectedSong ? (
-                    <div className="space-y-4">
-                        {/* Artwork */}
-                        <div className="flex justify-center">
-                            <img 
-                                src={selectedSong.artwork_url} 
-                                alt={selectedSong.song_title}
-                                className="max-w-48 rounded-lg shadow-lg"
-                            />
-                        </div>
-
-                        {/* Song Info Grid */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Song ID</span>
-                                <p className="font-medium">{selectedSong.song_id}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Element ID</span>
-                                <p className="font-medium">{selectedSong.element_id}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Title</span>
-                                <p className="font-medium">{selectedSong.song_title}</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff Duration</span>
-                                <p className="font-medium">{selectedSong.reff_duration}s</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff Start</span>
-                                <p className="font-medium">{selectedSong.reff_start}s</p>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Reff End</span>
-                                <p className="font-medium">{selectedSong.reff_end}s</p>
-                            </div>
-                        </div>
-
-                        {/* Media URLs */}
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-lg">Media URLs</h4>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Audio URL</span>
-                                <a 
-                                    href={selectedSong.audio_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="block text-primary truncate hover:underline"
-                                >
-                                    {selectedSong.audio_url}
-                                </a>
-                            </div>
-                            <div className="bg-base-200 p-3 rounded-lg">
-                                <span className="text-sm text-base-content/50">Video URL</span>
-                                <a 
-                                    href={selectedSong.video_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="block text-primary truncate hover:underline"
-                                >
-                                    {selectedSong.video_url}
-                                </a>
-                            </div>
-                        </div>
-
-                        {/* Asset Keys */}
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-lg">Asset Keys</h4>
-                            <div className="grid grid-cols-1 gap-2">
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Artwork Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.artwork_asset_key}</p>
-                                </div>
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Audio Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.audio_asset_key}</p>
-                                </div>
-                                <div className="bg-base-200 p-3 rounded-lg">
-                                    <span className="text-sm text-base-content/50">Video Asset Key</span>
-                                    <p className="font-mono text-sm">{selectedSong.video_asset_key}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Beatmaps */}
-                        {selectedSong.beatmaps && selectedSong.beatmaps.length > 0 && (
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-lg">Beatmaps</h4>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {selectedSong.beatmaps.map((beatmap) => (
-                                        <div key={beatmap.difficulty_name} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
-                                            <div>
-                                                <span className="badge badge-primary">{beatmap.difficulty_name}</span>
-                                                <p className="font-mono text-xs mt-1 text-base-content/50">{beatmap.beatmap_asset_key}</p>
-                                            </div>
-                                            <a 
-                                                href={beatmap.beatmap_asset_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="btn btn-sm btn-outline"
-                                            >
-                                                View
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex justify-center items-center h-64 flex-col gap-2">
-                        <p className="text-error">Failed to load song details.</p>
-                        {selectedSongError && <p className="text-sm text-base-content/50">{selectedSongError}</p>}
-                    </div>
+                {deleteConfirm && (
+                    <p>
+                        Are you sure you want to delete <strong>&quot;{deleteConfirm.songTitle}&quot;</strong>?
+                        This action cannot be undone.
+                    </p>
                 )}
-                
-                <div className="modal-action">
-                    <button className="btn" onClick={handleCloseModal}>Close</button>
-                </div>
             </Modal>
+
+            <ToastContainer />
         </Container>
     );
-};
+}
 
 export default Song;
