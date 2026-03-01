@@ -1,9 +1,12 @@
+import type { ChangeEvent } from 'react'
 import type { Note, Song as BeatmapSong } from '@gamewota/beatmap-editor'
 import type { Beatmap } from '../../lib/schemas/song'
 
 export interface EditorNote extends Note {
   column?: number
 }
+
+export type SnapDivision = 1 | 2 | 4 | 8 | 16
 
 export interface BeatmapEditorState {
   song: BeatmapSong
@@ -18,7 +21,7 @@ export interface BeatmapEditorState {
   volume: number
   zoom: number
   snapEnabled: boolean
-  snapDivision: 1 | 2 | 4 | 8 | 16
+  snapDivision: SnapDivision
   sfxEnabled: boolean
   offsetMs: number
   bpm: number
@@ -32,12 +35,12 @@ export interface BeatmapEditorHandlers {
   onVolumeChange: (volume: number) => void
   onZoomChange: (zoom: number) => void
   onSnapEnabledChange: (enabled: boolean) => void
-  onSnapDivisionChange: (division: 1 | 2 | 4 | 8 | 16) => void
+  onSnapDivisionChange: (division: SnapDivision) => void
   onSfxEnabledChange: (enabled: boolean) => void
   onOffsetChange: (offset: number) => void
   onBpmChange: (bpm: number) => void
   onNotesChange: (notes: EditorNote[]) => void
   onSelectedDifficultyChange: (difficulty: string) => void
   onExport: () => void
-  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onImport: (event: ChangeEvent<HTMLInputElement>) => void
 }

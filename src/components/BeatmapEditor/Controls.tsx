@@ -1,9 +1,18 @@
+import type { ChangeEvent } from 'react'
+import type { SnapDivision } from './types'
+
+const SNAP_DIVISIONS: SnapDivision[] = [1, 2, 4, 8, 16]
+
+function isSnapDivision(value: number): value is SnapDivision {
+  return SNAP_DIVISIONS.includes(value as SnapDivision)
+}
+
 interface ControlsProps {
   isPlaying: boolean
   volume: number
   zoom: number
   snapEnabled: boolean
-  snapDivision: 1 | 2 | 4 | 8 | 16
+  snapDivision: SnapDivision
   sfxEnabled: boolean
   offsetMs: number
   bpm: number
@@ -13,12 +22,12 @@ interface ControlsProps {
   onVolumeChange: (volume: number) => void
   onZoomChange: (zoom: number) => void
   onSnapEnabledChange: (enabled: boolean) => void
-  onSnapDivisionChange: (division: 1 | 2 | 4 | 8 | 16) => void
+  onSnapDivisionChange: (division: SnapDivision) => void
   onSfxEnabledChange: (enabled: boolean) => void
   onOffsetChange: (offset: number) => void
   onBpmChange: (bpm: number) => void
   onExport: () => void
-  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onImport: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 export function Controls({
@@ -111,7 +120,12 @@ export function Controls({
             <select
               className="select select-bordered select-xs"
               value={snapDivision}
-              onChange={(e) => onSnapDivisionChange(Number(e.target.value) as 1 | 2 | 4 | 8 | 16)}
+              onChange={(e) => {
+              const value = Number(e.target.value)
+              if (isSnapDivision(value)) {
+                onSnapDivisionChange(value)
+              }
+            }}
               disabled={!snapEnabled}
             >
               <option value={1}>1/1</option>

@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import type { ChangeEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
   TimelineViewport,
   detectBPM,
-  type Note, 
   type Song as BeatmapSong
 } from '@gamewota/beatmap-editor'
 import '@gamewota/beatmap-editor/style.css'
@@ -20,6 +20,7 @@ import {
   EditorCanvas,
   Stats,
 } from '../components/BeatmapEditor'
+import type { EditorNote } from '../components/BeatmapEditor/types'
 
 // Available songs for editing (fallback when no song_id param)
 const AVAILABLE_SONGS: BeatmapSong[] = [
@@ -32,10 +33,7 @@ const AVAILABLE_SONGS: BeatmapSong[] = [
   },
 ]
 
-// Extended note type that includes optional column property
-interface EditorNoteExt extends Note {
-  column?: number;
-}
+
 
 export default function BeatmapEditorPage() {
   const { song_id } = useParams<{ song_id?: string }>();
@@ -52,7 +50,7 @@ export default function BeatmapEditorPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
   
   // Notes state
-  const [notes, setNotes] = useState<EditorNoteExt[]>([])
+  const [notes, setNotes] = useState<EditorNote[]>([])
   
   // Audio state
   const [currentTime, setCurrentTime] = useState(0)
@@ -185,7 +183,8 @@ export default function BeatmapEditorPage() {
   useEffect(() => {
     viewport.setDuration(duration * 1000 || song.duration * 1000)
     viewport.setZoom(zoom / 100)
-  }, [duration, song.duration, zoom, viewport])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- viewport is a stable reference from useMemo
+  }, [duration, song.duration, zoom])
   
   // Load audio and decode for waveform when song changes
   useEffect(() => {
@@ -277,7 +276,7 @@ export default function BeatmapEditorPage() {
   
   // Export beatmap
   const handleExport = useCallback(() => {
-    const mappedItems = notes.map((note: EditorNoteExt, index: number) => ({
+    const mappedItems = notes.map((note, index) => ({
       button_type: note.type === 'hold' ? 1 : 0,
       button_direction: note.lane ?? note.column ?? (index % 5),
       button_duration: note.duration ? Math.round(note.duration) : 0,
@@ -313,7 +312,7 @@ export default function BeatmapEditorPage() {
   }, [song, notes, selectedDifficulty, availableBeatmaps])
   
   // Import beatmap
-  const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
     
@@ -330,7 +329,7 @@ export default function BeatmapEditorPage() {
         }
         
         const data = validationResult.data;
-        const validatedNotes: EditorNoteExt[] = data.notes.map((note, index) => ({
+        const validatedNotes: EditorNote[] = data.notes.map((note, index) => ({
           id: `imported-${index}`,
           type: note.type,
           time: note.time,

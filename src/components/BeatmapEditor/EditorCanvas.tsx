@@ -1,6 +1,6 @@
-import { BeatmapEditor, TimelineViewport } from '@gamewota/beatmap-editor'
+import { BeatmapEditor, type TimelineViewport } from '@gamewota/beatmap-editor'
 import type { Song as BeatmapSong } from '@gamewota/beatmap-editor'
-import type { EditorNote } from './types'
+import type { EditorNote, SnapDivision } from './types'
 
 interface EditorCanvasProps {
   song: BeatmapSong
@@ -9,7 +9,7 @@ interface EditorCanvasProps {
   currentTime: number
   viewport: TimelineViewport
   snapEnabled: boolean
-  snapDivision: 1 | 2 | 4 | 8 | 16
+  snapDivision: SnapDivision
   offsetMs: number
   sfxEnabled: boolean
   sfxUrl: string

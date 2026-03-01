@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { AudioScrubber, Waveform, TimelineViewport } from '@gamewota/beatmap-editor'
+import { AudioScrubber, Waveform, type TimelineViewport } from '@gamewota/beatmap-editor'
 
 interface AudioVisualizerProps {
   currentTime: number

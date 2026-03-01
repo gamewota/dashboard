@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { EditorNote } from './types'
 
 interface StatsProps {
@@ -15,8 +16,16 @@ export function Stats({
   songDuration,
   selectedDifficulty,
 }: StatsProps) {
-  const tapNotes = notes.filter(n => n.type === 'tap').length
-  const holdNotes = notes.filter(n => n.type === 'hold').length
+  const { tapNotes, holdNotes } = useMemo(() => {
+    return notes.reduce(
+      (acc, note) => {
+        if (note.type === 'tap') acc.tapNotes++
+        else if (note.type === 'hold') acc.holdNotes++
+        return acc
+      },
+      { tapNotes: 0, holdNotes: 0 }
+    )
+  }, [notes])
 
   return (
     <div className="card bg-base-200 shadow">
