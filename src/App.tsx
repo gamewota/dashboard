@@ -28,6 +28,8 @@ import Member from "./pages/Member"
 import Rarity from "./pages/Rarity"
 import Currency from "./pages/Currency"
 import BeatmapEditor from "./pages/BeatmapEditor"
+import Events from "./pages/Events"
+import EventDetail from "./pages/EventDetail"
 
 
 function App() {
@@ -67,6 +69,8 @@ function App() {
         <Route path="/dashboard/currency" element={<Currency />} />
         <Route path="/dashboard/beatmap-editor" element={<BeatmapEditor />} />
         <Route path="/dashboard/:song_id/beatmap-editor" element={<BeatmapEditor />} />
+        <Route path="/dashboard/events" element={<Events />} />
+        <Route path="/dashboard/events/:id" element={<EventDetail />} />
       </Routes>
     </div>
   )

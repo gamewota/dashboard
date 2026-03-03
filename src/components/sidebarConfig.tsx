@@ -98,6 +98,7 @@ export const sidebarMenu: MenuItem[] = [
       },
       { key: 'elements', label: 'Elements', path: '/dashboard/element', icon: Icons.Element },
       { key: 'assets', label: 'Assets', path: '/dashboard/assets', icon: Icons.Assets },
+      { key: 'events', label: 'Events', path: '/dashboard/events', icon: Icons.History },
     ],
   },
   {
