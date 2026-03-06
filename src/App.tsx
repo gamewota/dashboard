@@ -31,6 +31,7 @@ import BeatmapEditor from "./pages/BeatmapEditor"
 import Events from "./pages/Events"
 import EventDetail from "./pages/EventDetail"
 import BannerType from "./pages/BannerType"
+import Banner from "./pages/Banner"
 
 
 function App() {
@@ -73,6 +74,7 @@ function App() {
         <Route path="/dashboard/events" element={<Events />} />
         <Route path="/dashboard/events/:id" element={<EventDetail />} />
         <Route path="/dashboard/banner-types" element={<BannerType />} />
+        <Route path="/dashboard/banners" element={<Banner />} />
       </Routes>
     </div>
   )

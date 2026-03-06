@@ -23,6 +23,7 @@ import currencyReducer from '../features/currencies/currencySlice'
 import assetTypesReducer from '../features/assetTypes/assetTypeSlice'
 import eventsReducer from '../features/events/eventSlice'
 import bannerTypesReducer from '../features/bannerTypes/bannerTypeSlice'
+import bannersReducer from '../features/banners/bannerSlice'
 
 
 export const store = configureStore({
@@ -51,6 +52,7 @@ export const store = configureStore({
         assetTypes: assetTypesReducer,
         events: eventsReducer,
         bannerTypes: bannerTypesReducer,
+        banners: bannersReducer,
     }
 })
 

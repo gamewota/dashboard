@@ -120,6 +120,7 @@ export const sidebarMenu: MenuItem[] = [
       { key: 'news', label: 'News', path: '/dashboard/news' },
       { key: 'news-types', label: 'News Types', path: '/dashboard/news-type' },
       { key: 'banner-types', label: 'Banner Types', path: '/dashboard/banner-types' },
+      { key: 'banners', label: 'Banners', path: '/dashboard/banners', permission: 'banners.view' },
       { key: 'transaction-log', label: 'Transaction Log', path: '/dashboard/transaction-log', permission: 'logs.view' },
     ],
   },
