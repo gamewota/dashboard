@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       reason:
-        description: 'Reason for manual trigger (e.g. env variable changed)'
+        description: 'Secret Changes'
         required: false
         default: 'Manual trigger'
 
