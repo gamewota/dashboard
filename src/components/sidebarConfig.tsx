@@ -98,6 +98,7 @@ export const sidebarMenu: MenuItem[] = [
       },
       { key: 'elements', label: 'Elements', path: '/dashboard/element', icon: Icons.Element },
       { key: 'assets', label: 'Assets', path: '/dashboard/assets', icon: Icons.Assets },
+      { key: 'events', label: 'Events', path: '/dashboard/events', icon: Icons.History },
     ],
   },
   {
@@ -118,6 +119,8 @@ export const sidebarMenu: MenuItem[] = [
     children: [
       { key: 'news', label: 'News', path: '/dashboard/news' },
       { key: 'news-types', label: 'News Types', path: '/dashboard/news-type' },
+      { key: 'banner-types', label: 'Banner Types', path: '/dashboard/banner-types' },
+      { key: 'banners', label: 'Banners', path: '/dashboard/banners', permission: 'banners.view' },
       { key: 'transaction-log', label: 'Transaction Log', path: '/dashboard/transaction-log', permission: 'logs.view' },
     ],
   },

@@ -1,5 +1,6 @@
 import Sidebar from "./components/Sidebar"
 import {Route, Routes} from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import Home from "./pages/Home"
 import Card from "./pages/Card"
 import Song from "./pages/Song"
@@ -29,6 +30,12 @@ import Rarity from "./pages/Rarity"
 import Currency from "./pages/Currency"
 import BeatmapEditor from "./pages/BeatmapEditor"
 
+// Lazy-loaded pages
+const Events = lazy(() => import("./pages/Events"))
+const EventDetail = lazy(() => import("./pages/EventDetail"))
+const BannerType = lazy(() => import("./pages/BannerType"))
+const Banner = lazy(() => import("./pages/Banner"))
+
 
 function App() {
   const auth = useAuth()
@@ -38,6 +45,7 @@ function App() {
         <Sidebar />
       )}
 
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><span className="loading loading-spinner loading-lg"></span></div>}>
       <Routes>
         <Route path="/dashboard/" element={<Home />}/>
         <Route path="/dashboard/cards" element={<Card />}/>
@@ -67,7 +75,12 @@ function App() {
         <Route path="/dashboard/currency" element={<Currency />} />
         <Route path="/dashboard/beatmap-editor" element={<BeatmapEditor />} />
         <Route path="/dashboard/:song_id/beatmap-editor" element={<BeatmapEditor />} />
+        <Route path="/dashboard/events" element={<Events />} />
+        <Route path="/dashboard/events/:id" element={<EventDetail />} />
+        <Route path="/dashboard/banner-types" element={<BannerType />} />
+        <Route path="/dashboard/banners" element={<Banner />} />
       </Routes>
+      </Suspense>
     </div>
   )
 }
