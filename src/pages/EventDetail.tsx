@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Container from '../components/Container';
 import arrowLeft from '/image/arrow-left.svg';
@@ -11,7 +11,7 @@ import Modal from '../components/Modal';
 import { useToast } from '../hooks/useToast';
 import { useHasPermission } from "../hooks/usePermissions";
 
-const EventDetail: React.FC = () => {
+const EventDetail = () => {
   const { id } = useParams();
   const canEditEvent = useHasPermission('events.edit');
   const canDeleteEvent = useHasPermission('events.delete');
@@ -41,6 +41,10 @@ const EventDetail: React.FC = () => {
 
   const handleSave = async () => {
     if (!event) return;
+    if (!editForm.name.trim()) {
+      showToast('Event name cannot be empty', 'error');
+      return;
+    }
     setIsSaving(true);
     try {
       await dispatch(updateEvent({
@@ -139,24 +143,24 @@ const EventDetail: React.FC = () => {
           <div className="card-body">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Event ID</p>
+                <p className="text-sm text-base-content/60">Event ID</p>
                 <p className="font-semibold">{event.id}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Event Name</p>
+                <p className="text-sm text-base-content/60">Event Name</p>
                 <p className="font-semibold">{event.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Created At</p>
+                <p className="text-sm text-base-content/60">Created At</p>
                 <p className="font-semibold">{new Date(event.created_at).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Updated At</p>
+                <p className="text-sm text-base-content/60">Updated At</p>
                 <p className="font-semibold">{new Date(event.updated_at).toLocaleString()}</p>
               </div>
               {event.deleted_at && (
                 <div>
-                  <p className="text-sm text-gray-500">Deleted At</p>
+                  <p className="text-sm text-base-content/60">Deleted At</p>
                   <p className="font-semibold text-error">{new Date(event.deleted_at).toLocaleString()}</p>
                 </div>
               )}

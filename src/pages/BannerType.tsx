@@ -43,6 +43,10 @@ const BannerType = () => {
     };
 
     const handleCreate = async () => {
+        if (!createForm.name.trim()) {
+            showToast('Name is required', 'error');
+            return;
+        }
         try {
             const result = await dispatch(createBannerType({ name: createForm.name })).unwrap();
             const resp = result as unknown;
@@ -63,6 +67,10 @@ const BannerType = () => {
 
     const handleEdit = async () => {
         if (!editing) return;
+        if (!editForm.name.trim()) {
+            showToast('Name is required', 'error');
+            return;
+        }
         try {
             const result = await dispatch(updateBannerType({ id: editing.id, name: editForm.name })).unwrap();
             const resp = result as unknown;

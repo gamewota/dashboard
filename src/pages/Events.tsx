@@ -5,18 +5,11 @@ import { DataTable } from '../components/DataTable';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEvents, updateEvent, deleteEvent, createEvent } from '../features/events/eventSlice';
 import type { RootState, AppDispatch } from '../store';
+import type { Event } from '../lib/schemas/event';
 import Modal from '../components/Modal';
 import { Button } from '../components/Button';
 import { useToast } from '../hooks/useToast';
 import { useHasPermission } from '../hooks/usePermissions';
-
-type EventType = {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-};
 
 const Events = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,7 +19,7 @@ const Events = () => {
   const canEditEvent = useHasPermission('events.edit');
   const canDeleteEvent = useHasPermission('events.delete');
 
-  const [editing, setEditing] = useState<null | EventType>(null);
+  const [editing, setEditing] = useState<null | Event>(null);
   const [editForm, setEditForm] = useState({ name: '' });
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -39,7 +32,7 @@ const Events = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '' });
 
-  const openEditModal = (event: EventType) => {
+  const openEditModal = (event: Event) => {
     setEditing(event);
     setEditForm({ name: event.name });
     setIsEditOpen(true);
@@ -47,6 +40,10 @@ const Events = () => {
 
   const handleSaveEdit = async () => {
     if (!editing) return;
+    if (!editForm.name.trim()) {
+      showToast('Please enter a valid event name', 'error');
+      return;
+    }
     try {
       const result = await dispatch(updateEvent({ id: editing.id, name: editForm.name })).unwrap();
       const resp = result as { message?: string } | string | undefined;
@@ -83,6 +80,10 @@ const Events = () => {
   };
 
   const handleCreateEvent = async () => {
+    if (!createForm.name.trim()) {
+      showToast('Name is required', 'error');
+      return;
+    }
     try {
       const result = await dispatch(createEvent({ name: createForm.name })).unwrap();
       const resp = result as { message?: string } | string | undefined;
@@ -106,13 +107,13 @@ const Events = () => {
             <Button variant="primary" onClick={() => setIsCreateOpen(true)}>Add Event</Button>
           )}
         </div>
-        <DataTable<EventType>
+        <DataTable<Event>
           columns={[
-            { header: '#', accessor: (_row: EventType, i: number) => i + 1 },
-            { header: 'Name', accessor: 'name' as keyof EventType },
-            { header: 'Created At', accessor: (row: EventType) => new Date(row.created_at).toLocaleString() },
-            { header: 'Updated At', accessor: (row: EventType) => new Date(row.updated_at).toLocaleString() },
-            { header: 'Actions', accessor: (row: EventType) => (
+            { header: '#', accessor: (_row: Event, i: number) => i + 1 },
+            { header: 'Name', accessor: 'name' as keyof Event },
+            { header: 'Created At', accessor: (row: Event) => new Date(row.created_at).toLocaleString() },
+            { header: 'Updated At', accessor: (row: Event) => new Date(row.updated_at).toLocaleString() },
+            { header: 'Actions', accessor: (row: Event) => (
               <div className="flex gap-2">
                 <Link to={`/dashboard/events/${row.id}`}>
                   <Button size="sm" variant="info">Detail</Button>
@@ -126,7 +127,7 @@ const Events = () => {
               </div>
             ) },
           ]}
-          data={events as EventType[]}
+          data={events as Event[]}
           rowKey={'id'}
           loading={loading}
           error={error}

@@ -28,7 +28,8 @@ export const fetchBannerTypes = createAsyncThunk<BannerType[], void, { rejectVal
                 headers: getAuthHeader()
             });
 
-            return validateOrReject(BannerTypeSchema.array(), response.data, thunkAPI) as BannerType[];
+            const payload = response.data?.data ?? response.data;
+            return validateOrReject(BannerTypeSchema.array(), payload, thunkAPI) as BannerType[];
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -43,7 +44,8 @@ export const fetchBannerTypeById = createAsyncThunk<BannerType, number, { reject
                 headers: getAuthHeader()
             });
 
-            return validateOrReject(BannerTypeSchema, response.data, thunkAPI) as BannerType;
+            const payload = response.data?.data ?? response.data;
+            return validateOrReject(BannerTypeSchema, payload, thunkAPI) as BannerType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -58,7 +60,8 @@ export const createBannerType = createAsyncThunk<BannerType, { name: string }, {
                 name: payload.name,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return validateOrReject(BannerTypeSchema, response.data, thunkAPI) as BannerType;
+            const data = response.data?.data ?? response.data;
+            return validateOrReject(BannerTypeSchema, data, thunkAPI) as BannerType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }
@@ -73,7 +76,8 @@ export const updateBannerType = createAsyncThunk<BannerType, { id: number; name:
                 name: payload.name,
             }, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
 
-            return validateOrReject(BannerTypeSchema, response.data, thunkAPI) as BannerType;
+            const data = response.data?.data ?? response.data;
+            return validateOrReject(BannerTypeSchema, data, thunkAPI) as BannerType;
         } catch (error: unknown) {
             return handleThunkError(error, thunkAPI);
         }

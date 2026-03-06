@@ -79,6 +79,16 @@ export const BannerPayloadSchema = z.object({
   gacha_pack_id: z.number().optional(),
   event_id: z.number().optional(),
   action_url: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    const hasEvent = Boolean(data.event_id);
+    const hasGachaPack = Boolean(data.gacha_pack_id);
+    return hasEvent !== hasGachaPack;
+  },
+  {
+    message: 'Exactly one of event_id or gacha_pack_id must be provided (not both, not neither)',
+    path: ['event_id'],
+  }
+);
 
 export type BannerPayload = z.infer<typeof BannerPayloadSchema>;

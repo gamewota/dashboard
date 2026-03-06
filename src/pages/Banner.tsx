@@ -113,6 +113,45 @@ const Banners = () => {
     }));
   };
 
+  const handleBannerFileUpload = async (type: 'create' | 'edit') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const f = input.files?.[0];
+      if (!f) return;
+      if (type === 'create') {
+        setIsUploadingCreate(true);
+      } else {
+        setIsUploadingEdit(true);
+      }
+      try {
+        const asset = await uploadAssetWithPresigned(f, undefined, undefined);
+        if (!isMountedRef.current) return;
+        if (type === 'create') {
+          setAssetPreviewCreate(asset.assets_url);
+          handleCreateChange('asset_id', asset.id);
+        } else {
+          setAssetPreviewEdit(asset.assets_url);
+          handleEditChange('asset_id', asset.id);
+        }
+        showToast('Banner asset uploaded', 'success');
+      } catch (err) {
+        console.error('Asset upload failed', err);
+        if (isMountedRef.current) showToast('Failed to upload asset', 'error');
+      } finally {
+        if (isMountedRef.current) {
+          if (type === 'create') {
+            setIsUploadingCreate(false);
+          } else {
+            setIsUploadingEdit(false);
+          }
+        }
+      }
+    };
+    input.click();
+  };
+
   const handleEditChange = (field: keyof BannerPayload, value: string | number | undefined) => {
     setEditForm((prev) => ({
       ...prev,
@@ -126,6 +165,11 @@ const Banners = () => {
     if (!form.asset_id) return 'Asset is required';
     if (!form.start_at) return 'Start date is required';
     if (!form.end_at) return 'End date is required';
+
+    // Check that end date is not before start date
+    if (new Date(form.end_at) <= new Date(form.start_at)) {
+      return 'End date must be after start date';
+    }
 
     // Check that either event_id or gacha_pack_id is filled, but not both
     const hasEvent = form.event_id !== undefined && form.event_id !== 0;
@@ -352,29 +396,7 @@ const Banners = () => {
               <div className="flex gap-2">
                 <Button
                   disabled={isUploadingCreate}
-                  onClick={async () => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = async () => {
-                      const f = input.files?.[0];
-                      if (!f) return;
-                      setIsUploadingCreate(true);
-                      try {
-                        const asset = await uploadAssetWithPresigned(f, undefined, undefined);
-                        if (!isMountedRef.current) return;
-                        setAssetPreviewCreate(asset.assets_url);
-                        handleCreateChange('asset_id', asset.id);
-                        showToast('Banner asset uploaded', 'success');
-                      } catch (err) {
-                        console.error('Asset upload failed', err);
-                        if (isMountedRef.current) showToast('Failed to upload asset', 'error');
-                      } finally {
-                        if (isMountedRef.current) setIsUploadingCreate(false);
-                      }
-                    };
-                    input.click();
-                  }}
+                  onClick={() => handleBannerFileUpload('create')}
                 >
                   {isUploadingCreate ? 'Uploading...' : 'Upload Asset'}
                 </Button>
@@ -396,6 +418,7 @@ const Banners = () => {
               </label>
               <select
                 className="select select-bordered w-full"
+                disabled={!!createForm.gacha_pack_id}
                 value={createForm.event_id ?? 0}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -403,7 +426,7 @@ const Banners = () => {
                   if (val !== 0) handleCreateChange('gacha_pack_id', undefined);
                 }}
               >
-                <option value={0}>No event</option>
+                <option value={0}>{createForm.gacha_pack_id ? 'Disabled (Gacha Pack selected)' : 'No event'}</option>
                 {events.map((event) => (
                   <option key={event.id} value={event.id}>
                     {event.name}
@@ -418,6 +441,7 @@ const Banners = () => {
               </label>
               <select
                 className="select select-bordered w-full"
+                disabled={!!createForm.event_id}
                 value={createForm.gacha_pack_id ?? 0}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -425,7 +449,7 @@ const Banners = () => {
                   if (val !== 0) handleCreateChange('event_id', undefined);
                 }}
               >
-                <option value={0}>No gacha pack</option>
+                <option value={0}>{createForm.event_id ? 'Disabled (Event selected)' : 'No gacha pack'}</option>
                 {gachaPacks.map((pack) => (
                   <option key={pack.id} value={pack.id}>
                     {pack.name}
@@ -454,6 +478,7 @@ const Banners = () => {
                 type="datetime-local"
                 className="input input-bordered w-full"
                 value={createForm.end_at}
+                min={createForm.start_at || undefined}
                 onChange={(e) => handleCreateChange('end_at', e.target.value)}
               />
             </div>
@@ -527,29 +552,7 @@ const Banners = () => {
               <div className="flex gap-2">
                 <Button
                   disabled={isUploadingEdit}
-                  onClick={async () => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = async () => {
-                      const f = input.files?.[0];
-                      if (!f) return;
-                      setIsUploadingEdit(true);
-                      try {
-                        const asset = await uploadAssetWithPresigned(f, undefined, undefined);
-                        if (!isMountedRef.current) return;
-                        setAssetPreviewEdit(asset.assets_url);
-                        handleEditChange('asset_id', asset.id);
-                        showToast('Banner asset uploaded', 'success');
-                      } catch (err) {
-                        console.error('Asset upload failed', err);
-                        if (isMountedRef.current) showToast('Failed to upload asset', 'error');
-                      } finally {
-                        if (isMountedRef.current) setIsUploadingEdit(false);
-                      }
-                    };
-                    input.click();
-                  }}
+                  onClick={() => handleBannerFileUpload('edit')}
                 >
                   {isUploadingEdit ? 'Uploading...' : 'Upload New Asset'}
                 </Button>
@@ -571,6 +574,7 @@ const Banners = () => {
               </label>
               <select
                 className="select select-bordered w-full"
+                disabled={!!editForm.gacha_pack_id}
                 value={editForm.event_id ?? 0}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -578,7 +582,7 @@ const Banners = () => {
                   if (val !== 0) handleEditChange('gacha_pack_id', undefined);
                 }}
               >
-                <option value={0}>No event</option>
+                <option value={0}>{editForm.gacha_pack_id ? 'Disabled (Gacha Pack selected)' : 'No event'}</option>
                 {events.map((event) => (
                   <option key={event.id} value={event.id}>
                     {event.name}
@@ -593,6 +597,7 @@ const Banners = () => {
               </label>
               <select
                 className="select select-bordered w-full"
+                disabled={!!editForm.event_id}
                 value={editForm.gacha_pack_id ?? 0}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -600,7 +605,7 @@ const Banners = () => {
                   if (val !== 0) handleEditChange('event_id', undefined);
                 }}
               >
-                <option value={0}>No gacha pack</option>
+                <option value={0}>{editForm.event_id ? 'Disabled (Event selected)' : 'No gacha pack'}</option>
                 {gachaPacks.map((pack) => (
                   <option key={pack.id} value={pack.id}>
                     {pack.name}
@@ -629,6 +634,7 @@ const Banners = () => {
                 type="datetime-local"
                 className="input input-bordered w-full"
                 value={editForm.end_at}
+                min={editForm.start_at || undefined}
                 onChange={(e) => handleEditChange('end_at', e.target.value)}
               />
             </div>

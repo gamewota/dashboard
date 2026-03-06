@@ -90,7 +90,7 @@ export const createEvent = createAsyncThunk<Event, { name: string }, { rejectVal
     }
 );
 
-export const deleteEvent = createAsyncThunk(
+export const deleteEvent = createAsyncThunk<{ message?: string }, number, { rejectValue: string }>(
     'events/deleteEvent',
     async (id: number, thunkAPI) => {
         try {
@@ -122,7 +122,7 @@ const eventSlice = createSlice({
             })
             .addCase(fetchEvents.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch events';
+                state.error = action.payload ?? 'Failed to fetch events';
             })
             .addCase(fetchEventById.pending, (state) => {
                 state.loading = true;
@@ -134,7 +134,7 @@ const eventSlice = createSlice({
             })
             .addCase(fetchEventById.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message || 'Failed to fetch event';
+                state.error = action.payload ?? 'Failed to fetch event';
             })
             .addCase(updateEvent.pending, (state) => {
                 state.loading = true;
