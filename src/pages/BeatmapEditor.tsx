@@ -77,6 +77,9 @@ export default function BeatmapEditorPage() {
   // BPM
   const [bpm, setBpm] = useState(song.bpm)
   const [isDetectingBPM, setIsDetectingBPM] = useState(false)
+
+  // Chart UUID (stable across exports; replaced on import)
+  const chartUuidRef = useRef<string>(crypto.randomUUID())
   
   // Refs
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -126,8 +129,12 @@ export default function BeatmapEditorPage() {
         audioUrl: selectedSong.audio_url,
       });
       
-      setAvailableBeatmaps(selectedSong.beatmaps || []);
-      setSelectedDifficulty('');
+      const beatmaps = selectedSong.beatmaps || [];
+      setAvailableBeatmaps(beatmaps);
+      const easyBeatmap = beatmaps.find(
+        (bm) => bm.difficulty_name.toLowerCase() === 'easy',
+      );
+      setSelectedDifficulty(easyBeatmap?.difficulty_name ?? '');
       setBpm(120);
       bpmDetectedRef.current.clear();
     }
@@ -276,27 +283,62 @@ export default function BeatmapEditorPage() {
   
   // Export beatmap
   const handleExport = useCallback(() => {
-    const mappedItems = notes.map((note, index) => ({
-      button_type: note.type === 'hold' ? 1 : 0,
-      button_direction: note.lane ?? note.column ?? (index % 5),
-      button_duration: note.duration ? Math.round(note.duration) : 0,
-      button_time: note.time ? note.time / 1000 : 0
-    }))
-
-    const matchedBeatmap = availableBeatmaps.find(
-      bm => bm.difficulty_name === selectedDifficulty
-    )
-    const beatmapId = matchedBeatmap?.id ?? 0
-
-    const beatmapData = {
-      beatmap: {
-        id: beatmapId,
-        song_id: parseInt(song.id, 10) || 0,
-        difficulty: selectedDifficulty || 'default',
-        items: mappedItems
+    const beatDurationMs = bpm > 0 ? 60000 / bpm : 0
+    const toSchemaNote = (
+      uuid: string,
+      lane: number,
+      timeSeconds: number,
+    ) => {
+      const songPos = timeSeconds * 1000 - offsetMs
+      return {
+        uuid,
+        songPos,
+        beat: beatDurationMs > 0 ? songPos / beatDurationMs : 0,
+        label: '',
+        lane,
       }
     }
-    
+
+    const exportedNotes: ReturnType<typeof toSchemaNote>[] = []
+    const exportedLinks: { uuid: string; startNote: ReturnType<typeof toSchemaNote>; endNote: ReturnType<typeof toSchemaNote> }[] = []
+
+    notes.forEach((note) => {
+      const lane = note.lane ?? note.column ?? 0
+      const startUuid = note.id || crypto.randomUUID()
+      const startNote = toSchemaNote(startUuid, lane, note.time)
+
+      if (note.type === 'hold' && note.duration && note.duration > 0) {
+        const endNote = toSchemaNote(
+          crypto.randomUUID(),
+          lane,
+          note.time + note.duration,
+        )
+        exportedNotes.push(startNote, endNote)
+        exportedLinks.push({
+          uuid: crypto.randomUUID(),
+          startNote,
+          endNote,
+        })
+      } else {
+        exportedNotes.push(startNote)
+      }
+    })
+
+    const beatmapData = {
+      song_id: parseInt(song.id, 10) || 0,
+      difficulty: selectedDifficulty || 'default',
+      bpm,
+      offset: offsetMs,
+      charts: [
+        {
+          uuid: chartUuidRef.current,
+          laneCount: 5,
+          notes: exportedNotes,
+          links: exportedLinks,
+        },
+      ],
+    }
+
     const blob = new Blob([JSON.stringify(beatmapData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -304,45 +346,69 @@ export default function BeatmapEditorPage() {
     const safeSongName = song.title.replace(/\s+/g, '_')
     const safeDifficulty = selectedDifficulty || 'default'
     a.download = `${safeSongName}_${safeDifficulty}_beatmaps.json`
-    
+
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [song, notes, selectedDifficulty, availableBeatmaps])
+  }, [song, notes, selectedDifficulty, bpm, offsetMs])
   
   // Import beatmap
   const handleImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-    
+
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
         const parsedData = JSON.parse(e.target?.result as string)
-        const validationResult = ImportedBeatmapSchema.safeParse(parsedData);
-        
+        const validationResult = ImportedBeatmapSchema.safeParse(parsedData)
+
         if (!validationResult.success) {
-          console.error('Beatmap validation failed:', validationResult.error);
-          showToast('Invalid beatmap file format', 'error');
-          return;
+          console.error('Beatmap validation failed:', validationResult.error)
+          showToast('Invalid beatmap file format', 'error')
+          return
         }
-        
-        const data = validationResult.data;
-        const validatedNotes: EditorNote[] = data.notes.map((note, index) => ({
-          id: `imported-${index}`,
-          type: note.type,
-          time: note.time,
-          lane: note.lane ?? note.column ?? 0,
-          column: note.column,
-          duration: note.duration,
-        }));
-        
-        setNotes(validatedNotes);
-        if (data.offset !== undefined) {
-          setOffsetMs(data.offset);
-        }
-        showToast('Beatmap imported successfully', 'success');
+
+        const data = validationResult.data
+        const chart = data.charts[0]
+        const importedOffset = data.offset
+
+        // Pair up notes connected by same-lane links as hold notes.
+        // Per docs: cross-lane links are dropped (their endpoints stay as taps).
+        const heldNoteUuids = new Set<string>()
+        const importedNotes: EditorNote[] = []
+
+        chart.links.forEach((link) => {
+          if (link.startNote.lane !== link.endNote.lane) return
+          heldNoteUuids.add(link.startNote.uuid)
+          heldNoteUuids.add(link.endNote.uuid)
+          const startTime = (link.startNote.songPos + importedOffset) / 1000
+          const endTime = (link.endNote.songPos + importedOffset) / 1000
+          importedNotes.push({
+            id: link.startNote.uuid,
+            type: 'hold',
+            lane: link.startNote.lane,
+            time: startTime,
+            duration: Math.max(0, endTime - startTime),
+          })
+        })
+
+        chart.notes.forEach((note) => {
+          if (heldNoteUuids.has(note.uuid)) return
+          importedNotes.push({
+            id: note.uuid,
+            type: 'tap',
+            lane: note.lane,
+            time: (note.songPos + importedOffset) / 1000,
+          })
+        })
+
+        chartUuidRef.current = chart.uuid
+        setNotes(importedNotes)
+        setBpm(data.bpm)
+        setOffsetMs(importedOffset)
+        showToast('Beatmap imported successfully', 'success')
       } catch (error) {
         console.error('Failed to parse beatmap file:', error)
         showToast('Invalid beatmap file', 'error')
