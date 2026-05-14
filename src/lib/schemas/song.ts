@@ -52,17 +52,31 @@ export const CreatedSongSchema = z.object({
   deleted_at: z.string().nullable().optional(),
 });
 
-export const ImportedNoteSchema = z.object({
-  type: z.enum(['tap', 'hold']),
-  time: z.number().nonnegative(),
-  lane: z.number().optional(),
-  column: z.number().optional(),
-  duration: z.number().nonnegative().optional(),
+export const SchemaChartNoteSchema = z.object({
+  uuid: z.string(),
+  songPos: z.number(),
+  beat: z.number(),
+  label: z.string(),
+  lane: z.number().int().nonnegative(),
+});
+
+export const SchemaChartLinkSchema = z.object({
+  uuid: z.string(),
+  startNote: SchemaChartNoteSchema,
+  endNote: SchemaChartNoteSchema,
+});
+
+export const SchemaChartSchema = z.object({
+  uuid: z.string(),
+  laneCount: z.number().int().positive(),
+  notes: z.array(SchemaChartNoteSchema),
+  links: z.array(SchemaChartLinkSchema),
 });
 
 export const ImportedBeatmapSchema = z.object({
-  notes: z.array(ImportedNoteSchema),
-  offset: z.number().optional(),
+  bpm: z.number().positive(),
+  offset: z.number(),
+  charts: z.array(SchemaChartSchema).min(1),
 });
 
 export type Beatmap = z.infer<typeof BeatmapSchema>;
@@ -70,3 +84,6 @@ export type SongDetail = z.infer<typeof SongDetailSchema>;
 export type SongDetailResponse = z.infer<typeof SongDetailResponseSchema>;
 export type CreatedSong = z.infer<typeof CreatedSongSchema>;
 export type ImportedBeatmap = z.infer<typeof ImportedBeatmapSchema>;
+export type SchemaChartNote = z.infer<typeof SchemaChartNoteSchema>;
+export type SchemaChartLink = z.infer<typeof SchemaChartLinkSchema>;
+export type SchemaChart = z.infer<typeof SchemaChartSchema>;
