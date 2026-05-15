@@ -53,7 +53,7 @@
 
 ## 1. Project Overview
 
-**GameWota Dashboard** is a React-based admin dashboard for the Rythm Game platform. It provides a comprehensive management interface for administrators and operators to manage:
+**GameWota Dashboard** is a React-based admin dashboard for the Rhythm Game platform. It provides a comprehensive management interface for administrators and operators to manage:
 
 - Users, roles, and permissions
 - Game content (cards, songs, quotes, events)
@@ -84,6 +84,7 @@ Access is restricted to users who hold at least one non-`user` role. Regular gam
 | Auth Utilities | jwt-decode | 4.0 |
 | XSS Sanitization | DOMPurify | 3.0 |
 | Rich Text Editor | react-simple-wysiwyg | 3.4 |
+| Date Formatting | moment | 2.30 |
 | Beatmap Engine | @gamewota/beatmap-editor | internal |
 | Linting | ESLint 9 + typescript-eslint | 9 / 8.30 |
 
@@ -1195,7 +1196,7 @@ Follow these steps to add a new managed entity to the dashboard:
 ### Code Style Reminders
 
 - Do not use `any`. Use explicit types or `unknown`.
-- Do not call Axios directly in components — use thunks.
+- Do not call Axios directly in components — use thunks. The Beatmap Editor page is the only exception; it relies on the Web Audio API and `@gamewota/beatmap-editor` library directly and handles its own data loading via Redux thunks for song metadata while keeping audio decoding in-component.
 - Always validate API responses with `validateOrReject` + a Zod schema.
 - Sanitize all user-generated HTML with `sanitizeHtml` before rendering.
 - Use `useHasPermission` instead of manual role string comparisons.
