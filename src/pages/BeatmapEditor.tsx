@@ -293,7 +293,7 @@ export default function BeatmapEditorPage() {
       return {
         uuid,
         songPos,
-        beat: beatDurationMs > 0 ? songPos / beatDurationMs : 0,
+        beat: beatDurationMs > 0 ? Math.round((songPos / beatDurationMs) * 100) / 100 : 0,
         label: '',
         lane,
       }
