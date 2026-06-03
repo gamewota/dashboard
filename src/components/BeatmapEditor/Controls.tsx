@@ -28,6 +28,9 @@ interface ControlsProps {
   onBpmChange: (bpm: number) => void
   onExport: () => void
   onImport: (event: ChangeEvent<HTMLInputElement>) => void
+  onSave?: () => void
+  isSaving?: boolean
+  canSave?: boolean
 }
 
 export function Controls({
@@ -51,6 +54,9 @@ export function Controls({
   onBpmChange,
   onExport,
   onImport,
+  onSave,
+  isSaving = false,
+  canSave = false,
 }: ControlsProps) {
   return (
     <div className="card bg-base-200 shadow-lg">
@@ -219,12 +225,29 @@ export function Controls({
                 onChange={onImport}
               />
             </label>
-            <button className="btn btn-sm btn-primary" onClick={onExport}>
+            <button className="btn btn-sm btn-outline" onClick={onExport}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export
             </button>
+            {onSave && (
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={onSave}
+                disabled={isSaving || !canSave}
+                title={canSave ? 'Save beatmap to server' : 'Select a difficulty to save'}
+              >
+                {isSaving ? (
+                  <span className="loading loading-spinner loading-xs" aria-label="Saving" role="status"></span>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {isSaving ? 'Saving…' : 'Save'}
+              </button>
+            )}
           </div>
         </div>
       </div>

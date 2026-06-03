@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchSongs, fetchSongById, clearSelectedSong, deleteSong } from '../features/songs/songSlice';
+import { fetchSongs, fetchSongById, clearSelectedSong, deleteSong, fetchDifficulties } from '../features/songs/songSlice';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import Container from '../components/Container';
@@ -18,6 +18,7 @@ type Song = {
   song_assets: string | null;
   created_at: string;
   updated_at: string;
+  beatmaps?: { difficulty_name: string }[];
 };
 
 type Column<T> = {
@@ -28,7 +29,7 @@ type Column<T> = {
 const Song = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
-    const { data, loading, error, selectedSong, selectedSongLoading, selectedSongError } = useSelector((state: RootState) => state.songs);
+    const { data, loading, error, selectedSong, selectedSongLoading, selectedSongError, difficulties } = useSelector((state: RootState) => state.songs);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<{ songId: number; songTitle: string } | null>(null);
@@ -97,18 +98,33 @@ const Song = () => {
                     >
                         Detail
                     </Button>
-                    <Button 
-                        variant="primary"
-                        size="sm"
-                        disabled={!row.song_id}
-                        onClick={() => {
-                            if (row.song_id != null) {
-                                handleEditBeatmapClick(row.song_id);
-                            }
-                        }}
-                    >
-                        Edit Beatmap
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            disabled={!row.song_id}
+                            onClick={() => {
+                                if (row.song_id != null) {
+                                    handleEditBeatmapClick(row.song_id);
+                                }
+                            }}
+                        >
+                            {row.beatmaps && row.beatmaps.length > 0 ? 'Edit Beatmap' : 'Add Beatmap'}
+                        </Button>
+                        {difficulties.length > 0 && (() => {
+                            const have = row.beatmaps?.length ?? 0;
+                            const total = difficulties.length;
+                            const complete = have >= total;
+                            return (
+                                <span
+                                    className={`badge badge-sm ${complete ? 'badge-success' : 'badge-warning'}`}
+                                    title={complete ? 'All difficulties present' : 'Missing difficulties — song not playable until complete'}
+                                >
+                                    {have}/{total}{complete ? ' ✓' : ''}
+                                </span>
+                            );
+                        })()}
+                    </div>
                     <Button 
                         variant="error"
                         size="sm"
@@ -128,6 +144,7 @@ const Song = () => {
 
     useEffect(() => {
         dispatch(fetchSongs());
+        dispatch(fetchDifficulties());
     }, [dispatch]);
 
     if (loading) return (
