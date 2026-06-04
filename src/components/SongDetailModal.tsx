@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import type { SongDetail } from '../lib/schemas/song';
 
@@ -10,6 +11,7 @@ interface SongDetailModalProps {
 }
 
 export function SongDetailModal({ isOpen, onClose, song, loading, error }: SongDetailModalProps) {
+  const navigate = useNavigate();
   return (
     <Modal
       isOpen={isOpen}
@@ -113,17 +115,37 @@ export function SongDetailModal({ isOpen, onClose, song, loading, error }: SongD
                 {song.beatmaps.map((beatmap) => (
                   <div key={beatmap.difficulty_name} className="bg-base-200 p-3 rounded-lg flex justify-between items-center">
                     <div>
-                      <span className="badge badge-primary">{beatmap.difficulty_name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="badge badge-primary">{beatmap.difficulty_name}</span>
+                        <span className={`badge ${beatmap.is_approved ? 'badge-success' : 'badge-warning'}`}>
+                          {beatmap.is_approved ? 'Approved' : 'Pending'}
+                        </span>
+                      </div>
                       <p className="font-mono text-xs mt-1 text-base-content/50">{beatmap.beatmap_asset_key}</p>
                     </div>
-                    <a 
-                      href={beatmap.beatmap_asset_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="btn btn-sm btn-outline"
-                    >
-                      View
-                    </a>
+                    <div className="flex items-center gap-2">
+                      {beatmap.beatmap_asset_url && (
+                        <a
+                          href={beatmap.beatmap_asset_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-outline"
+                        >
+                          View
+                        </a>
+                      )}
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => {
+                          navigate(
+                            `/dashboard/${song.song_id}/beatmap-editor?mode=review&difficulty=${encodeURIComponent(beatmap.difficulty_name)}`,
+                          );
+                          onClose();
+                        }}
+                      >
+                        Review
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

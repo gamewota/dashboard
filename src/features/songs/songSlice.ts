@@ -2,7 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
-import { SongDetailSchema, CreatedSongSchema, type SongDetail, type CreatedSong } from '../../lib/schemas/song';
+import { SongDetailSchema, CreatedSongSchema, DifficultySchema, SavedBeatmapSchema, type SongDetail, type CreatedSong, type BeatmapUpload, type Difficulty } from '../../lib/schemas/song';
+import { handleThunkError } from '../../helpers/handleThunkError';
+import { validateOrReject } from '../../helpers/validateApi';
+import { uploadAssetWithPresigned } from '../../helpers/uploadAsset';
+
+// Asset type id for beatmap notes_data JSON uploads.
+const BEATMAP_ASSET_TYPE_ID = 4;
 
 export type CreateSongPayload = {
   song_title: string;
@@ -22,6 +28,7 @@ type Song = {
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
+    beatmaps?: { difficulty_name: string }[];
 }
 
 type SongState = {
@@ -31,6 +38,7 @@ type SongState = {
     selectedSong: SongDetail | null;
     selectedSongLoading: boolean;
     selectedSongError: string | null;
+    difficulties: Difficulty[];
 }
 
 const initialState: SongState = {
@@ -40,6 +48,7 @@ const initialState: SongState = {
     selectedSong: null,
     selectedSongLoading: false,
     selectedSongError: null,
+    difficulties: [],
 }
 
 export const fetchSongs = createAsyncThunk('songs/fetchSongs', async () => {
@@ -61,6 +70,7 @@ export const fetchSongById = createAsyncThunk<
         // Validate response with Zod
         const parsed = SongDetailSchema.safeParse(response.data.data);
         if (!parsed.success) {
+            console.error('Song detail validation failed:', parsed.error);
             return thunkAPI.rejectWithValue('Invalid song data received from server');
         }
         
@@ -98,6 +108,79 @@ export const createSong = createAsyncThunk<
             return thunkAPI.rejectWithValue(err.response?.data?.message || 'Failed to create song');
         }
         return thunkAPI.rejectWithValue('Failed to create song');
+    }
+});
+
+// Fetch the difficulty options (name -> id) used to build beatmap payloads.
+export const fetchDifficulties = createAsyncThunk<Difficulty[], void, { rejectValue: string }>(
+    'songs/fetchDifficulties',
+    async (_, thunkAPI) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/difficulties`, { headers: getAuthHeader() });
+            // Endpoint returns a bare array; tolerate an optional { data } envelope.
+            const body = Array.isArray(response.data) ? response.data : response.data?.data;
+            return validateOrReject(DifficultySchema.array(), body, thunkAPI) as Difficulty[];
+        } catch (err) {
+            return handleThunkError(err, thunkAPI);
+        }
+    }
+);
+
+// Add, update, or approve a beatmap, accepting a partial payload: send
+// notes_data + counts to save a chart, or just is_approved to approve/reject.
+// difficulty_id always travels in the body. New beatmaps are created via
+// POST /beatmaps; existing ones (and approvals) are updated per-beatmap via
+// PUT /beatmaps/{song_id}/{beatmap_id}. Pass `beatmapId` (from the song's
+// beatmap list) to update; omit it to create. Saving a chart re-marks it
+// unapproved (backend's concern).
+export const saveBeatmap = createAsyncThunk<
+    SongDetail,
+    BeatmapUpload & { beatmapId?: number },
+    { rejectValue: string }
+>('songs/saveBeatmap', async ({ beatmapId, ...payload }, thunkAPI) => {
+    try {
+        // When saving a chart: notes_data holds the chart JSON (JSONB column),
+        // and the same JSON is also uploaded as an asset (type 4) whose id is
+        // carried on beatmap_assets_id.
+        let body: BeatmapUpload = payload;
+        if (payload.notes_data) {
+            const blob = new Blob([JSON.stringify(payload.notes_data)], { type: 'application/json' });
+            const filename = `beatmap_${payload.song_id}_${payload.difficulty_id}.json`;
+            const asset = await uploadAssetWithPresigned(blob, filename, 'application/json', BEATMAP_ASSET_TYPE_ID);
+            body = { ...payload, beatmap_assets_id: asset.id };
+        }
+
+        const response = beatmapId != null
+            ? await axios.put(
+                `${API_BASE_URL}/beatmaps/${payload.song_id}/${beatmapId}`,
+                body,
+                { headers: getAuthHeader() }
+            )
+            : await axios.post(
+                `${API_BASE_URL}/beatmaps/add`,
+                body,
+                { headers: getAuthHeader() }
+            );
+
+        // The endpoint returns the saved beatmap record (not the whole song),
+        // so validate that, then re-fetch the song detail to refresh the list.
+        const saved = SavedBeatmapSchema.safeParse(response.data?.data ?? response.data);
+        if (!saved.success) {
+            console.error('Save beatmap validation failed:', saved.error);
+            return thunkAPI.rejectWithValue('Invalid beatmap data received from server');
+        }
+
+        const songResponse = await axios.get(
+            `${API_BASE_URL}/songs/${payload.song_id}`,
+            { headers: getAuthHeader() }
+        );
+        const parsed = SongDetailSchema.safeParse(songResponse.data?.data ?? songResponse.data);
+        if (!parsed.success) {
+            return thunkAPI.rejectWithValue('Invalid song data received from server');
+        }
+        return parsed.data;
+    } catch (err) {
+        return handleThunkError(err, thunkAPI);
     }
 });
 
@@ -174,6 +257,21 @@ const songSlice = createSlice({
             .addCase(createSong.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload ?? 'Failed to create song';
+            })
+            .addCase(saveBeatmap.pending, (state) => {
+                state.selectedSongLoading = true;
+                state.selectedSongError = null;
+            })
+            .addCase(saveBeatmap.fulfilled, (state, action) => {
+                state.selectedSongLoading = false;
+                state.selectedSong = action.payload;
+            })
+            .addCase(saveBeatmap.rejected, (state, action) => {
+                state.selectedSongLoading = false;
+                state.selectedSongError = action.payload ?? 'Failed to save beatmap';
+            })
+            .addCase(fetchDifficulties.fulfilled, (state, action) => {
+                state.difficulties = action.payload;
             })
             .addCase(deleteSong.pending, (state) => {
                 state.loading = true;
