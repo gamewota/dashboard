@@ -50,7 +50,7 @@ export async function uploadAssetWithPresigned(
   const { presignedUrl, asset } = resp.data;
 
   // Upload the file to the presigned URL (PUT) with the proper content type
-  await axios.post(presignedUrl, file, {
+  await axios.put(presignedUrl, file, {
     headers: {
       'Content-Type': inferredContentType,
     },
