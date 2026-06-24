@@ -6,9 +6,10 @@ import { SongDetailSchema, CreatedSongSchema, DifficultySchema, SavedBeatmapSche
 import { handleThunkError } from '../../helpers/handleThunkError';
 import { validateOrReject } from '../../helpers/validateApi';
 import { uploadAssetWithPresigned } from '../../helpers/uploadAsset';
+import { ASSET_TYPE } from '../../helpers/assetTypes';
 
 // Asset type id for beatmap notes_data JSON uploads.
-const BEATMAP_ASSET_TYPE_ID = 4;
+const BEATMAP_ASSET_TYPE_ID = ASSET_TYPE.BEATMAP;
 
 export type CreateSongPayload = {
   song_title: string;

@@ -77,6 +77,7 @@ export const sidebarMenu: MenuItem[] = [
       { key: 'users', label: 'Users', path: '/dashboard/users', icon: Icons.Users, permission: 'user.view' },
       { key: 'roles', label: 'Roles', path: '/dashboard/role', icon: Icons.Role, permission: 'role.view' },
       { key: 'permissions', label: 'Permissions', path: '/dashboard/permissions', icon: Icons.Role, permission: 'permission.view' },
+      { key: 'profile-banner', label: 'Profile Banners', path: '/dashboard/profile-banner', icon: Icons.News, permission: 'banners.view' },
     ],
   },
   {
