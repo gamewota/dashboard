@@ -157,6 +157,7 @@ export function SendMail() {
                             <label key={mode} className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="radio"
+                                    name="recipientMode"
                                     className="radio radio-primary"
                                     checked={recipientMode === mode}
                                     onChange={() => { setRecipientMode(mode); setSelectedUserIds([]); }}
@@ -278,6 +279,7 @@ export function SendMail() {
                                     <label key={t} className="flex items-center gap-2 cursor-pointer capitalize">
                                         <input
                                             type="radio"
+                                            name="attachType"
                                             className="radio radio-secondary radio-sm"
                                             checked={attachType === t}
                                             onChange={() => handleAttachTypeChange(t)}
@@ -306,7 +308,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachQuantity(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
@@ -331,7 +333,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachQuantity(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
@@ -358,7 +360,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachAmount}
-                                            onChange={(e) => setAttachAmount(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachAmount(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
