@@ -308,7 +308,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(e.target.value)}
+                                            onChange={(e) => setAttachQuantity(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
@@ -333,7 +333,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(e.target.value)}
+                                            onChange={(e) => setAttachQuantity(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
@@ -360,7 +360,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachAmount}
-                                            onChange={(e) => setAttachAmount(e.target.value)}
+                                            onChange={(e) => setAttachAmount(Number(e.target.value))}
                                         />
                                     </label>
                                 </div>
