@@ -38,8 +38,8 @@ export function SendMail() {
     const [attachCardId, setAttachCardId] = useState<number | null>(null);
     const [attachItemId, setAttachItemId] = useState<number | null>(null);
     const [attachCurrencyId, setAttachCurrencyId] = useState<number | null>(null);
-    const [attachQuantity, setAttachQuantity] = useState(DEFAULT_QUANTITY);
-    const [attachAmount, setAttachAmount] = useState(DEFAULT_QUANTITY);
+    const [attachQuantity, setAttachQuantity] = useState<string | number>(DEFAULT_QUANTITY);
+    const [attachAmount, setAttachAmount] = useState<string | number>(DEFAULT_QUANTITY);
 
     useEffect(() => {
         dispatch(fetchUsers());
@@ -80,14 +80,14 @@ export function SendMail() {
         if (!hasAttachment) return null;
         if (attachType === 'card') {
             if (!attachCardId) return null;
-            return { type: 'card', card_id: attachCardId, quantity: attachQuantity };
+            return { type: 'card', card_id: attachCardId, quantity: Math.max(1, Number(attachQuantity)) };
         }
         if (attachType === 'item') {
             if (!attachItemId) return null;
-            return { type: 'item', item_id: attachItemId, quantity: attachQuantity };
+            return { type: 'item', item_id: attachItemId, quantity: Math.max(1, Number(attachQuantity)) };
         }
         if (!attachCurrencyId) return null;
-        return { type: 'currency', currency_id: attachCurrencyId, amount: attachAmount };
+        return { type: 'currency', currency_id: attachCurrencyId, amount: Math.max(1, Number(attachAmount)) };
     };
 
     const resetForm = () => {
@@ -129,9 +129,9 @@ export function SendMail() {
             const msg = typeof result === 'object' ? result?.message : String(result);
             showToast(msg || 'Mail sent successfully', 'success');
             resetForm();
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err);
-            showToast(message || 'Failed to send mail', 'error');
+        } catch {
+            // Send errors are surfaced exclusively through the state.error banner
+            // below; showing a toast here too would duplicate the message.
         }
     };
 
@@ -157,6 +157,7 @@ export function SendMail() {
                             <label key={mode} className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="radio"
+                                    name="recipientMode"
                                     className="radio radio-primary"
                                     checked={recipientMode === mode}
                                     onChange={() => { setRecipientMode(mode); setSelectedUserIds([]); }}
@@ -278,6 +279,7 @@ export function SendMail() {
                                     <label key={t} className="flex items-center gap-2 cursor-pointer capitalize">
                                         <input
                                             type="radio"
+                                            name="attachType"
                                             className="radio radio-secondary radio-sm"
                                             checked={attachType === t}
                                             onChange={() => handleAttachTypeChange(t)}
@@ -306,7 +308,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachQuantity(e.target.value)}
                                         />
                                     </label>
                                 </div>
@@ -331,7 +333,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachQuantity}
-                                            onChange={(e) => setAttachQuantity(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachQuantity(e.target.value)}
                                         />
                                     </label>
                                 </div>
@@ -358,7 +360,7 @@ export function SendMail() {
                                             type="number" min={1}
                                             className="input input-bordered w-24"
                                             value={attachAmount}
-                                            onChange={(e) => setAttachAmount(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => setAttachAmount(e.target.value)}
                                         />
                                     </label>
                                 </div>
@@ -367,7 +369,6 @@ export function SendMail() {
                     )}
                 </div>
 
-                {/* ── Error banner ── */}
                 {error && (
                     <div className="alert alert-error text-sm" role="alert">{error}</div>
                 )}
@@ -387,5 +388,3 @@ export function SendMail() {
         </Container>
     );
 }
-
-export default SendMail;

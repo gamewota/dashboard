@@ -26,7 +26,12 @@ export const SendMailPayloadSchema = z.object({
     expiresAt: z.string().nullable().optional(),
 });
 
+// Shared response schema – used by inboxSlice to validate the API reply.
+export const SendMailResponseSchema = z.object({ message: z.string() });
+
 export type MailAttachment = z.infer<typeof MailAttachmentSchema>;
-export type MailAttachmentType = 'card' | 'item' | 'currency';
+// Derived from the schema so it stays in sync when variants change.
+export type MailAttachmentType = MailAttachment['type'];
 export type RecipientMode = 'broadcast' | 'specific';
 export type SendMailPayload = z.infer<typeof SendMailPayloadSchema>;
+export type SendMailResponse = z.infer<typeof SendMailResponseSchema>;

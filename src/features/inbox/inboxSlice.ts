@@ -3,7 +3,8 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
-import type { SendMailPayload } from '../../lib/schemas/inbox';
+import { validateOrReject } from '../../helpers/validateApi';
+import { SendMailResponseSchema, type SendMailPayload } from '../../lib/schemas/inbox';
 
 type InboxState = {
     sending: boolean;
@@ -30,7 +31,11 @@ export const sendAdminMail = createAsyncThunk<
                 payload,
                 { headers: getAuthHeader() },
             );
-            return response.data;
+            const parsed = validateOrReject(SendMailResponseSchema, response.data, thunkAPI);
+            if (!parsed || typeof (parsed as { message?: unknown }).message !== 'string') {
+                return thunkAPI.rejectWithValue('Invalid response shape');
+            }
+            return parsed as { message: string };
         } catch (error) {
             return handleThunkError(error, thunkAPI);
         }
