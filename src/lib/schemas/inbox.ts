@@ -1,22 +1,10 @@
 import { z } from 'zod';
 
-export const MailAttachmentSchema = z.discriminatedUnion('type', [
-    z.object({
-        type: z.literal('card'),
-        card_id: z.number().int().positive(),
-        quantity: z.number().int().positive(),
-    }),
-    z.object({
-        type: z.literal('item'),
-        item_id: z.number().int().positive(),
-        quantity: z.number().int().positive(),
-    }),
-    z.object({
-        type: z.literal('currency'),
-        currency_id: z.number().int().positive(),
-        amount: z.number().int().positive(),
-    }),
-]);
+export const MailAttachmentSchema = z.object({
+    type: z.enum(['card', 'item', 'currency']),
+    contentId: z.number().int().positive(),
+    quantity: z.number().int().positive(),
+});
 
 export const SendMailPayloadSchema = z.object({
     userIds: z.array(z.number().int().positive()).nullable(),
@@ -26,11 +14,9 @@ export const SendMailPayloadSchema = z.object({
     expiresAt: z.string().nullable().optional(),
 });
 
-// Shared response schema – used by inboxSlice to validate the API reply.
 export const SendMailResponseSchema = z.object({ message: z.string() });
 
 export type MailAttachment = z.infer<typeof MailAttachmentSchema>;
-// Derived from the schema so it stays in sync when variants change.
 export type MailAttachmentType = MailAttachment['type'];
 export type RecipientMode = 'broadcast' | 'specific';
 export type SendMailPayload = z.infer<typeof SendMailPayloadSchema>;
