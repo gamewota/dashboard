@@ -47,6 +47,24 @@ export function SearchableSelect(props: SearchableSelectProps) {
         return () => document.removeEventListener('mousedown', handleOutside);
     }, []);
 
+    const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+        setOpen(true);
+    };
+
+    const renderDropdown = (renderItem: (o: SelectOption) => React.ReactNode) =>
+        open ? (
+            <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-base-100 border border-base-300 rounded-box shadow-lg">
+                {loading ? (
+                    <li className="px-3 py-2 text-sm text-base-content/50">Loading…</li>
+                ) : filtered.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-base-content/50">No results</li>
+                ) : (
+                    filtered.map(renderItem)
+                )}
+            </ul>
+        ) : null;
+
     if (props.multi) {
         const { value, onChange } = props;
 
@@ -79,36 +97,25 @@ export function SearchableSelect(props: SearchableSelectProps) {
                     className="input input-bordered w-full"
                     placeholder={placeholder}
                     value={query}
-                    onChange={e => { setQuery(e.target.value); setOpen(true); }}
+                    onChange={handleQueryChange}
                     onFocus={() => setOpen(true)}
                 />
 
-                {open && (
-                    <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-base-100 border border-base-300 rounded-box shadow-lg">
-                        {loading ? (
-                            <li className="px-3 py-2 text-sm text-base-content/50">Loading…</li>
-                        ) : filtered.length === 0 ? (
-                            <li className="px-3 py-2 text-sm text-base-content/50">No results</li>
-                        ) : (
-                            filtered.map(o => (
-                                <li
-                                    key={o.value}
-                                    className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-base-200 ${value.includes(o.value) ? 'bg-primary/10 font-medium' : ''
-                                        }`}
-                                    onMouseDown={e => { e.preventDefault(); toggle(o.value); }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox checkbox-primary checkbox-xs"
-                                        checked={value.includes(o.value)}
-                                        readOnly
-                                    />
-                                    {o.label}
-                                </li>
-                            ))
-                        )}
-                    </ul>
-                )}
+                {renderDropdown(o => (
+                    <li
+                        key={o.value}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-base-200 ${value.includes(o.value) ? 'bg-primary/10 font-medium' : ''}`}
+                        onMouseDown={e => { e.preventDefault(); toggle(o.value); }}
+                    >
+                        <input
+                            type="checkbox"
+                            className="checkbox checkbox-primary checkbox-xs"
+                            checked={value.includes(o.value)}
+                            readOnly
+                        />
+                        {o.label}
+                    </li>
+                ))}
             </div>
         );
     }
@@ -124,7 +131,7 @@ export function SearchableSelect(props: SearchableSelectProps) {
                 className="input input-bordered w-full pr-8"
                 placeholder={placeholder}
                 value={open ? query : selectedLabel}
-                onChange={e => { setQuery(e.target.value); setOpen(true); }}
+                onChange={handleQueryChange}
                 onFocus={() => { setQuery(''); setOpen(true); }}
             />
 
@@ -139,31 +146,20 @@ export function SearchableSelect(props: SearchableSelectProps) {
                 </button>
             )}
 
-            {open && (
-                <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-base-100 border border-base-300 rounded-box shadow-lg">
-                    {loading ? (
-                        <li className="px-3 py-2 text-sm text-base-content/50">Loading…</li>
-                    ) : filtered.length === 0 ? (
-                        <li className="px-3 py-2 text-sm text-base-content/50">No results</li>
-                    ) : (
-                        filtered.map(o => (
-                            <li
-                                key={o.value}
-                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-base-200 ${value === o.value ? 'bg-primary/10 font-medium' : ''
-                                    }`}
-                                onMouseDown={e => {
-                                    e.preventDefault();
-                                    onChange(o.value);
-                                    setOpen(false);
-                                    setQuery('');
-                                }}
-                            >
-                                {o.label}
-                            </li>
-                        ))
-                    )}
-                </ul>
-            )}
+            {renderDropdown(o => (
+                <li
+                    key={o.value}
+                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-base-200 ${value === o.value ? 'bg-primary/10 font-medium' : ''}`}
+                    onMouseDown={e => {
+                        e.preventDefault();
+                        onChange(o.value);
+                        setOpen(false);
+                        setQuery('');
+                    }}
+                >
+                    {o.label}
+                </li>
+            ))}
         </div>
     );
 }

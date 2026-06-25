@@ -151,7 +151,7 @@ export function AdminMail() {
     }
 
     return (
-        <Container className="flex-col items-start">
+        <Container>
             <ToastContainer />
             <div className="w-full max-w-2xl">
                 <h1 className="text-2xl font-semibold mb-6">Send Admin Mail</h1>
