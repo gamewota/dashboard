@@ -35,6 +35,7 @@ const Events = lazy(() => import("./pages/Events"))
 const EventDetail = lazy(() => import("./pages/EventDetail"))
 const BannerType = lazy(() => import("./pages/BannerType"))
 const Banner = lazy(() => import("./pages/Banner"))
+const AdminMail = lazy(() => import('./pages/AdminMail'))
 
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
         <Route path="/dashboard/events/:id" element={<EventDetail />} />
         <Route path="/dashboard/banner-types" element={<BannerType />} />
         <Route path="/dashboard/banners" element={<Banner />} />
+        <Route path="/dashboard/inbox/send" element={<AdminMail />} />
       </Routes>
       </Suspense>
     </div>

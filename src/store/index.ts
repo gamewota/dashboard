@@ -3,28 +3,28 @@ import usersReducer from '../features/users/userSlice';
 import songsReducer from '../features/songs/songSlice';
 import quotesReducer from '../features/quotes/quoteSlice';
 import shopItemsReducer from '../features/shopItems/shopItemsSlice';
-import cardsReducer from '../features/cards/cardSlice'
-import cardVariantReducer from '../features/cards/cardVariantSlice'
-import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice'
-import transactionLogReducer from '../features/transactionLog/transactionLogSlice'
-import authReducer from '../features/auth/authSlice'
-import rolesReducer from '../features/roles/roleSlice'
-import permissionReducer from '../features/permissions/permissionsSlice'
-import elementReducer from '../features/elements/elementSlice'
-import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice'
-import gameItemsReducer from '../features/gameItems/gameItemsSlice'
-import assetsReducer from '../features/assets/assetsSlice'
-import newsTypeReducer from '../features/newsType/newsTypeSlice'
-import newsReducer from '../features/news/newsSlice'
-import gachaPackReducer from '../features/cards/gachaPackSlice'
-import memberReducer from '../features/members/membersSlice'
-import rarityReducer from '../features/cards/raritySlice'
-import currencyReducer from '../features/currencies/currencySlice'
-import assetTypesReducer from '../features/assetTypes/assetTypeSlice'
-import eventsReducer from '../features/events/eventSlice'
-import bannerTypesReducer from '../features/bannerTypes/bannerTypeSlice'
-import bannersReducer from '../features/banners/bannerSlice'
-
+import cardsReducer from '../features/cards/cardSlice';
+import cardVariantReducer from '../features/cards/cardVariantSlice';
+import shopTransactionsReducer from '../features/shopTransactions/shopTransactionsSlice';
+import transactionLogReducer from '../features/transactionLog/transactionLogSlice';
+import authReducer from '../features/auth/authSlice';
+import rolesReducer from '../features/roles/roleSlice';
+import permissionReducer from '../features/permissions/permissionsSlice';
+import elementReducer from '../features/elements/elementSlice';
+import gameItemsTypeReducer from '../features/gameItemsType/gameItemsTypeSlice';
+import gameItemsReducer from '../features/gameItems/gameItemsSlice';
+import assetsReducer from '../features/assets/assetsSlice';
+import newsTypeReducer from '../features/newsType/newsTypeSlice';
+import newsReducer from '../features/news/newsSlice';
+import gachaPackReducer from '../features/cards/gachaPackSlice';
+import memberReducer from '../features/members/membersSlice';
+import rarityReducer from '../features/cards/raritySlice';
+import currencyReducer from '../features/currencies/currencySlice';
+import assetTypesReducer from '../features/assetTypes/assetTypeSlice';
+import eventsReducer from '../features/events/eventSlice';
+import bannerTypesReducer from '../features/bannerTypes/bannerTypeSlice';
+import bannersReducer from '../features/banners/bannerSlice';
+import inboxReducer from '../features/inbox/inboxSlice';
 
 export const store = configureStore({
     reducer: {
@@ -53,6 +53,7 @@ export const store = configureStore({
         events: eventsReducer,
         bannerTypes: bannerTypesReducer,
         banners: bannersReducer,
+        inbox: inboxReducer,
     }
 })
 
