@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../../helpers/constants';
 import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { handleThunkError } from '../../helpers/handleThunkError';
 import { uploadAssetWithPresigned } from '../../helpers/uploadAsset';
+import { ASSET_TYPE } from '../../helpers/assetTypes';
 import { GameItemArraySchema, GameItemSchema, type GameItem } from '../../lib/schemas/gameItem';
 import { validateOrReject } from '../../helpers/validateApi';
 
@@ -63,7 +64,7 @@ export const createGameItem = createAsyncThunk<GameItemsType, {
                 if (!contentType || !contentType.startsWith('image/')) {
                     return thunkAPI.rejectWithValue('Only image files are allowed for game items');
                 }
-                const uploaded = await uploadAssetWithPresigned(assetFile, undefined, contentType, 1);
+                const uploaded = await uploadAssetWithPresigned(assetFile, undefined, contentType, ASSET_TYPE.ARTWORK);
                 asset_id = uploaded.id;
             }
 
@@ -110,7 +111,7 @@ export const updateGameItem = createAsyncThunk<GameItemsType, {
                 if (!contentType || !contentType.startsWith('image/')) {
                     return thunkAPI.rejectWithValue('Only image files are allowed for game items');
                 }
-                const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, 1);
+                const uploaded = await uploadAssetWithPresigned(payload.assetFile, undefined, contentType, ASSET_TYPE.ARTWORK);
                 asset_id = uploaded.id;
             }
 
