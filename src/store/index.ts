@@ -26,6 +26,7 @@ import bannerTypesReducer from '../features/bannerTypes/bannerTypeSlice'
 import bannersReducer from '../features/banners/bannerSlice'
 import profileBannersReducer from '../features/profileBanner/profileBannerSlice'
 import inboxReducer from '../features/inbox/inboxSlice';
+import bundleReducer from '../features/bundle/bundleSlice';
 
 
 export const store = configureStore({
@@ -57,6 +58,7 @@ export const store = configureStore({
         banners: bannersReducer,
         profileBanners: profileBannersReducer,
         inbox: inboxReducer,
+        bundle: bundleReducer,
     }
 })
 

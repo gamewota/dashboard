@@ -34,6 +34,8 @@ const EventDetail = lazy(() => import('../pages/EventDetail'))
 const BannerType = lazy(() => import('../pages/BannerType'))
 const Banner = lazy(() => import('../pages/Banner'))
 const ProfileBanner = lazy(() => import('../pages/ProfileBanner'))
+const AdminMail = lazy(() => import('../pages/AdminMail'))
+const Bundle = lazy(() => import('../pages/Bundle'))
 
 export type RouteEntry = {
   path: string
@@ -74,5 +76,7 @@ export const routeConfig: RouteEntry[] = [
   { path: ROUTES.eventDetail, component: EventDetail },
   { path: ROUTES.bannerTypes, component: BannerType },
   { path: ROUTES.banners, component: Banner },
-  { path: ROUTES.profileBanner, component: ProfileBanner }
+  { path: ROUTES.profileBanner, component: ProfileBanner },
+  { path: ROUTES.adminMail, component: AdminMail },
+  { path: ROUTES.bundle, component: Bundle }
 ]

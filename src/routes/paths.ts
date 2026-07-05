@@ -39,6 +39,8 @@ export const ROUTES = {
   bannerTypes: p('banner-types'),
   banners: p('banners'),
   profileBanner: p('profile-banner'),
+  adminMail: p('inbox/send'),
+  bundle: p('bundle'),
 } as const
 
 export type RouteKey = keyof typeof ROUTES
