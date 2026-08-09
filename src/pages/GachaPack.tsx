@@ -15,6 +15,12 @@ import { Button } from '../components/Button';
 import Modal from '../components/Modal';
 import { useToast } from '../hooks/useToast';
 import { useNavigate } from 'react-router-dom';
+import {
+  formatActiveWindow,
+  formatPackPrice,
+  formatPityRuleSummary,
+  isFreePack,
+} from '../helpers/gachaPackFormat';
 
 
 function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
@@ -23,9 +29,36 @@ function GachaPackTable({ packs }: { packs: GachaPackType[] }) {
     {header: '#', accessor: (row: GachaPackType) => <Button size='xs' onClick={() => navigate(`/dashboard/cards/gacha-pack/${row.id}`)} variant='info'>Detail</Button>},
     { header: 'ID', accessor: 'id' as const },
     { header: 'Name', accessor: 'name' as const },
-    { header: 'Price', accessor: 'price' as const },
-    { header: 'Currency', accessor: (row: GachaPackType) => (row.currency_name == null ? '-' : String(row.currency_name)) },
-    { header: 'Item', accessor: (row: GachaPackType) => (row.item_name == null ? '-' : String(row.item_name)) },
+    {
+      header: 'Price',
+      accessor: (row: GachaPackType) =>
+        formatPackPrice(row.price, row.currency_name ?? row.item_name ?? null),
+    },
+    {
+      header: 'Currency / Item',
+      accessor: (row: GachaPackType) => row.currency_name ?? row.item_name ?? '-',
+    },
+    { header: 'Cards', accessor: (row: GachaPackType) => row.card_count ?? '-' },
+    {
+      header: 'Pity Rules',
+      accessor: (row: GachaPackType) => (
+        <span className='text-sm'>{formatPityRuleSummary(row.pity_rules)}</span>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: (row: GachaPackType) => (
+        <div className='flex flex-col gap-1'>
+          <span className={`badge badge-sm ${row.is_active ? 'badge-success' : 'badge-ghost'}`}>
+            {row.is_active ? 'Active' : 'Inactive'}
+          </span>
+          <span className='text-xs text-content-400'>
+            {formatActiveWindow(row.active_start_at, row.active_end_at)}
+          </span>
+        </div>
+      ),
+    },
+    { header: 'Sort Order', accessor: (row: GachaPackType) => row.sort_order ?? '-' },
   ]
 
   return <ErrorBoundary FallbackComponent={() => <div>Error loading gacha packs.</div>}> 
@@ -60,10 +93,17 @@ const GachaPack = () => {
     }
   }, [isModalOpen, dispatch]);
 
+  // Price 0 makes the pack free to players, but the API still requires a
+  // currency or item on every pack, so the payment method stays mandatory.
+  const isFree = price !== '' && isFreePack(Number(price));
+
   const handleSubmit = async () => {
     if (!name || price === '') return showToast('Name and price are required', 'warning');
-    if (!selectedCurrencyId && !selectedItemId) return showToast('Select either a currency or a game item', 'warning');
+    if (Number.isNaN(Number(price)) || Number(price) < 0) return showToast('Price must be a non-negative number', 'warning');
     if (selectedCurrencyId && selectedItemId) return showToast('Please select only one: currency OR game item', 'warning');
+    if (!selectedCurrencyId && !selectedItemId) {
+      return showToast('Select either a currency or a game item', 'warning');
+    }
     setSubmitting(true);
     const payload: GachaPackPayload = {
       name,
@@ -143,8 +183,19 @@ const GachaPack = () => {
               <input className='input input-bordered' value={name} onChange={(e) => setName(e.target.value)} />
             </label>
             <label className='flex flex-col'>
-              <span className='text-sm'>Price</span>
-              <input className='input input-bordered' value={price} onChange={(e) => setPrice(e.target.value)} type='number' />
+              <span className='text-sm'>
+                Price
+                {price !== '' && (
+                  <span className={`badge badge-sm ml-2 ${isFree ? 'badge-success' : 'badge-info'}`}>
+                    {isFree ? 'Free' : 'Paid'}
+                  </span>
+                )}
+              </span>
+              <input className='input input-bordered' value={price} onChange={(e) => setPrice(e.target.value)} type='number' min={0} />
+              <p className='text-xs text-content-400 mt-1'>
+                Set the price to 0 to make this pack free to pull. A currency or game item is
+                still required — it records what the pack is priced in.
+              </p>
             </label>
 
             <label className='flex flex-col'>
