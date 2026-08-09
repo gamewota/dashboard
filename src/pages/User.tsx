@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { getUserColumns } from './userColumns';
 import { useToast } from '../hooks/useToast';
 import Container from '../components/Container';
+import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import { Button } from '../components/Button';
 import { useHasPermission } from '../hooks/usePermissions';
@@ -182,18 +183,19 @@ const User = () => {
 
 
   return (
-    <Container>
-      <div className="overflow-x-auto">
-            <div className='w-[90vw] h-[80vh] overflow-scroll'>
-              <DataTable 
-                data={data}
-                loading={loading}
-                error={error}
-                emptyMessage={'No users found.'}
-                columns={columns}
-              />
-
-            </div>
+    <Container justify="start" className="flex-col">
+      <PageHeader
+        title="Users"
+        description="Accounts, role assignments and ban status."
+      />
+      <div className="w-full min-w-0">
+            <DataTable
+              data={data}
+              loading={loading}
+              error={error}
+              emptyMessage={'No users found.'}
+              columns={columns}
+            />
             <Modal
               id="ban_user"
               isOpen={isBanOpen}

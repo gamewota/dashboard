@@ -1,73 +1,70 @@
-import { useState } from 'react';
-import { useDispatch} from 'react-redux';
-import { login } from '../features/auth/authSlice';
-import { useAuth } from '../hooks/useAuth';
-import type { AppDispatch } from '../store';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Container from '../components/Container';
-import { Button } from '../components/Button';
+import PageHeader from '../components/PageHeader';
+import Card from '../components/Card';
+import LoginForm from '../components/LoginForm';
+import sidebarMenu, { type MenuItem } from '../components/sidebarConfig';
+import { useAuth } from '../hooks/useAuth';
+import type { RootState } from '../store';
+
+/** Flattens the nav config into the leaf destinations a user may open. */
+function collectDestinations(items: MenuItem[], hasPerm: (p?: string) => boolean): MenuItem[] {
+  return items.flatMap((item) => {
+    if (item.permission && !hasPerm(item.permission)) return [];
+    const self = item.path ? [item] : [];
+    const children = item.children ? collectDestinations(item.children, hasPerm) : [];
+    return [...self, ...children];
+  });
+}
 
 const Home = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const auth = useAuth()
+  const auth = useAuth();
+  type Role = { permissions?: string[] };
+  const user = useSelector((s: RootState) => s.auth.user);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const destinations = useMemo(() => {
+    const permissions = (user?.roles ?? []).flatMap((r: Role) => r.permissions ?? []) as string[];
+    const hasPerm = (p?: string) => (p ? permissions.includes(p) : true);
+    return sidebarMenu.flatMap((group) =>
+      collectDestinations(group.children ?? [], hasPerm).map((item) => ({
+        ...item,
+        group: group.label,
+      })),
+    );
+  }, [user]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const resultAction = await dispatch(login({ email, password }));
+  if (!auth.user) return <LoginForm />;
 
-    if (login.fulfilled.match(resultAction)) {
-      const { user } = resultAction.payload;
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      console.error('Login failed:', resultAction.payload);
-    }
-  };
+  const displayName = auth.user.username || auth.user.first_name || 'there';
 
   return (
-    <Container className="items-center min-h-screen">
-      {!auth.user ? (
-        <form
-          onSubmit={handleLogin}
-          className="bg-base-100 shadow-xl rounded-xl p-8 w-96 space-y-4"
-        >
-          <h1 className="text-xl font-bold text-center">Login</h1>
+    <Container justify="start" className="flex-col">
+      <PageHeader
+        title={`Welcome back, ${displayName}`}
+        description="Jump straight to a section, or use the sidebar to navigate."
+      />
 
-          <input
-            type="email"
-            className="input input-bordered w-full"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            type="password"
-            className="input input-bordered w-full"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            className="w-full"
-            disabled={auth.loading}
-          >
-            {auth.loading ? 'Logging in...' : 'Login'}
-          </Button>
-
-          {auth.error && (
-            <div className="text-error text-sm text-center">{auth.error}</div>
-          )}
-        </form>
-      ) : (
-        <h1 className="text-3xl">Game Wota Dashboard</h1>
-      )}
+      <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {destinations.map((item) => (
+          <Link key={item.path} to={item.path!} className="group block">
+            <Card className="h-full transition-colors group-hover:border-primary/60">
+              <div className="flex items-start gap-3">
+                {item.icon && <span className="text-base-content/50 shrink-0">{item.icon}</span>}
+                <div className="min-w-0">
+                  <div className="font-semibold truncate group-hover:text-primary transition-colors">
+                    {item.label}
+                  </div>
+                  <div className="mt-0.5 text-xs uppercase tracking-wide text-base-content/40">
+                    {item.group}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </Container>
   );
 };
