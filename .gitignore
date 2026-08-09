@@ -26,3 +26,5 @@ dist-ssr
 
 # Generated knowledge graph (regenerate with /graphify)
 graphify-out
+# Test coverage output
+coverage
