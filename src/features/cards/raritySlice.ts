@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 import type { RootState } from '../../store';
 
 export type RarityType = {
@@ -24,7 +25,7 @@ const initialState: RarityState = {
 }
 
 export const fetchRarities = createAsyncThunk('rarities/fetchRarities', async () => {
-    const response = await axios.get(`${API_BASE_URL}/rarities`);
+    const response = await axios.get(`${API_BASE_URL}/rarities`, { headers: getAuthHeader() });
     return response.data.data;
 })
 

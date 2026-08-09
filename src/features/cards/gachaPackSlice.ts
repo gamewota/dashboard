@@ -57,17 +57,17 @@ const initialState: GachaPackState = {
 }
 
 export const fetchGachaPacks = createAsyncThunk<GachaPack[], void>('gachaPacks/fetchGachaPacks', async () => {
-    const response = await axios.get(`${API_BASE_URL}/gacha/prices`);
+    const response = await axios.get(`${API_BASE_URL}/gacha/prices`, { headers: getAuthHeader() });
     return response.data;
 })
 
 export const fetchGachaPackById = createAsyncThunk<GachaPack, number>('gachaPacks/fetchGachaPackById', async (id: number) => {
-    const response = await axios.get(`${API_BASE_URL}/gacha/prices/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/gacha/prices/${id}`, { headers: getAuthHeader() });
     return response.data;
 })
 
 export const fetchGachaPacksDetail = createAsyncThunk<GachaPackDetail[], number>('gachaPacks/fetchGachaPacksDetail', async (id: number) => {
-    const response = await axios.get(`${API_BASE_URL}/cards/gacha-pack/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/cards/gacha-pack/${id}`, { headers: getAuthHeader() });
     return response.data;
 })
 

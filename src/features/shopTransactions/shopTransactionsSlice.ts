@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 
 
 type shopTransactions = {
@@ -30,7 +31,7 @@ const initialState: shopTransactionsState = {
 }
 
 export const fetchShopTransactions = createAsyncThunk('shopTransactions/fetchShopTransactions', async () => {
-    const response = await axios.get(`${API_BASE_URL}/shop/transactions`);
+    const response = await axios.get(`${API_BASE_URL}/shop/transactions`, { headers: getAuthHeader() });
     return response.data.data;
 })
 

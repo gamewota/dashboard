@@ -56,7 +56,7 @@ export const fetchUsers = createAsyncThunk<User[], void, { rejectValue: string }
 
 export const banUser = createAsyncThunk('users/banUser', async (data: BanUser, {rejectWithValue}) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/user/ban`, data);
+        const response = await axios.post(`${API_BASE_URL}/user/ban`, data, { headers: getAuthHeader() });
         return response.data;
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {

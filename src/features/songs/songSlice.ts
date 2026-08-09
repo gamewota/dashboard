@@ -53,7 +53,7 @@ const initialState: SongState = {
 }
 
 export const fetchSongs = createAsyncThunk('songs/fetchSongs', async () => {
-    const response = await axios.get(`${API_BASE_URL}/songs`);
+    const response = await axios.get(`${API_BASE_URL}/songs`, { headers: getAuthHeader() });
     return response.data.data;
 })
 

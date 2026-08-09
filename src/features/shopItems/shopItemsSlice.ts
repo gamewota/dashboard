@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 import { ShopItemArraySchema, ShopItemSchema, type ShopItem } from '../../lib/schemas/shopItem';
 import { validateOrReject } from '../../helpers/validateApi';
 
@@ -20,7 +21,7 @@ export const fetchShopItems = createAsyncThunk<ShopItem[], void, { rejectValue: 
   'shopItems/fetchShopItems',
   async (_, thunkAPI) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/shop/items`);
+      const response = await axios.get(`${API_BASE_URL}/shop/items`, { headers: getAuthHeader() });
       const payload = response.data?.data ?? response.data;
       return validateOrReject(ShopItemArraySchema, payload, thunkAPI) as ShopItem[];
     } catch (error: unknown) {
@@ -40,7 +41,7 @@ export const addShopItem = createAsyncThunk<
   'shopItems/addShopItem',
   async (newItem, thunkAPI) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/shop/item/add`, newItem);
+      const response = await axios.post(`${API_BASE_URL}/shop/item/add`, newItem, { headers: getAuthHeader() });
       return validateOrReject(ShopItemSchema, response.data?.data ?? response.data, thunkAPI) as ShopItem;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -64,7 +65,7 @@ export const updateShopItem = createAsyncThunk<
     thunkAPI
   ) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/shop/item/update`, updatedData);
+      const response = await axios.put(`${API_BASE_URL}/shop/item/update`, updatedData, { headers: getAuthHeader() });
       return { updatedFields: updatedData, message: response.data?.message };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -86,7 +87,7 @@ export const updateShopVisibility = createAsyncThunk<
     thunkAPI
   ) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/shop/item/update/visibility`, updatedData);
+      const response = await axios.put(`${API_BASE_URL}/shop/item/update/visibility`, updatedData, { headers: getAuthHeader() });
       return { updatedFields: updatedData, message: response.data?.message };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

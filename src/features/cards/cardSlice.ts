@@ -34,7 +34,7 @@ const initialState: CardState = {
 }
 
 export const fetchCards = createAsyncThunk('cards/fetchCards', async () => {
-    const response = await axios.get(`${API_BASE_URL}/cards`);
+    const response = await axios.get(`${API_BASE_URL}/cards`, { headers: getAuthHeader() });
     return response.data;
 })
 

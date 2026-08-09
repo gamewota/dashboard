@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios, { type AxiosResponse } from 'axios';
 import { API_BASE_URL } from '../../helpers/constants';
+import { getAuthHeader } from '../../helpers/getAuthHeader';
 import type { RootState } from '../../store';
 
 export type MemberType = {
@@ -40,7 +41,7 @@ const initialState: MemberState = {
 
 export const fetchMembers = createAsyncThunk<MemberType[], void, { rejectValue: string }>('members/fetchMembers', async (_, thunkAPI) => {
     try {
-        const response: AxiosResponse<MemberType[]> = await axios.get(`${API_BASE_URL}/members`);
+        const response: AxiosResponse<MemberType[]> = await axios.get(`${API_BASE_URL}/members`, { headers: getAuthHeader() });
         return response.data;
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
