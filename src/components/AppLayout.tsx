@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import SidebarNav from './SidebarNav'
 import { useSidebarOpen } from '../hooks/useSidebarOpen'
+import { BRAND_NAME } from '../helpers/branding'
 
 type AppLayoutProps = {
   children: ReactNode
@@ -87,7 +88,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </svg>
           </button>
 
-          <span className="font-semibold">Game Wota</span>
+          <span className="font-semibold truncate">{BRAND_NAME}</span>
         </header>
 
         <main className="flex-1 min-w-0">{children}</main>

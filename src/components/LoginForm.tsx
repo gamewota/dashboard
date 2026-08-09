@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { login } from '../features/auth/authSlice';
 import { useAuth } from '../hooks/useAuth';
 import type { AppDispatch } from '../store';
+import { BRAND_INITIALS, BRAND_NAME, BRAND_SUBTITLE } from '../helpers/branding';
 import { Button } from './Button';
 
 /**
@@ -29,11 +30,11 @@ export default function LoginForm() {
     <div className="min-h-screen w-full bg-base-200 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-content text-xl font-bold shadow-sm">
-            G
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-content text-base font-bold tracking-tight shadow-sm">
+            {BRAND_INITIALS}
           </div>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">Game Wota</h1>
-          <p className="text-sm text-base-content/60">Admin Dashboard</p>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-center">{BRAND_NAME}</h1>
+          <p className="text-sm text-base-content/60">{BRAND_SUBTITLE}</p>
         </div>
 
         <form

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../features/auth/authSlice'
 import sidebarMenu, { type MenuItem } from './sidebarConfig'
 import type { RootState } from '../store'
+import { BRAND_INITIALS, BRAND_NAME, BRAND_SUBTITLE } from '../helpers/branding'
 import { useCallback, useMemo, useState } from 'react'
 
 function isItemVisible(item: MenuItem, hasPerm: (p?: string) => boolean): boolean {
@@ -50,12 +51,12 @@ export default function SidebarNav({ onNavigate, onClose }: SidebarNavProps) {
   return (
     <div className="bg-base-200 text-base-content h-full w-72 p-4 flex flex-col border-r border-base-300">
       <div className="flex items-center gap-2 px-2 pb-4 border-b border-base-300">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-content font-bold">
-          G
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-content text-[0.65rem] font-bold tracking-tight">
+          {BRAND_INITIALS}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-bold leading-tight truncate">Game Wota</div>
-          <div className="text-xs text-base-content/60 leading-tight">Admin Dashboard</div>
+          <div className="font-bold leading-tight truncate">{BRAND_NAME}</div>
+          <div className="text-xs text-base-content/60 leading-tight">{BRAND_SUBTITLE}</div>
         </div>
         {onClose && (
           <button
