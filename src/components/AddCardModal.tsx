@@ -7,6 +7,7 @@ import { fetchCardVariants, selectCardVariants } from '../features/cards/cardVar
 import { fetchElements, selectElements } from '../features/elements/elementSlice';
 import { fetchMembers, selectMembers, type MemberType } from '../features/members/membersSlice';
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
+import { ASSET_TYPE } from '../helpers/assetTypes';
 
 type Props = {
   isOpen: boolean;
@@ -77,7 +78,7 @@ export function AddCardModal({ isOpen, onClose }: Props) {
     setUploading(true);
     setError(null);
     try {
-      const asset = await uploadAssetWithPresigned(file);
+      const asset = await uploadAssetWithPresigned(file, undefined, undefined, ASSET_TYPE.CARD_ARTWORK);
       const url = asset.assets_url;
       if (!url) throw new Error('Upload succeeded but no asset URL returned');
       setArt(url);

@@ -11,6 +11,7 @@ import { stripHtml } from '../helpers/sanitizeHtml'
 import Modal from '../components/Modal'
 import Wysiwyg from '../components/Wysiwyg'
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset'
+import { ASSET_TYPE } from '../helpers/assetTypes'
 import { useToast } from '../hooks/useToast'
 import { useHasPermission } from "../hooks/usePermissions";
 
@@ -90,7 +91,7 @@ const News = () => {
                   if (!f) return
                   setIsUploading(true)
                   try {
-                    const asset = await uploadAssetWithPresigned(f, undefined, undefined)
+                    const asset = await uploadAssetWithPresigned(f, undefined, undefined, ASSET_TYPE.ARTWORK)
                     // avoid state updates if component unmounted
                     if (!isMountedRef.current) return
                     // store both URL for preview and asset id for backend

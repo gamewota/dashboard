@@ -14,6 +14,7 @@ import { useToast } from '../hooks/useToast';
 import Wysiwyg from '../components/Wysiwyg';
 import { useState } from 'react';
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
+import { ASSET_TYPE } from '../helpers/assetTypes';
 import { useHasPermission } from "../hooks/usePermissions";
 
 // using shared sanitizeHtml helper from src/helpers/sanitizeHtml
@@ -88,7 +89,7 @@ const NewsDetail: React.FC = () => {
       const f = input.files?.[0]
       if (!f) return
       try {
-        const asset = await uploadAssetWithPresigned(f, undefined, undefined)
+        const asset = await uploadAssetWithPresigned(f, undefined, undefined, ASSET_TYPE.ARTWORK)
         // store both preview URL and returned asset id so backend can reference the uploaded asset
         setEditForm(s => ({ ...s, header_image: asset.assets_url, asset_id: asset.id }))
         showToast('Header image uploaded', 'success')

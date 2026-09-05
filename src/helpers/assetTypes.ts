@@ -10,6 +10,8 @@ export const ASSET_TYPE = {
   BANNER_ARTWORK: 6,
   BANNER_VIDEO: 7,
   ITEM_ARTWORK: 8,
+  GACHA_BANNER_ARTWORK: 10,
+  GACHA_TRAILER_VIDEO: 11,
 } as const;
 
 export type AssetTypeId = (typeof ASSET_TYPE)[keyof typeof ASSET_TYPE];

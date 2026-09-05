@@ -5,6 +5,12 @@ import { API_BASE_URL } from '../../helpers/constants';
 import type { RootState } from '../../store';
 
 
+export type GachaPackAssetRef = {
+    id: number;
+    url: string;
+    kind?: string | null;
+}
+
 export type GachaPack = {
     id: number;
     name: string;
@@ -13,6 +19,8 @@ export type GachaPack = {
     currency_name?: string;
     item_id?: number;
     item_name?: string;
+    bannerAsset?: GachaPackAssetRef | null;
+    trailerAsset?: GachaPackAssetRef | null;
 }
 
 export type GachaPackDetail = {
@@ -76,6 +84,21 @@ export const createGachaPack = createAsyncThunk<GachaPack, GachaPackPayload>('ga
     return response.data;
 })
 
+export type UpdateGachaPackPayload = {
+    id: number;
+    // Key-art slot ids. The backend PATCH support ships with the sibling
+    // gacha-pack-key-art change; the payload TYPE is extended locally so the
+    // dashboard UI compiles against the existing API shape.
+    banner_asset_id?: number | null;
+    trailer_asset_id?: number | null;
+}
+
+export const updateGachaPack = createAsyncThunk<GachaPack, UpdateGachaPackPayload>('gachaPacks/updateGachaPack', async (payload: UpdateGachaPackPayload) => {
+    const { id, ...body } = payload;
+    const response = await axios.patch(`${API_BASE_URL}/gacha/prices/${id}`, body, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+    return response.data;
+})
+
 const gachaPackSlice = createSlice({
     name: 'gachaPacks',
     initialState,
@@ -117,6 +140,15 @@ const gachaPackSlice = createSlice({
             .addCase(fetchGachaPacksDetail.rejected, (state, action) => {
                 state.detailsLoading = false;
                 state.error = action.error.message || 'Failed to fetch gacha pack details';
+            })
+            .addCase(updateGachaPack.pending, (state) => {
+                state.error = null;
+            })
+            .addCase(updateGachaPack.fulfilled, (state, action) => {
+                state.pack = action.payload;
+            })
+            .addCase(updateGachaPack.rejected, (state, action) => {
+                state.error = action.error.message || 'Failed to update gacha pack';
             });
     }
 })

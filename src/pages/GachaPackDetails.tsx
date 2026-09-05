@@ -1,8 +1,10 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import Container from '../components/Container';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGachaPacksDetail, fetchGachaPackById } from '../features/cards/gachaPackSlice';
+import { fetchGachaPacksDetail, fetchGachaPackById, updateGachaPack } from '../features/cards/gachaPackSlice';
+import { fetchAssetTypes } from '../features/assetTypes/assetTypeSlice';
 import { fetchCards } from '../features/cards/cardSlice';
 import { addGachaPackCard } from '../features/cards/gachaPackCardSlice';
 import { Button } from '../components/Button';
@@ -11,8 +13,221 @@ import { useToast } from '../hooks/useToast';
 import type { RootState, AppDispatch } from '../store';
 import { DataTable } from '../components/DataTable';
 import { LoadingFallback } from '../components/LoadingFallback';
-import type { GachaPackDetail as GachaPackDetailType } from '../features/cards/gachaPackSlice';
+import type { GachaPackDetail as GachaPackDetailType, GachaPack as GachaPackType } from '../features/cards/gachaPackSlice';
+import type { AssetType } from '../lib/schemas/assetType';
+import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
+import { ASSET_TYPE } from '../helpers/assetTypes';
 import { ErrorBoundary } from 'react-error-boundary';
+
+type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type ToastFn = (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+
+function isVideoUrl(url: string | null | undefined, kind?: string | null): boolean {
+  if (kind) return kind === 'video';
+  if (!url) return false;
+  return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
+}
+
+function SlotPreview({ url, kind }: { url: string | null | undefined; kind?: string | null }) {
+  if (!url) return <div className="text-sm text-base-content/50">None</div>;
+  if (isVideoUrl(url, kind)) {
+    return <video src={url} controls className="max-h-40 rounded" />;
+  }
+  return <img src={url} alt="Slot preview" className="max-h-40 rounded" />;
+}
+
+type AssetPickerModalProps = {
+  isOpen: boolean;
+  title: string;
+  kinds: readonly string[];
+  onPick: (assetId: number) => void;
+  onClose: () => void;
+};
+
+function AssetPickerModal({ isOpen, title, kinds, onPick, onClose }: AssetPickerModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const assetTypes = useSelector((state: RootState) => state.assetTypes.data);
+  const [selected, setSelected] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isOpen && assetTypes.length === 0) {
+      void dispatch(fetchAssetTypes());
+    }
+  }, [dispatch, isOpen, assetTypes.length]);
+
+  const eligible = assetTypes.filter((t: AssetType) => t.kind !== null && kinds.includes(t.kind));
+
+  return (
+    <Modal title={title} isOpen={isOpen} onClose={onClose} footer={(
+      <>
+        <Button variant='ghost' onClick={onClose}>Cancel</Button>
+        <Button
+          disabled={selected === null}
+          onClick={() => { if (selected !== null) { onPick(selected); setSelected(null); } }}
+        >Confirm</Button>
+      </>
+    )}>
+      <div className="border rounded p-2 max-h-64 overflow-y-auto">
+        {eligible.length === 0 && <div className="text-sm text-base-content/50">No asset types match the required kind.</div>}
+        {eligible.map((t) => (
+          <label key={t.id} className='flex items-center gap-2 py-1'>
+            <input
+              type='radio'
+              name='asset-type-option'
+              className='radio'
+              checked={selected === t.id}
+              onChange={() => setSelected(t.id)}
+            />
+            <span>{t.name} <span className="text-xs text-base-content/50">#{t.id} · {t.kind}</span></span>
+          </label>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
+type SlotUploaderProps = {
+  label: string;
+  accept: string;
+  slot: 'banner' | 'trailer';
+  currentUrl: string | null | undefined;
+  currentKind?: string | null;
+  showToast: ToastFn;
+  onPickAsset: (assetId: number) => Promise<void>;
+  onClear: () => Promise<void>;
+  pickerKinds: readonly string[];
+  pickerTitle: string;
+};
+
+function SlotUploader({ label, accept, slot, currentUrl, currentKind, showToast, onPickAsset, onClear, pickerKinds, pickerTitle }: SlotUploaderProps) {
+  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    let assetTypeId: number;
+    if (file.type.startsWith('image/')) {
+      assetTypeId = ASSET_TYPE.GACHA_BANNER_ARTWORK;
+    } else if (file.type.startsWith('video/')) {
+      if (slot === 'banner') {
+        showToast('Banner slot only accepts images', 'error');
+        return;
+      }
+      assetTypeId = ASSET_TYPE.GACHA_TRAILER_VIDEO;
+    } else {
+      showToast('Unsupported file type', 'error');
+      return;
+    }
+    setStatus('uploading');
+    try {
+      const asset = await uploadAssetWithPresigned(file, undefined, undefined, assetTypeId);
+      await onPickAsset(asset.id);
+      setStatus('success');
+      showToast(`${label} updated`, 'success');
+    } catch (err: unknown) {
+      setStatus('error');
+      if (axios.isAxiosError(err)) {
+        showToast(err.response?.data?.message || `${label} upload failed`, 'error');
+      } else if (err instanceof Error) {
+        showToast(err.message, 'error');
+      } else {
+        showToast(`${label} upload failed`, 'error');
+      }
+    }
+  };
+
+  return (
+    <div className='mb-6 border rounded p-4'>
+      <div className='font-semibold mb-2'>{label}</div>
+      <div className='flex items-start gap-4'>
+        <div className='flex-1'>
+          <SlotPreview url={currentUrl} kind={currentKind} />
+        </div>
+        <div className='flex flex-col gap-2 items-stretch'>
+          <label className='flex flex-col'>
+            <span className='text-sm'>Upload new</span>
+            <input
+              type='file'
+              accept={accept}
+              className='file-input file-input-bordered file-input-sm my-1'
+              disabled={status === 'uploading'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                void handleFile(file);
+              }}
+            />
+          </label>
+          <Button size='sm' variant='info' onClick={() => setIsPickerOpen(true)}>Pick existing asset</Button>
+          <Button size='sm' variant='error' disabled={currentUrl == null || status === 'uploading'} onClick={() => { void onClear(); }}>Clear</Button>
+          {status === 'uploading' && <span className='text-sm text-base-content/60'>Uploading…</span>}
+        </div>
+      </div>
+      <AssetPickerModal
+        isOpen={isPickerOpen}
+        title={pickerTitle}
+        kinds={pickerKinds}
+        onClose={() => setIsPickerOpen(false)}
+        onPick={(assetId) => { setIsPickerOpen(false); void onPickAsset(assetId); }}
+      />
+    </div>
+  );
+}
+
+function PackKeyArt({ packId, pack, showToast }: { packId: number; pack: GachaPackType; showToast: ToastFn }) {
+  const dispatch = useDispatch<AppDispatch>();
+
+  if (pack.bannerAsset == null && pack.trailerAsset == null) return null;
+
+  const patchSlot = async (field: 'banner_asset_id' | 'trailer_asset_id', value: number | null) => {
+    try {
+      if (field === 'banner_asset_id') {
+        await dispatch(updateGachaPack({ id: packId, banner_asset_id: value })).unwrap();
+      } else {
+        await dispatch(updateGachaPack({ id: packId, trailer_asset_id: value })).unwrap();
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        showToast(err.response?.data?.message || 'Failed to update gacha pack', 'error');
+      } else if (err instanceof Error) {
+        showToast(err.message, 'error');
+      } else {
+        showToast('Failed to update gacha pack', 'error');
+      }
+    }
+  };
+
+  return (
+    <section className='mb-6'>
+      <h2 className='font-bold text-lg mb-2'>Pack Key Art</h2>
+      <SlotUploader
+        label='Banner'
+        accept='image/*'
+        slot='banner'
+        currentUrl={pack.bannerAsset?.url ?? null}
+        currentKind='image'
+        showToast={showToast}
+        pickerKinds={['image']}
+        pickerTitle='Pick banner image asset'
+        onPickAsset={(assetId) => patchSlot('banner_asset_id', assetId)}
+        onClear={() => patchSlot('banner_asset_id', null)}
+      />
+      <SlotUploader
+        label='Trailer'
+        accept='image/*,video/*'
+        slot='trailer'
+        currentUrl={pack.trailerAsset?.url ?? null}
+        currentKind={pack.trailerAsset?.kind ?? null}
+        showToast={showToast}
+        pickerKinds={['image', 'video']}
+        pickerTitle='Pick trailer asset (image or video)'
+        onPickAsset={(assetId) => patchSlot('trailer_asset_id', assetId)}
+        onClear={() => patchSlot('trailer_asset_id', null)}
+      />
+    </section>
+  );
+}
+
 
 
 
@@ -91,6 +306,9 @@ const GachaPackDetails = () => {
             <Button onClick={() => setIsAddOpen(true)}>Add Cards</Button>
           </div>
         </div>
+        {gachaPack && (
+          <PackKeyArt packId={gachaPack.id} pack={gachaPack} showToast={showToast} />
+        )}
         <GachaPackDetailTable packs={gachaPackDetails} />
         <Modal
           title="Add Cards to Gacha Pack"

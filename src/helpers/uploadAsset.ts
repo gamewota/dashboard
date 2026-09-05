@@ -20,14 +20,18 @@ export type PresignedResp = {
  * - PUT the file to the returned presignedUrl
  * - return the created asset object from the server response
  *
- * Assumptions: server accepts { filename } in the generate-url body and
- * returns { presignedUrl, asset } as described in the repo conversation.
+ * Assumptions: server accepts { filename, contentType, asset_type_id } in the
+ * generate-url body and returns { presignedUrl, asset } as described in the repo
+ * conversation.
+ *
+ * Callers MUST pass an explicit ASSET_TYPE constant (from helpers/assetTypes.ts)
+ * as the asset_type_id — there is no default, so TypeScript enforces this.
  */
 export async function uploadAssetWithPresigned(
   file: Blob | File,
-  filename?: string,
-  contentType?: string,
-  asset_type_id: number = -1
+  filename: string | undefined,
+  contentType: string | undefined,
+  asset_type_id: number
 ) {
   const inferredName = file instanceof File ? file.name : `upload-${Date.now()}`;
   const name = filename || inferredName;

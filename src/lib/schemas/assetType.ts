@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const AssetTypeSchema = z.object({
   id: z.number(),
   name: z.string(),
+  kind: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
   deleted_at: z.string().nullable().optional(),
