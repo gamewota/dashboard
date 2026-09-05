@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast';
 import { Button } from '../components/Button';
 import type { Banner, BannerPayload } from '../lib/schemas/banner';
 import { uploadAssetWithPresigned } from '../helpers/uploadAsset';
+import { ASSET_TYPE } from '../helpers/assetTypes';
 import {
   createBanner,
   fetchBanners,
@@ -126,7 +127,7 @@ const Banners = () => {
         setIsUploadingEdit(true);
       }
       try {
-        const asset = await uploadAssetWithPresigned(f, undefined, undefined);
+        const asset = await uploadAssetWithPresigned(f, undefined, undefined, ASSET_TYPE.BANNER_ARTWORK);
         if (!isMountedRef.current) return;
         if (type === 'create') {
           setAssetPreviewCreate(asset.assets_url);
