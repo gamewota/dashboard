@@ -5,7 +5,7 @@ export const AssetTypeSchema = z.object({
   name: z.string(),
   kind: z.string().nullable(),
   created_at: z.string(),
-  updated_at: z.string(),
+  updated_at: z.string().nullable(),
   deleted_at: z.string().nullable().optional(),
 });
 

@@ -86,16 +86,20 @@ export const createGachaPack = createAsyncThunk<GachaPack, GachaPackPayload>('ga
 
 export type UpdateGachaPackPayload = {
     id: number;
-    // Key-art slot ids. The backend PATCH support ships with the sibling
-    // gacha-pack-key-art change; the payload TYPE is extended locally so the
-    // dashboard UI compiles against the existing API shape.
-    banner_asset_id?: number | null;
-    trailer_asset_id?: number | null;
+    // Key-art slot ids. Wire format (backend/src/routers/gacha.router.ts +
+    // controllers/gachaController.ts updateGachaPackPriceEndpoint):
+    // PATCH /gacha/gacha-pack/:gachaPackId with camelCase, nullable fields.
+    // Fields left `undefined` are omitted so the backend does not clear them.
+    bannerAssetId?: number | null;
+    trailerAssetId?: number | null;
 }
 
 export const updateGachaPack = createAsyncThunk<GachaPack, UpdateGachaPackPayload>('gachaPacks/updateGachaPack', async (payload: UpdateGachaPackPayload) => {
-    const { id, ...body } = payload;
-    const response = await axios.patch(`${API_BASE_URL}/gacha/prices/${id}`, body, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
+    const { id, bannerAssetId, trailerAssetId } = payload;
+    const body: { bannerAssetId?: number | null; trailerAssetId?: number | null } = {};
+    if (bannerAssetId !== undefined) body.bannerAssetId = bannerAssetId;
+    if (trailerAssetId !== undefined) body.trailerAssetId = trailerAssetId;
+    const response = await axios.patch(`${API_BASE_URL}/gacha/gacha-pack/${id}`, body, { headers: { ...getAuthHeader(), 'Content-Type': 'application/json' } });
     return response.data;
 })
 
